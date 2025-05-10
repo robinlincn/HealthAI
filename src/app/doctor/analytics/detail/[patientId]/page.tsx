@@ -117,8 +117,10 @@ export default function PatientAnalyticsDetailPage() {
           </CardHeader>
           <CardContent>
             <p>无法加载ID为 {patientId} 的病人病情分析信息。</p>
-            <Button variant="link" className="mt-4" onClick={() => router.push('/doctor/analytics')}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表
+            <Button variant="link" className="mt-4" asChild>
+              <Link href="/doctor/analytics" className="inline-flex items-center">
+                <ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -129,8 +131,10 @@ export default function PatientAnalyticsDetailPage() {
   return (
     <div className="space-y-6 p-1 md:p-4">
       <div className="flex justify-between items-center mb-4">
-        <Button variant="outline" onClick={() => router.push('/doctor/analytics')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表
+        <Button variant="outline" onClick={() => router.push('/doctor/analytics')} >
+          <span className="inline-flex items-center">
+            <ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表
+          </span>
         </Button>
         <h1 className="text-xl md:text-2xl font-semibold flex items-center">
           <UserCircle className="mr-2 h-6 w-6 md:h-7 md:w-7 text-primary" />
