@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import React from "react";
 
+const doctorAppTitle = "AI慢病管理系统-医生端";
+
 // Inner component to ensure useSidebar is called within SidebarProvider's context
 function DoctorLayoutContent({ children }: { children: React.ReactNode }) {
   const { setOpenMobile, isMobile } = useSidebar();
@@ -32,7 +34,7 @@ function DoctorLayoutContent({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen w-full bg-muted/40">
       <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader>
-          <AppLogo href="/doctor" />
+          <AppLogo href="/doctor" title={doctorAppTitle} />
         </SidebarHeader>
         <SidebarContent className="flex-1 p-2">
           <SidebarNav items={doctorNavLinks} onLinkClick={handleLinkClick} />
@@ -45,7 +47,7 @@ function DoctorLayoutContent({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <div className="flex flex-1 flex-col sm:gap-4 sm:py-4">
-        <Header logoHref="/doctor" />
+        <Header logoHref="/doctor" logoTitle={doctorAppTitle} />
         <SidebarInset>
           <main className="flex-1 p-4 sm:px-6 sm:py-0 md:p-6 bg-background">
             {children}

@@ -7,9 +7,10 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 interface HeaderProps {
   className?: string;
   logoHref?: string;
+  logoTitle?: string;
 }
 
-export function Header({ className, logoHref }: HeaderProps) {
+export function Header({ className, logoHref, logoTitle }: HeaderProps) {
   return (
     <header
       className={cn(
@@ -21,13 +22,13 @@ export function Header({ className, logoHref }: HeaderProps) {
         <div className="flex items-center space-x-2">
           <SidebarTrigger className="md:hidden" /> {/* Only show on mobile */}
           <div className="hidden md:block"> {/* Hide AppLogo on mobile if SidebarTrigger is shown */}
-            <AppLogo href={logoHref} />
+            <AppLogo href={logoHref} title={logoTitle} />
           </div>
         </div>
         
         {/* AppLogo for mobile when sidebar is not triggered */}
         <div className="md:hidden flex-1 flex justify-center">
-            <AppLogo href={logoHref} />
+            <AppLogo href={logoHref} title={logoTitle} />
         </div>
 
         <div className="flex items-center space-x-4">
