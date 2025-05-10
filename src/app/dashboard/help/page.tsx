@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, BookUser, MessageSquareQuestion, Phone } from "lucide-react";
+import { HelpCircle, BookUser, MessageSquareQuote, Phone } from "lucide-react"; // Changed MessageSquareQuestion to MessageSquareQuote
 
 const faqItems = [
   {
@@ -52,7 +52,7 @@ export default function HelpPage() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center"><MessageSquareQuestion className="mr-2 h-5 w-5 text-muted-foreground"/>常见问题 (FAQ)</CardTitle>
+            <CardTitle className="flex items-center"><MessageSquareQuote className="mr-2 h-5 w-5 text-muted-foreground"/>常见问题 (FAQ)</CardTitle>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
