@@ -1,10 +1,11 @@
-"use client"; // Added to make this a Client Component
+
+"use client"; 
 
 import { BentoGrid, BentoGridItem } from "@/components/dashboard/BentoGrid";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { navLinks } from "@/lib/nav-links";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, BellRing, Activity } from "lucide-react";
+import { BarChart as BarChartIcon, BellRing, Activity } from "lucide-react"; // Aliased Lucide BarChart
 import {
   ChartContainer,
   ChartTooltip,
@@ -12,7 +13,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart as RechartsBarChart } from "recharts" // Imported Recharts BarChart and aliased
 
 const chartData = [
   { month: "一月", desktop: 186, mobile: 80 },
@@ -36,7 +37,7 @@ const chartConfig = {
 
 
 export default function DashboardPage() {
-  const bentoItems = navLinks.filter(link => link.href !== '/dashboard').slice(0, 6); // Get up to 6 items, excluding dashboard itself
+  const bentoItems = navLinks.filter(link => link.href !== '/dashboard').slice(0, 6); 
 
   return (
     <div className="space-y-6">
@@ -52,8 +53,7 @@ export default function DashboardPage() {
             description={`管理您的${item.title}和相关健康数据。`}
             className={idx === 0 || idx === 4 ? "md:col-span-1" : idx === 3 ? "md:col-span-2 md:row-span-1" : "md:col-span-1"}
           >
-            {/* You can add specific content for each bento item here if needed */}
-             {idx === 0 && ( // Example for first item to show some specific content
+             {idx === 0 && ( 
               <div className="flex items-center justify-center h-full text-muted-foreground/50">
                 <item.icon className="w-16 h-16" />
               </div>
@@ -61,12 +61,12 @@ export default function DashboardPage() {
           </BentoGridItem>
         ))}
 
-        {/* Example of a larger bento item, e.g. a chart */}
         <Card className="md:col-span-3 p-4 rounded-xl shadow-input bg-card border-border">
           <h3 className="text-lg font-semibold mb-2 text-card-foreground">健康指标概览</h3>
            <ChartContainer config={chartConfig} className="min-h-[200px] w-full aspect-video">
             <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData} accessibilityLayer>
+            {/* Use RechartsBarChart here */}
+            <RechartsBarChart data={chartData} accessibilityLayer> 
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="month"
@@ -80,7 +80,7 @@ export default function DashboardPage() {
               <ChartLegend content={<ChartLegendContent />} />
               <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
               <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-            </BarChart>
+            </RechartsBarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </Card>
@@ -115,7 +115,8 @@ export default function DashboardPage() {
          <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">自定义指标</CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
+            {/* Use BarChartIcon (from lucide-react) here */}
+            <BarChartIcon className="h-4 w-4 text-muted-foreground" /> 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">73.5%</div>

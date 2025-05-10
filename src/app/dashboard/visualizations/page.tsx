@@ -1,5 +1,8 @@
+
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart as LineChartIcon } from "lucide-react"; // Renamed to avoid conflict with Recharts component
+import { LineChart as LineChartIcon } from "lucide-react"; 
 import {
   ChartContainer,
   ChartTooltip,
