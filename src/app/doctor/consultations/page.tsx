@@ -6,48 +6,100 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessagesSquare, Reply, Image as ImageIcon, Video, Filter, Search, MessageCircleQuestion } from "lucide-react";
-import { useState } from "react";
+import { MessagesSquare, Reply, Image as ImageIcon, Video, Filter, Search, MessageCircleQuestion, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock data
-const mockConsultations = [
-  { id: "con001", patientName: "王五", patientId: "pat003", question: "医生您好，我最近感觉有点头晕，血压量了是145/95，需要调整降压药吗？", date: "2024-05-14 10:30", status: "待回复", doctorReply: "" },
-  { id: "con002", patientName: "李四", patientId: "pat002", question: "请问我上次开的药吃完了，可以直接续方吗？", date: "2024-05-13 15:00", status: "已回复", doctorReply: "李女士您好，根据您的情况，可以继续按原剂量服用。请注意监测，如有不适随时线上或线下复诊。" },
-  { id: "con003", patientName: "张三", patientId: "pat001", question: "这是我今天的血糖记录图片，麻烦您看一下。", date: "2024-05-12 09:00", status: "已回复", doctorReply: "张先生，血糖控制还可以，请继续保持。餐后血糖略高，注意饮食结构。", attachments: [{type: 'image', name: '血糖记录.jpg'}] },
-];
+import type { Consultation } from "@/lib/types";
+import { db, serverTimestamp, Timestamp as FirestoreTimestamp } from "@/lib/firebase";
+import { collection, query, orderBy, getDocs, doc, updateDoc } from "firebase/firestore";
+import { format } from "date-fns";
 
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [selectedConsultationId, setSelectedConsultationId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isReplying, setIsReplying] = useState(false);
 
-  const filteredConsultations = mockConsultations.filter(consult => 
-    (consult.patientName.includes(searchTerm) || consult.question.includes(searchTerm)) &&
+  useEffect(() => {
+    const fetchConsultations = async () => {
+      setIsLoading(true);
+      try {
+        // For now, fetch all. In a real app, filter by doctorId or team.
+        const q = query(collection(db, "consultations"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        const fetchedConsultations: Consultation[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          fetchedConsultations.push({
+            ...data,
+            id: doc.id,
+            timestamp: (data.timestamp as FirestoreTimestamp).toDate(),
+            doctorReplyTimestamp: data.doctorReplyTimestamp ? (data.doctorReplyTimestamp as FirestoreTimestamp).toDate() : undefined,
+          } as Consultation);
+        });
+        setConsultations(fetchedConsultations);
+      } catch (error) {
+        console.error("Error fetching consultations:", error);
+        toast({ title: "获取咨询列表失败", description: "请稍后重试。", variant: "destructive" });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchConsultations();
+  }, [toast]);
+
+  const filteredConsultations = consultations.filter(consult => 
+    (consult.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || consult.question.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (filterStatus === "all" || consult.status === filterStatus)
   );
 
   const selectedConsultation = filteredConsultations.find(c => c.id === selectedConsultationId);
 
-  const handleSendReply = () => {
+  useEffect(() => {
+    // When selectedConsultation changes, prefill replyContent if there's an existing reply
+    if (selectedConsultation && selectedConsultation.reply) {
+        setReplyContent(selectedConsultation.reply);
+    } else {
+        setReplyContent(""); // Clear for new reply
+    }
+  }, [selectedConsultation]);
+
+
+  const handleSendReply = async () => {
     if (!selectedConsultationId || !replyContent.trim()) {
         toast({ title: "请输入回复内容", variant: "destructive" });
         return;
     }
-    // Mock send reply
-    console.log("Replying to:", selectedConsultationId, "with:", replyContent);
-    toast({ title: "回复已发送 (模拟)"});
-    // Update mock data (in a real app, this would be an API call)
-    const index = mockConsultations.findIndex(c => c.id === selectedConsultationId);
-    if (index !== -1) {
-        mockConsultations[index].status = "已回复";
-        mockConsultations[index].doctorReply = replyContent;
+    setIsReplying(true);
+    try {
+      const consultationRef = doc(db, "consultations", selectedConsultationId);
+      await updateDoc(consultationRef, {
+        reply: replyContent,
+        status: "replied",
+        doctorReplyTimestamp: serverTimestamp(),
+        // In a real app, also assign doctorId if not already assigned
+      });
+
+      // Update local state
+      setConsultations(prev => prev.map(c => 
+        c.id === selectedConsultationId 
+        ? { ...c, reply: replyContent, status: "replied", doctorReplyTimestamp: new Date() } 
+        : c
+      ));
+      
+      toast({ title: "回复已发送"});
+      // Keep reply content for potential edits, or clear: setReplyContent("");
+    } catch (error) {
+        console.error("Error sending reply:", error);
+        toast({ title: "回复发送失败", variant: "destructive" });
+    } finally {
+        setIsReplying(false);
     }
-    setReplyContent("");
-    // setSelectedConsultationId(null); // Optionally close reply section or re-fetch
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -64,7 +116,6 @@ export default function DoctorConsultationsPage() {
       </Card>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Consultation List */}
         <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle className="text-lg">咨询列表</CardTitle>
@@ -80,15 +131,21 @@ export default function DoctorConsultationsPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">全部状态</SelectItem>
-                        <SelectItem value="待回复">待回复</SelectItem>
-                        <SelectItem value="已回复">已回复</SelectItem>
+                        <SelectItem value="pending_reply">待回复</SelectItem>
+                        <SelectItem value="replied">已回复</SelectItem>
+                        <SelectItem value="closed">已关闭</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
           </CardHeader>
-          <CardContent className="p-0 max-h-[600px] overflow-y-auto">
-            {filteredConsultations.length > 0 ? (
-                filteredConsultations.map(consult => (
+          <CardContent className="p-0">
+            {isLoading ? (
+                <div className="flex justify-center items-center h-[200px]">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ): filteredConsultations.length > 0 ? (
+              <ScrollArea className="h-[600px]">
+                {filteredConsultations.map(consult => (
                     <div 
                         key={consult.id} 
                         className={`p-3 border-b cursor-pointer hover:bg-muted/50 ${selectedConsultationId === consult.id ? 'bg-muted' : ''}`}
@@ -96,21 +153,23 @@ export default function DoctorConsultationsPage() {
                     >
                         <div className="flex justify-between items-center">
                             <span className="font-semibold text-sm">{consult.patientName}</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${consult.status === '待回复' ? 'bg-destructive/20 text-destructive' : 'bg-green-100 text-green-700'}`}>
-                                {consult.status}
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${consult.status === 'pending_reply' ? 'bg-yellow-200 text-yellow-800' : (consult.status === 'replied' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')}`}>
+                                {consult.status === 'pending_reply' ? '待回复' : (consult.status === 'replied' ? '已回复' : '已关闭')}
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground truncate mt-0.5">{consult.question}</p>
-                        <p className="text-xs text-muted-foreground text-right">{consult.date}</p>
+                        <p className="text-xs text-muted-foreground text-right">
+                            {consult.timestamp instanceof Date ? format(consult.timestamp, "yyyy-MM-dd HH:mm") : 'N/A'}
+                        </p>
                     </div>
-                ))
+                ))}
+              </ScrollArea>
             ) : (
                  <p className="p-4 text-sm text-muted-foreground text-center">无匹配的咨询记录。</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Consultation Detail & Reply */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">咨询详情与回复</CardTitle>
@@ -119,51 +178,61 @@ export default function DoctorConsultationsPage() {
             {selectedConsultation ? (
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold">病人: {selectedConsultation.patientName}</h4>
-                  <p className="text-sm text-muted-foreground">时间: {selectedConsultation.date}</p>
+                  <h4 className="font-semibold">病人: {selectedConsultation.patientName} ({selectedConsultation.patientId})</h4>
+                  <p className="text-sm text-muted-foreground">时间: {selectedConsultation.timestamp instanceof Date ? format(selectedConsultation.timestamp, "yyyy-MM-dd HH:mm") : 'N/A'}</p>
                 </div>
-                <div className="p-3 border rounded-md bg-background">
+                <div className="p-3 border rounded-md bg-background max-h-60 overflow-y-auto">
                   <p className="text-sm whitespace-pre-wrap">{selectedConsultation.question}</p>
-                  {selectedConsultation.attachments && (
+                  {selectedConsultation.attachments && selectedConsultation.attachments.length > 0 && (
                     <div className="mt-2">
                         <p className="text-xs font-medium">附件:</p>
-                        {/* Basic attachment display */}
                         {selectedConsultation.attachments.map((att, idx) => (
-                            <span key={idx} className="text-xs text-blue-600 hover:underline cursor-pointer">
-                                {att.type === 'image' && <ImageIcon className="inline mr-1 h-3 w-3"/>} {att.name}
+                             <span key={idx} className="mr-2 p-1 bg-muted rounded text-muted-foreground text-xs">
+                                {att.type === 'image' && <ImageIcon className="inline h-3 w-3 mr-1"/>}
+                                {att.type === 'video' && <Video className="inline h-3 w-3 mr-1"/>}
+                                {att.name}
                             </span>
                         ))}
                     </div>
                   )}
                 </div>
 
-                {selectedConsultation.doctorReply && (
-                     <div className="p-3 border rounded-md bg-primary/10">
+                {selectedConsultation.reply && (
+                     <div className="p-3 border rounded-md bg-primary/10 max-h-60 overflow-y-auto">
                         <h5 className="text-sm font-semibold text-primary mb-1">您的回复:</h5>
-                        <p className="text-sm whitespace-pre-wrap">{selectedConsultation.doctorReply}</p>
+                        <p className="text-sm whitespace-pre-wrap">{selectedConsultation.reply}</p>
+                        {selectedConsultation.doctorReplyTimestamp && (
+                             <p className="text-xs text-primary/70 text-right mt-1">
+                                回复于: {selectedConsultation.doctorReplyTimestamp instanceof Date ? format(selectedConsultation.doctorReplyTimestamp, "yyyy-MM-dd HH:mm") : 'N/A'}
+                            </p>
+                        )}
                     </div>
                 )}
 
-                {selectedConsultation.status === "待回复" || selectedConsultation.doctorReply ? (
-                    <div className="space-y-2 pt-2">
-                        <Textarea 
-                            placeholder="输入您的回复..." 
-                            rows={4} 
-                            value={replyContent}
-                            onChange={e => setReplyContent(e.target.value)}
-                        />
+                <div className="space-y-2 pt-2">
+                    <Label htmlFor="replyTextarea">回复内容</Label>
+                    <Textarea 
+                        id="replyTextarea"
+                        placeholder="输入您的回复..." 
+                        rows={selectedConsultation.status === 'closed' ? 2 : 4}
+                        value={replyContent}
+                        onChange={e => setReplyContent(e.target.value)}
+                        disabled={isReplying || selectedConsultation.status === 'closed'}
+                    />
+                    {selectedConsultation.status !== 'closed' && (
                         <div className="flex justify-between items-center">
                             <div className="flex space-x-2">
                                 <Button variant="outline" size="sm" disabled><ImageIcon className="mr-1 h-4 w-4"/> 图片</Button>
                                 <Button variant="outline" size="sm" disabled><Video className="mr-1 h-4 w-4"/> 视频</Button>
                             </div>
-                            <Button onClick={handleSendReply}>
-                                <Reply className="mr-2 h-4 w-4" /> {selectedConsultation.doctorReply ? "更新回复" : "发送回复"}
+                            <Button onClick={handleSendReply} disabled={isReplying}>
+                                {isReplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Reply className="mr-2 h-4 w-4" />}
+                                {isReplying ? "发送中..." : (selectedConsultation.status === 'replied' ? "更新回复" : "发送回复")}
                             </Button>
                         </div>
-                    </div>
-                ) : null}
-                <p className="text-xs text-muted-foreground text-center pt-2">支持文字、图片、视频等多种回复方式 (功能建设中)。</p>
+                    )}
+                </div>
+                <p className="text-xs text-muted-foreground text-center pt-2">支持文字、图片、视频等多种回复方式 (功能建设中)。咨询关闭后无法回复。</p>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -177,3 +246,4 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
+

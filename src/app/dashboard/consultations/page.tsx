@@ -7,31 +7,57 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, ListCollapse, FileImage, Video } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { MessageSquare, Send, ListCollapse, FileImage, Video, Loader2 } from "lucide-react";
+import { useState, type FormEvent, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { Consultation } from "@/lib/types";
+import { db, serverTimestamp, Timestamp } from "@/lib/firebase";
+import { collection, addDoc, query, where, orderBy, getDocs, Timestamp as FirestoreTimestamp } from "firebase/firestore";
+import { format } from "date-fns";
 
-interface ConsultationEntry {
-  id: string;
-  doctorName: string; // In a real app, this might be selected or assigned
-  date: string;
-  question: string;
-  status: 'pending_reply' | 'replied' | 'closed';
-  reply?: string;
-  attachments?: { name: string, type: 'image' | 'video' | 'document' }[];
-}
-
-const mockConsultations: ConsultationEntry[] = [
-  { id: "cons1", doctorName: "王医生 (内分泌科)", date: "2024-05-18", question: "医生您好，我最近血糖有点波动，附上近三天的血糖记录图片，麻烦您看一下。", status: "replied", reply: "张先生您好，根据您的血糖记录，建议餐后适当增加运动量。如有不适请及时复诊。", attachments: [{name: "血糖记录.jpg", type: "image"}] },
-  { id: "cons2", doctorName: "李医生 (心内科)", date: "2024-05-15", question: "关于上次开的降压药，我感觉有点头晕，是否需要调整？", status: "pending_reply" },
-  { id: "cons3", doctorName: "赵医生 (全科)", date: "2024-05-10", question: "体检报告有些指标看不懂，想咨询一下。", status: "closed", reply: "已电话沟通并解答。" },
-];
+// Mock current patient ID - replace with actual auth user ID in a real app
+const MOCK_PATIENT_ID = "patientUser123";
+const MOCK_PATIENT_NAME = "示例用户"; // Should come from user profile
 
 export default function ConsultationsPage() {
   const { toast } = useToast();
-  const [consultations, setConsultations] = useState<ConsultationEntry[]>(mockConsultations);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [newConsultation, setNewConsultation] = useState({ doctor: "", question: "", files: [] as File[] });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchConsultations = async () => {
+      setIsLoading(true);
+      try {
+        const q = query(
+          collection(db, "consultations"),
+          where("patientId", "==", MOCK_PATIENT_ID),
+          orderBy("timestamp", "desc")
+        );
+        const querySnapshot = await getDocs(q);
+        const fetchedConsultations: Consultation[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          fetchedConsultations.push({
+            ...data,
+            id: doc.id,
+            timestamp: (data.timestamp as FirestoreTimestamp).toDate(),
+            doctorReplyTimestamp: data.doctorReplyTimestamp ? (data.doctorReplyTimestamp as FirestoreTimestamp).toDate() : undefined,
+          } as Consultation);
+        });
+        setConsultations(fetchedConsultations);
+      } catch (error) {
+        console.error("Error fetching consultations:", error);
+        toast({ title: "获取咨询记录失败", description: "请稍后重试。", variant: "destructive" });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchConsultations();
+  }, [toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -39,27 +65,44 @@ export default function ConsultationsPage() {
     }
   };
 
-  const handleInitiateConsultation = (e: FormEvent) => {
+  const handleInitiateConsultation = async (e: FormEvent) => {
     e.preventDefault();
     if (!newConsultation.question.trim()) {
       toast({ title: "请输入您的问题", variant: "destructive" });
       return;
     }
-    // Mock submission
-    const newEntry: ConsultationEntry = {
-      id: `cons${Date.now()}`,
-      doctorName: newConsultation.doctor || "系统分配医生",
-      date: new Date().toISOString().split('T')[0],
-      question: newConsultation.question,
-      status: 'pending_reply',
-      attachments: newConsultation.files.map(f => ({name: f.name, type: f.type.startsWith("image") ? 'image' : (f.type.startsWith("video") ? 'video' : 'document')}))
-    };
-    setConsultations(prev => [newEntry, ...prev]);
-    setNewConsultation({ doctor: "", question: "", files: [] });
-    toast({ title: "咨询已发起 (模拟)", description: "您的咨询请求已发送，请耐心等待医生回复。" });
+    setIsSubmitting(true);
+    try {
+      const consultationData: Omit<Consultation, "id" | "timestamp" | "doctorReplyTimestamp"> & { timestamp: any } = {
+        patientId: MOCK_PATIENT_ID,
+        patientName: MOCK_PATIENT_NAME, // Store patient name for doctor's convenience
+        doctorName: newConsultation.doctor || "系统分配医生",
+        date: format(new Date(), "yyyy-MM-dd"),
+        timestamp: serverTimestamp(),
+        question: newConsultation.question,
+        status: 'pending_reply',
+        attachments: newConsultation.files.map(f => ({
+          name: f.name,
+          type: f.type.startsWith("image") ? 'image' : (f.type.startsWith("video") ? 'video' : 'document')
+          // In a real app, upload file to Firebase Storage and store URL here
+        }))
+      };
+      const docRef = await addDoc(collection(db, "consultations"), consultationData);
+      
+      // Add to local state for immediate UI update
+      setConsultations(prev => [{ ...consultationData, id: docRef.id, timestamp: new Date() } as Consultation, ...prev]);
+
+      setNewConsultation({ doctor: "", question: "", files: [] });
+      toast({ title: "咨询已发起", description: "您的咨询请求已发送，请耐心等待医生回复。" });
+    } catch (error) {
+      console.error("Error initiating consultation:", error);
+      toast({ title: "发起咨询失败", description: "请稍后重试。", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const getStatusBadge = (status: ConsultationEntry['status']) => {
+  const getStatusBadge = (status: Consultation['status']) => {
     switch(status) {
         case 'pending_reply': return <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">待回复</span>;
         case 'replied': return <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">已回复</span>;
@@ -117,6 +160,7 @@ export default function ConsultationsPage() {
                     value={newConsultation.question}
                     onChange={(e) => setNewConsultation(prev => ({...prev, question: e.target.value}))}
                     className="mt-1"
+                    required
                   />
                 </div>
                 <div>
@@ -130,8 +174,9 @@ export default function ConsultationsPage() {
                 </div>
                  <div className="flex justify-between items-center pt-2">
                     <p className="text-sm text-muted-foreground">支持预约视频/电话咨询 (功能建设中)</p>
-                    <Button type="submit">
-                        <Send className="mr-2 h-4 w-4" /> 发送咨询请求
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                         {isSubmitting ? "发送中..." : "发送咨询请求"}
                     </Button>
                  </div>
               </form>
@@ -146,7 +191,11 @@ export default function ConsultationsPage() {
               <CardDescription>查看您过往的在线咨询和医生的回复。</CardDescription>
             </CardHeader>
             <CardContent>
-              {consultations.length > 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center items-center h-[200px]">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : consultations.length > 0 ? (
                 <ScrollArea className="h-[500px] pr-3">
                   <div className="space-y-3">
                     {consultations.map(consult => (
@@ -155,7 +204,9 @@ export default function ConsultationsPage() {
                           <p className="text-sm font-semibold text-primary">咨询医生: {consult.doctorName}</p>
                           {getStatusBadge(consult.status)}
                         </div>
-                        <p className="text-xs text-muted-foreground mb-2">日期: {consult.date}</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          日期: {consult.date} ({consult.timestamp instanceof Date ? format(consult.timestamp, "HH:mm") : 'N/A'})
+                        </p>
                         <p className="text-sm mb-1"><strong>您的问题:</strong> {consult.question}</p>
                         {consult.attachments && consult.attachments.length > 0 && (
                             <div className="text-xs mb-2">
@@ -170,6 +221,11 @@ export default function ConsultationsPage() {
                             </div>
                         )}
                         {consult.reply && <p className="text-sm p-2 bg-muted/50 rounded-md"><strong>医生回复:</strong> {consult.reply}</p>}
+                         {consult.doctorReplyTimestamp && consult.reply && (
+                            <p className="text-xs text-muted-foreground text-right mt-1">
+                                回复于: {consult.doctorReplyTimestamp instanceof Date ? format(consult.doctorReplyTimestamp, "yyyy-MM-dd HH:mm") : 'N/A'}
+                            </p>
+                        )}
                       </Card>
                     ))}
                   </div>
