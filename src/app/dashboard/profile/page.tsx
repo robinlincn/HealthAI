@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const mockUser = {
   name: "王小宝",
@@ -61,6 +62,13 @@ const profileLinks = [
 ];
 
 export default function ProfilePage() {
+  const router = useRouter(); // Initialize useRouter
+
+  const handleLogout = () => {
+    // In a real app, you'd clear session, tokens, etc.
+    router.push("/auth/login");
+  };
+
   return (
     <div className="space-y-4 pb-4">
       {/* Top Banner Section */}
@@ -149,7 +157,7 @@ export default function ProfilePage() {
           <Button
             variant="ghost"
             className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive font-medium"
-            onClick={() => alert("退出登录功能暂未实现")}
+            onClick={handleLogout} // Updated onClick handler
           >
             <LogOut className="mr-2 h-4 w-4" />
             退出登录
