@@ -57,8 +57,8 @@ export default function DoctorLoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 p-4">
-      <div className="w-full max-w-md">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20">
+      <div className="w-full max-w-md p-4 sm:p-0"> {/* Added padding here for mobile, removed from outer for PC */}
         <Card className="shadow-xl">
           <CardHeader className="space-y-1 text-center p-6">
             <Image 
