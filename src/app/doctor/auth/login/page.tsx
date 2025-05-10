@@ -39,15 +39,19 @@ export default function DoctorLoginPage() {
     <div className="relative flex items-center justify-center min-h-screen w-full">
       <Image
         src="https://picsum.photos/seed/doctorloginbg/1920/1080"
-        alt="Background"
+        alt="医疗背景"
         layout="fill"
         objectFit="cover"
         className="z-0"
         data-ai-hint="office building"
+        priority // Add priority to hint Next.js to load this image faster
       />
+      {/* Added a semi-transparent overlay for better text readability on the form */}
+      <div className="absolute inset-0 bg-black/30 z-0"></div>
+
       <div className="relative z-10 flex w-full max-w-4xl h-[550px] bg-card shadow-2xl rounded-lg overflow-hidden">
         {/* Left Panel */}
-        <div className="w-1/2 bg-[#8DC24E] p-8 text-white flex flex-col justify-center items-center space-y-6">
+        <div className="w-1/2 bg-[#008080] p-8 text-white flex flex-col justify-center items-center space-y-6"> {/* Changed color to match theme's primary */}
           <h2 className="text-3xl font-semibold">欢迎使用</h2>
           <p className="text-xl">AI慢病管理系统-医生端</p>
           <DeviceMockups className="w-full max-w-xs h-auto" />
@@ -59,7 +63,7 @@ export default function DoctorLoginPage() {
             <div className="flex justify-center mb-6">
               <HospitalLogo className="h-16 w-auto" />
             </div>
-            <h2 className="text-2xl font-semibold text-center mb-1">登录</h2>
+            <h2 className="text-2xl font-semibold text-center mb-1 text-primary">登录</h2>
              <p className="text-sm text-muted-foreground text-center mb-6">请输入您的账号和密码</p>
 
             <form onSubmit={handleLogin} className="space-y-5">
@@ -109,7 +113,7 @@ export default function DoctorLoginPage() {
                   忘记密码?
                 </Link>
               </div>
-              <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+              <Button type="submit" className="w-full h-11" disabled={isLoading}> {/* Removed custom blue color, will use theme primary */}
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

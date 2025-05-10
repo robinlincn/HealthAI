@@ -12,9 +12,10 @@ export default function DoctorAuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    // Removed: bg-gradient-to-br from-primary/20 via-background to-accent/20
-    // The login page itself will handle its background (e.g., full-screen image)
-    <div className="flex items-center justify-center min-h-screen">
+    // The login page itself now handles its background (e.g., full-screen image)
+    // This layout ensures children are centered if they don't take full screen,
+    // but the login page will override this for its specific layout.
+    <div className="flex items-center justify-center min-h-screen w-full">
       {children}
     </div>
   );
