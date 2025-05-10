@@ -26,16 +26,16 @@ export default function HomePage() {
             我们利用人工智能，为您提供个性化的慢性病管理方案、健康建议和持续的支持。
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-4"> {/* Increased space-x for better separation */}
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base"> {/* Custom padding and text size for emphasis */}
-              <Link href="/auth/login">病人登录</Link>
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base">
+              <Link href="/auth/login"><span>病人登录</span></Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10 px-8 py-3 text-base">
-              <Link href="/auth/register">病人注册</Link>
+              <Link href="/auth/register"><span>病人注册</span></Link>
             </Button>
           </div>
           <div className="pt-8">
               <Button asChild size="sm" variant="ghost" className="text-muted-foreground hover:text-primary">
-                  <Link href="/doctor/auth/login">医生端入口 &rarr;</Link>
+                  <Link href="/doctor/auth/login"><span>医生端入口 &rarr;</span></Link>
               </Button>
           </div>
         </div>
@@ -48,4 +48,3 @@ export default function HomePage() {
     </div>
   );
 }
-
