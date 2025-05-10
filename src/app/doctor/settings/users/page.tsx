@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UsersCog, UserPlus, Edit2, Trash2, Shield, KeyRound } from "lucide-react";
+import { UserCog, UserPlus, Edit2, Trash2, Shield, KeyRound } from "lucide-react"; // Changed UsersCog to UserCog
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,7 +32,7 @@ export default function DoctorSettingsUsersPage() {
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center">
-            <UsersCog className="mr-3 h-7 w-7 text-primary" />
+            <UserCog className="mr-3 h-7 w-7 text-primary" /> {/* Changed UsersCog to UserCog */}
             用户与权限管理
           </CardTitle>
           <CardDescription>
@@ -100,3 +100,4 @@ export default function DoctorSettingsUsersPage() {
     </div>
   );
 }
+
