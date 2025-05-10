@@ -1,7 +1,9 @@
+"use client"; // Added to make this a Client Component
+
 import { BentoGrid, BentoGridItem } from "@/components/dashboard/BentoGrid";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { navLinks } from "@/lib/nav-links";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, BellRing, Activity } from "lucide-react";
 import {
   ChartContainer,
