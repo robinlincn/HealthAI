@@ -18,7 +18,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart";
-import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, BarChart as RechartsBarChart, Bar, Line as RechartsLine } from "recharts";
+import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart as RechartsLineChart, BarChart as RechartsBarChart, Bar, Line as RechartsLine } from "recharts";
 
 // Mock data fetching function (similar to /doctor/patients/[patientId]/page.tsx)
 const getPatientDetails = (patientId: string) => {
@@ -117,7 +117,7 @@ export default function PatientAnalyticsDetailPage() {
           </CardHeader>
           <CardContent>
             <p>无法加载ID为 {patientId} 的病人病情分析信息。</p>
-            <Button asChild variant="link" className="mt-4" onClick={() => router.push('/doctor/analytics')}>
+            <Button variant="link" className="mt-4" onClick={() => router.push('/doctor/analytics')}>
               <ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表
             </Button>
           </CardContent>
@@ -246,3 +246,4 @@ export default function PatientAnalyticsDetailPage() {
     </div>
   );
 }
+
