@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -125,7 +126,7 @@ export function DataAnalysisGenerator() {
       </Form>
 
       {reportOutput && (
-        <Card className="mt-8 shadow-lg">
+        <Card className="mt-8 shadow-md"> {/* Changed shadow-lg to shadow-md */}
           <CardHeader>
             <CardTitle className="text-xl">{reportOutput.reportTitle}</CardTitle>
           </CardHeader>
@@ -153,3 +154,4 @@ export function DataAnalysisGenerator() {
     </div>
   );
 }
+

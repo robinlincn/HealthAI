@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,7 +76,7 @@ export function EmergencyContacts() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {fields.map((field, index) => (
-          <Card key={field.id} className="relative pt-2">
+          <Card key={field.id} className="relative pt-2 shadow-sm"> {/* Added shadow-sm */}
              <Button
                 type="button"
                 variant="ghost"
@@ -86,7 +87,7 @@ export function EmergencyContacts() {
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">删除联系人</span>
               </Button>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-4"> {/* Added pt-4 to CardContent for better spacing with top button */}
               <FormField
                 control={form.control}
                 name={`contacts.${index}.name`}
@@ -132,7 +133,7 @@ export function EmergencyContacts() {
           </Card>
         ))}
 
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 pt-2"> {/* Added pt-2 for spacing */}
             <Button
             type="button"
             variant="outline"
@@ -146,3 +147,4 @@ export function EmergencyContacts() {
     </Form>
   );
 }
+
