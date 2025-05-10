@@ -1,7 +1,7 @@
 
 "use client";
 
-import { navLinks } from "@/lib/nav-links";
+import { doctorNavLinks } from "@/lib/doctor-nav-links";
 import { AppLogo } from "@/components/layout/AppLogo";
 import { Header } from "@/components/layout/Header";
 import { SidebarNav } from "@/components/layout/SidebarNav";
@@ -19,11 +19,10 @@ import { LogOut } from "lucide-react";
 import React from "react";
 
 // Inner component to ensure useSidebar is called within SidebarProvider's context
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+function DoctorLayoutContent({ children }: { children: React.ReactNode }) {
   const { setOpenMobile, isMobile } = useSidebar();
 
   const handleLinkClick = () => {
-    // Close mobile sidebar on link click only if it's currently open (isMobile implies openMobile controls it)
     if (isMobile && typeof setOpenMobile === 'function') {
       setOpenMobile(false); 
     }
@@ -33,10 +32,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen w-full bg-muted/40">
       <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader>
-          <AppLogo href="/dashboard"/>
+          <AppLogo href="/doctor" />
         </SidebarHeader>
         <SidebarContent className="flex-1 p-2">
-          <SidebarNav items={navLinks} onLinkClick={handleLinkClick} />
+          <SidebarNav items={doctorNavLinks} onLinkClick={handleLinkClick} />
         </SidebarContent>
         <SidebarFooter>
           <Button variant="ghost" className="w-full justify-start group-data-[collapsible=icon]/sidebar-wrapper:justify-center group-data-[collapsible=icon]/sidebar-wrapper:px-2">
@@ -46,7 +45,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <div className="flex flex-1 flex-col sm:gap-4 sm:py-4">
-        <Header logoHref="/dashboard" />
+        <Header logoHref="/doctor" />
         <SidebarInset>
           <main className="flex-1 p-4 sm:px-6 sm:py-0 md:p-6 bg-background">
             {children}
@@ -57,36 +56,41 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function DashboardLayout({
+export default function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // For simplicity, doctor's sidebar defaults to open and doesn't use cookies for now.
+  // Or, ensure a different cookie name if SidebarProvider is enhanced.
+  // For now, it will share the same cookie as user dashboard if SidebarProvider is not modified.
   const [defaultOpen, setDefaultOpen] = React.useState(true);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      // Using a specific cookie name for user dashboard sidebar state
+      // Using a different cookie name for doctor's sidebar state
       const storedState = document.cookie
         .split('; ')
-        .find(row => row.startsWith('user_sidebar_state='))
+        .find(row => row.startsWith('doctor_sidebar_state='))
         ?.split('=')[1];
       if (storedState) {
         setDefaultOpen(storedState === 'true');
       } else {
-         document.cookie = `user_sidebar_state=${defaultOpen}; path=/; max-age=${60 * 60 * 24 * 7}`;
+        // If no cookie, set one
+         document.cookie = `doctor_sidebar_state=${defaultOpen}; path=/; max-age=${60 * 60 * 24 * 7}`;
       }
     }
   }, [defaultOpen]);
-
+  
   const handleOpenChange = (open: boolean) => {
     setDefaultOpen(open);
-    document.cookie = `user_sidebar_state=${open}; path=/; max-age=${60 * 60 * 24 * 7}`;
+    document.cookie = `doctor_sidebar_state=${open}; path=/; max-age=${60 * 60 * 24 * 7}`;
   };
-  
+
+
   return (
     <SidebarProvider defaultOpen={defaultOpen} onOpenChange={handleOpenChange}>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      <DoctorLayoutContent>{children}</DoctorLayoutContent>
     </SidebarProvider>
   );
 }

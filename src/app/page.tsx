@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -9,9 +10,12 @@ export default function HomePage() {
         <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
           我们利用人工智能，为您提供个性化的慢性病管理方案、健康建议和持续的支持。
         </p>
-        <div className="flex justify-center">
+        <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
           <Button asChild size="lg">
-            <Link href="/dashboard">进入仪表盘</Link>
+            <Link href="/dashboard">进入用户仪表盘</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/doctor">进入医生端 (预览)</Link>
           </Button>
         </div>
         <div className="mt-12">

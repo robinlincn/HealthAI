@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { AppLogo } from "./AppLogo";
 import { UserNav } from "./UserNav";
@@ -5,9 +6,10 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface HeaderProps {
   className?: string;
+  logoHref?: string;
 }
 
-export function Header({ className }: HeaderProps) {
+export function Header({ className, logoHref }: HeaderProps) {
   return (
     <header
       className={cn(
@@ -19,13 +21,13 @@ export function Header({ className }: HeaderProps) {
         <div className="flex items-center space-x-2">
           <SidebarTrigger className="md:hidden" /> {/* Only show on mobile */}
           <div className="hidden md:block"> {/* Hide AppLogo on mobile if SidebarTrigger is shown */}
-            <AppLogo />
+            <AppLogo href={logoHref} />
           </div>
         </div>
         
         {/* AppLogo for mobile when sidebar is not triggered */}
         <div className="md:hidden flex-1 flex justify-center">
-            <AppLogo />
+            <AppLogo href={logoHref} />
         </div>
 
         <div className="flex items-center space-x-4">
