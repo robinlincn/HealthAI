@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { navLinks } from "@/lib/nav-links";
-import { ChevronRight, Droplets, HeartPulse, Scale, Footprints } from "lucide-react";
+import { Droplets, HeartPulse, Scale, Footprints } from "lucide-react";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner"; 
 
 export default function DashboardPage() {
@@ -66,13 +66,10 @@ export default function DashboardPage() {
           return (
             <Link href={link.href} key={link.title} legacyBehavior>
               <a className="block">
-                <Card className="hover:bg-muted/50 active:bg-muted/70 transition-colors shadow-xs">
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium">{link.title}</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <Card className="hover:shadow-md active:bg-muted/60 transition-all shadow-sm">
+                  <CardContent className="p-4 flex items-center space-x-4">
+                      <Icon className="h-7 w-7 text-primary flex-shrink-0" />
+                      <span className="text-base font-semibold text-foreground">{link.title}</span>
                   </CardContent>
                 </Card>
               </a>
@@ -83,3 +80,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
