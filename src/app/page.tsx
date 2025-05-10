@@ -1,15 +1,16 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image"; // Import Image
+import Image from "next/image"; 
 
 export default function HomePage() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
       <div className="text-center space-y-6">
-        {/* Placeholder for a more elaborate logo or hero image */}
         <Image 
-          src="https://picsum.photos/seed/applogo/150/150" // Replace with actual logo or relevant image
+          src="https://picsum.photos/seed/applogo/150/150" 
           alt="AI慢病管理系统 Logo" 
           width={120} 
           height={120} 
@@ -35,7 +36,7 @@ export default function HomePage() {
         </div>
       </div>
       <footer className="absolute bottom-6 text-center text-xs text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} AI慢病管理系统. 保留所有权利。</p>
+        <p>&copy; {currentYear} AI慢病管理系统. 保留所有权利。</p>
         <p>本系统提供的健康信息仅供参考，不能替代专业医疗建议。</p>
       </footer>
     </div>
