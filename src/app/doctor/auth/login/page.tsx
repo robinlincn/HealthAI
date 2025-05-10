@@ -13,14 +13,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Loader2, LogIn } from "lucide-react";
+import { useDoctorAuth } from "@/contexts/DoctorAuthContext";
 
 export default function DoctorLoginPage() {
   const { toast } = useToast();
-  const router = useRouter();
+  const { loginDoctor } = useDoctorAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,28 +37,14 @@ export default function DoctorLoginPage() {
       title: "登录成功",
       description: "欢迎医生！即将跳转到医生仪表盘。",
     });
-    router.push("/doctor"); // Redirect to doctor dashboard
-
-    // Example validation (currently commented out)
-    // if (username === "doctor" && password === "password") {
-    //   toast({
-    //     title: "登录成功",
-    //     description: "欢迎医生！即将跳转到医生仪表盘。",
-    //   });
-    //   router.push("/doctor");
-    // } else {
-    //   toast({
-    //     title: "登录失败",
-    //     description: "用户名或密码错误，请重试。",
-    //     variant: "destructive",
-    //   });
-    //   setIsLoading(false);
-    // }
+    loginDoctor(); // This will set auth state and trigger redirect via context
+    
+    // setIsLoading(false); // No longer needed here as redirect will happen
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20">
-      <div className="w-full max-w-md p-4 sm:p-0"> {/* Added padding here for mobile, removed from outer for PC */}
+      <div className="w-full max-w-md p-4 sm:p-0">
         <Card className="shadow-xl">
           <CardHeader className="space-y-1 text-center p-6">
             <Image 

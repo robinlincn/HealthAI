@@ -1,5 +1,5 @@
 
-"use client";
+"use client"; // Keep as client component for consistency if other pages in this area use client hooks
 
 import { WelcomeBannerDoctor } from "@/components/doctor/WelcomeBannerDoctor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,9 +9,9 @@ import Link from "next/link";
 export default function DoctorDashboardPage() {
   const stats = [
     { title: "今日预约", value: "12", icon: CalendarClock, href: "/doctor/appointments", description: "待处理 3"},
-    { title: "待处理消息", value: "5", icon: MailWarning, href: "/doctor/messages", description: "新消息 2"},
+    { title: "待处理消息", value: "5", icon: MailWarning, href: "/doctor/consultations", description: "新消息 2"}, // Changed href from /doctor/messages
     { title: "活跃患者", value: "150", icon: Users, href: "/doctor/patients", description: "本周新增 5" },
-    { title: "系统公告", value: "2", icon: Megaphone, href: "#", description: "重要通知"},
+    { title: "系统公告", value: "2", icon: Megaphone, href: "/doctor/messages", description: "重要通知"}, // Changed href to /doctor/messages for announcements
   ];
 
   return (
@@ -51,8 +51,8 @@ export default function DoctorDashboardPage() {
             <li>[昨日 04:30 PM] 添加了新患者 赵六。</li>
             <li>[昨日 02:15 PM] 查看了患者 孙七 的最新报告。</li>
           </ul>
-           <Link href="#" className="text-sm text-primary hover:underline mt-4 inline-block">
-            查看所有活动 &rarr;
+           <Link href="#" className="text-sm text-primary hover:underline mt-4 inline-block" aria-disabled="true" onClick={(e) => e.preventDefault()}>
+            查看所有活动 &rarr; (建设中)
           </Link>
         </CardContent>
       </Card>
