@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Palette, BellRing, DatabaseBackup, DownloadCloud, ShieldLock } from "lucide-react";
+import { Settings, Palette, BellRing, DatabaseBackup, DownloadCloud, Shield } from "lucide-react"; // Changed ShieldLock to Shield
 import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
@@ -93,7 +93,7 @@ export default function SettingsPage() {
               <DownloadCloud className="mr-2 h-4 w-4" /> 手动备份数据 (模拟)
             </Button>
             <Button className="w-full" variant="outline" disabled>
-                <ShieldLock className="mr-2 h-4 w-4"/> 修改密码
+                <Shield className="mr-2 h-4 w-4"/> 修改密码 {/* Changed ShieldLock to Shield */}
             </Button>
             <p className="text-xs text-muted-foreground">数据导出、账户安全设置等功能即将推出。</p>
             <p className="text-xs text-muted-foreground mt-2">您的数据会自动同步到云端并进行加密保护。</p>
@@ -103,3 +103,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
