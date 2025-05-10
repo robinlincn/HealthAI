@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import Link from "next/link";
 import { navLinks } from "@/lib/nav-links";
 import { ChevronRight } from "lucide-react";
-import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner"; // Added import
+import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner"; 
 
 export default function DashboardPage() {
   const quickAccessLinks = navLinks.filter(link =>
@@ -15,11 +15,11 @@ export default function DashboardPage() {
      link.href === '/dashboard/reports' ||
      link.href === '/dashboard/reminders' ||
      link.href === '/dashboard/consultations')
-  ).slice(0, 5); // Select a few key links
+  ).slice(0, 5); 
 
   return (
     <div className="space-y-4">
-      <WelcomeBanner /> {/* Replaced simple card with WelcomeBanner component */}
+      <WelcomeBanner />
 
       <div className="space-y-3">
         <CardHeader className="px-0 pt-2 pb-1">
@@ -59,3 +59,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
