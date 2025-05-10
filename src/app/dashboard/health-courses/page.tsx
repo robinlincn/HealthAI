@@ -1,6 +1,6 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, PlayCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Keep Card for course items
+import { PlayCircle } from "lucide-react";
 import Image from "next/image";
 
 const mockCourses = [
@@ -11,57 +11,46 @@ const mockCourses = [
 
 export default function HealthCoursesPage() {
   return (
-    <div className="space-y-6">
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="text-2xl flex items-center">
-            <BookOpen className="mr-3 h-7 w-7 text-primary" />
-            健康教育课程
-          </CardTitle>
-          <CardDescription>
-            学习专业的健康知识和管理技巧，提升自我健康管理能力。 (此页面内容正在建设中)
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
+    <div className="space-y-4">
       {mockCourses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4"> {/* Changed grid to space-y for single column on mobile */}
           {mockCourses.map((course) => (
-            <Card key={course.id} className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+            <Card key={course.id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <Image 
                 src={course.imageUrl} 
                 alt={course.title} 
                 width={300} 
-                height={200} 
-                className="w-full h-48 object-cover"
+                height={160} // Reduced height for mobile
+                className="w-full h-40 object-cover" // Adjusted height
                 data-ai-hint={course.dataAiHint || "health course"}
               />
-              <CardHeader>
-                <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
+              <CardHeader className="p-3">
+                <CardTitle className="text-base font-semibold line-clamp-2">{course.title}</CardTitle>
                 <CardDescription className="text-xs">{course.category} | {course.duration}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3">{course.description}</p>
+              <CardContent className="p-3 pt-0">
+                <p className="text-xs text-muted-foreground line-clamp-3">{course.description}</p>
               </CardContent>
-              <CardContent className="border-t pt-4">
-                 <button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center disabled:opacity-50" disabled>
-                    <PlayCircle className="mr-2 h-5 w-5" /> 开始学习 (建设中)
+              <CardContent className="border-t p-3">
+                 <button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md text-sm font-medium flex items-center justify-center disabled:opacity-50 h-9" disabled>
+                    <PlayCircle className="mr-1.5 h-4 w-4" /> 开始学习 (建设中)
                 </button>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <Card>
-            <CardContent className="py-16 text-center">
-                <BookOpen className="mx-auto h-24 w-24 text-primary/30 mb-4" />
-                <h3 className="text-xl font-semibold text-foreground/70">课程内容即将上线</h3>
-                <p className="text-foreground/50 max-w-md mx-auto">
-                我们正在精心准备更多健康教育课程，涵盖糖尿病管理、高血压预防等方面，敬请期待。
+        <Card className="shadow-sm">
+            <CardContent className="py-12 text-center">
+                <PlayCircle className="mx-auto h-16 w-16 text-primary/30 mb-3" />
+                <h3 className="text-md font-semibold text-foreground/70">课程内容即将上线</h3>
+                <p className="text-foreground/50 text-xs max-w-xs mx-auto">
+                我们正在精心准备更多健康教育课程，敬请期待。
                 </p>
             </CardContent>
         </Card>
       )}
+       <p className="text-xs text-muted-foreground text-center pt-2">健康教育课程模块 (此页面内容正在建设中)。</p>
     </div>
   );
 }

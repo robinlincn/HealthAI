@@ -1,131 +1,65 @@
 
 "use client"; 
 
-import { BentoGrid, BentoGridItem } from "@/components/dashboard/BentoGrid";
-import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Link from "next/link";
 import { navLinks } from "@/lib/nav-links";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart as BarChartIcon, BellRing, Activity } from "lucide-react"; // Aliased Lucide BarChart
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart"
-import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart as RechartsBarChart } from "recharts" // Imported Recharts BarChart and aliased
-
-const chartData = [
-  { month: "一月", desktop: 186, mobile: 80 },
-  { month: "二月", desktop: 305, mobile: 200 },
-  { month: "三月", desktop: 237, mobile: 120 },
-  { month: "四月", desktop: 73, mobile: 190 },
-  { month: "五月", desktop: 209, mobile: 130 },
-  { month: "六月", desktop: 214, mobile: 140 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: "指标A",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "指标B",
-    color: "hsl(var(--chart-2))",
-  },
-};
-
+import { ChevronRight } from "lucide-react";
 
 export default function DashboardPage() {
-  const bentoItems = navLinks.filter(link => link.href !== '/dashboard').slice(0, 6); 
+  const quickAccessLinks = navLinks.filter(link => 
+    link.href !== '/dashboard' && 
+    (link.href === '/dashboard/health-data' || 
+     link.href === '/dashboard/nutrition' ||
+     link.href === '/dashboard/reports' ||
+     link.href === '/dashboard/reminders' ||
+     link.href === '/dashboard/consultations')
+  ).slice(0, 5); // Select a few key links
 
   return (
-    <div className="space-y-6">
-      <WelcomeBanner />
-      
-      <BentoGrid className="md:grid-cols-2 lg:grid-cols-3">
-        {bentoItems.map((item, idx) => (
-          <BentoGridItem
-            key={idx}
-            title={item.title}
-            href={item.href}
-            icon={item.icon}
-            description={`管理您的${item.title}和相关健康数据。`}
-            className={idx === 0 || idx === 4 ? "md:col-span-1" : idx === 3 ? "md:col-span-2 md:row-span-1" : "md:col-span-1"}
-          >
-             {idx === 0 && ( 
-              <div className="flex items-center justify-center h-full text-muted-foreground/50">
-                <item.icon className="w-16 h-16" />
-              </div>
-            )}
-          </BentoGridItem>
-        ))}
+    <div className="space-y-4">
+      <Card className="shadow-sm bg-primary/5">
+        <CardHeader className="p-4">
+          <CardTitle className="text-lg font-semibold text-primary">欢迎回来, 示例用户!</CardTitle>
+          <CardDescription className="text-sm">快速开始您的健康管理。</CardDescription>
+        </CardHeader>
+      </Card>
 
-        <Card className="md:col-span-3 p-4 rounded-xl shadow-input bg-card border-border">
-          <h3 className="text-lg font-semibold mb-2 text-card-foreground">健康指标概览</h3>
-           <ChartContainer config={chartConfig} className="min-h-[200px] w-full aspect-video">
-            <ResponsiveContainer width="100%" height={250}>
-            {/* Use RechartsBarChart here */}
-            <RechartsBarChart data={chartData} accessibilityLayer> 
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <YAxis />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-              <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-            </RechartsBarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
-
-      </BentoGrid>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">近期活动</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+3 项已完成</div>
-            <p className="text-xs text-muted-foreground">
-              相比上周 +10%
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">提醒事项</CardTitle>
-            <BellRing className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2 个待办</div>
-            <p className="text-xs text-muted-foreground">
-              今日需完成
-            </p>
-          </CardContent>
-        </Card>
-         <Card className="lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">自定义指标</CardTitle>
-            {/* Use BarChartIcon (from lucide-react) here */}
-            <BarChartIcon className="h-4 w-4 text-muted-foreground" /> 
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">73.5%</div>
-            <p className="text-xs text-muted-foreground">
-              目标达成率
-            </p>
-          </CardContent>
-        </Card>
+      <div className="space-y-3">
+        <CardHeader className="px-0 pt-2 pb-1">
+             <CardTitle className="text-base font-medium">常用功能</CardTitle>
+        </CardHeader>
+        {quickAccessLinks.map((link) => {
+          const Icon = link.icon;
+          return (
+            <Link href={link.href} key={link.title} legacyBehavior>
+              <a className="block">
+                <Card className="hover:bg-muted/50 active:bg-muted/70 transition-colors shadow-xs">
+                  <CardContent className="p-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Icon className="h-5 w-5 text-primary" />
+                      <span className="text-sm font-medium">{link.title}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
+          );
+        })}
       </div>
+      
+      <Card className="shadow-sm">
+        <CardHeader className="p-4">
+            <CardTitle className="text-base font-medium">今日概览 (示例)</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 space-y-1 text-sm">
+            <p>血糖: 5.8 mmol/L (餐前)</p>
+            <p>血压: 125/80 mmHg</p>
+            <p>今日步数: 3450</p>
+            <p className="text-xs text-muted-foreground pt-1">数据为模拟，请及时记录真实数据。</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

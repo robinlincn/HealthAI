@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -25,11 +26,15 @@ export function AiChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
-    }
+    scrollToBottom();
   }, [messages]);
   
   // Initial greeting from AI
@@ -95,9 +100,9 @@ export function AiChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 space-y-4 bg-background">
-      <ScrollArea className="flex-grow h-[calc(100%-5rem)] pr-4" ref={scrollAreaRef}> {/* Adjust height for input area */}
-        <div className="space-y-4">
+    <div className="flex flex-col h-full bg-background"> {/* Ensure it takes full height of its container */}
+      <ScrollArea className="flex-grow pr-2" ref={scrollAreaRef}> {/* flex-grow takes available space */}
+        <div className="space-y-4 pb-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -113,13 +118,13 @@ export function AiChatInterface() {
               )}
               <div
                 className={cn(
-                  "max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg shadow",
+                  "max-w-[80%] p-3 rounded-lg shadow text-sm", // max-w-xs to max-w-[80%] for better mobile fit
                   message.role === "user"
                     ? "bg-primary text-primary-foreground rounded-br-none"
                     : "bg-muted text-muted-foreground rounded-bl-none"
                 )}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className="whitespace-pre-wrap">{message.content}</p>
                 <p className="text-xs text-right mt-1 opacity-70">
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
@@ -137,14 +142,15 @@ export function AiChatInterface() {
               <Avatar className="h-8 w-8">
                 <AvatarFallback><Bot size={20} /></AvatarFallback>
               </Avatar>
-              <div className="max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg shadow bg-muted text-muted-foreground rounded-bl-none">
+              <div className="max-w-xs p-3 rounded-lg shadow bg-muted text-muted-foreground rounded-bl-none">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-      <div className="flex items-center space-x-2 pt-2 border-t">
+      <div className="flex items-center space-x-2 pt-3 border-t mt-auto sticky bottom-0 bg-background pb-1"> {/* Ensure input is sticky at bottom */}
         <Input
           type="text"
           placeholder="输入您的问题..."
@@ -152,9 +158,9 @@ export function AiChatInterface() {
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSend()}
           disabled={isLoading}
-          className="flex-grow"
+          className="flex-grow text-sm"
         />
-        <Button onClick={handleSend} disabled={isLoading || input.trim() === ""}>
+        <Button onClick={handleSend} disabled={isLoading || input.trim() === ""} size="icon" className="w-10 h-10">
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

@@ -1,12 +1,12 @@
 
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Keep Card for sections
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Palette, BellRing, DatabaseBackup, DownloadCloud, Shield } from "lucide-react"; // Changed ShieldLock to Shield
+import { Palette, BellRing, DatabaseBackup, DownloadCloud, Shield, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
@@ -17,90 +17,76 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="text-2xl flex items-center">
-            <Settings className="mr-3 h-7 w-7 text-primary" />
-            系统设置
-          </CardTitle>
-          <CardDescription>
-            管理您的账户设置、偏好和数据安全选项。
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center"><Palette className="mr-2 h-5 w-5 text-muted-foreground"/>界面偏好</CardTitle>
+    <div className="space-y-4">
+        <Card className="shadow-sm">
+          <CardHeader className="p-4">
+            <CardTitle className="text-base flex items-center"><Palette className="mr-2 h-4 w-4 text-muted-foreground"/>界面偏好</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="themeSelect" className="block text-sm font-medium mb-1">主题选择</Label>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="themeSelect" className="text-sm">主题选择</Label>
               <Select defaultValue="system" disabled>
-                <SelectTrigger id="themeSelect"><SelectValue placeholder="选择主题" /></SelectTrigger>
+                <SelectTrigger id="themeSelect" className="w-[150px] h-8 text-xs"><SelectValue placeholder="选择主题" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="light">浅色模式</SelectItem>
                   <SelectItem value="dark">深色模式</SelectItem>
                   <SelectItem value="system">跟随系统</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">主题切换功能正在开发中。</p>
             </div>
-            <div>
-              <Label htmlFor="fontSize" className="block text-sm font-medium mb-1">字体大小</Label>
+            <p className="text-xs text-muted-foreground">主题切换功能正在开发中。</p>
+            
+            <div className="flex items-center justify-between">
+              <Label htmlFor="fontSize" className="text-sm">字体大小</Label>
                <Select defaultValue="medium" disabled>
-                <SelectTrigger id="fontSize"><SelectValue placeholder="选择字体大小" /></SelectTrigger>
+                <SelectTrigger id="fontSize" className="w-[150px] h-8 text-xs"><SelectValue placeholder="选择字体大小" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="small">小</SelectItem>
-                  <SelectItem value="medium">中 (默认)</SelectItem>
+                  <SelectItem value="medium">中</SelectItem>
                   <SelectItem value="large">大</SelectItem>
                 </SelectContent>
               </Select>
-               <p className="text-xs text-muted-foreground mt-1">字体大小调整功能开发中。</p>
             </div>
+            <p className="text-xs text-muted-foreground">字体大小调整功能开发中。</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center"><BellRing className="mr-2 h-5 w-5 text-muted-foreground"/>通知设置</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="p-4">
+            <CardTitle className="text-base flex items-center"><BellRing className="mr-2 h-4 w-4 text-muted-foreground"/>通知设置</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-4 pt-0 space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="emailNotifications" className="text-base">邮件通知</Label>
+              <Label htmlFor="emailNotifications" className="text-sm">邮件通知</Label>
               <Switch id="emailNotifications" defaultChecked disabled />
             </div>
              <div className="flex items-center justify-between">
-              <Label htmlFor="pushNotifications" className="text-base">应用内推送通知</Label>
+              <Label htmlFor="pushNotifications" className="text-sm">应用内推送</Label>
               <Switch id="pushNotifications" defaultChecked />
             </div>
              <div className="flex items-center justify-between">
-              <Label htmlFor="smsNotifications" className="text-base">短信通知 (重要)</Label>
+              <Label htmlFor="smsNotifications" className="text-sm">短信通知 (重要)</Label>
               <Switch id="smsNotifications" disabled />
             </div>
-            <p className="text-xs text-muted-foreground">精细化通知设置和渠道管理功能正在完善。</p>
+            <p className="text-xs text-muted-foreground">精细化通知设置开发中。</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center"><DatabaseBackup className="mr-2 h-5 w-5 text-muted-foreground"/>数据与安全</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="p-4">
+            <CardTitle className="text-base flex items-center"><DatabaseBackup className="mr-2 h-4 w-4 text-muted-foreground"/>数据与安全</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button onClick={handleManualBackup} className="w-full" variant="outline">
-              <DownloadCloud className="mr-2 h-4 w-4" /> 手动备份数据 (模拟)
+          <CardContent className="p-4 pt-0 space-y-2.5">
+            <Button onClick={handleManualBackup} className="w-full text-sm h-9" variant="outline">
+              <DownloadCloud className="mr-1.5 h-4 w-4" /> 手动备份数据 (模拟)
             </Button>
-            <Button className="w-full" variant="outline" disabled>
-                <Shield className="mr-2 h-4 w-4"/> 修改密码 {/* Changed ShieldLock to Shield */}
+            <Button className="w-full text-sm h-9" variant="outline" disabled>
+                <Shield className="mr-1.5 h-4 w-4"/> 修改密码
             </Button>
             <p className="text-xs text-muted-foreground">数据导出、账户安全设置等功能即将推出。</p>
-            <p className="text-xs text-muted-foreground mt-2">您的数据会自动同步到云端并进行加密保护。</p>
+            <p className="text-xs text-muted-foreground mt-1">您的数据会自动同步到云端并进行加密保护。</p>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
-
