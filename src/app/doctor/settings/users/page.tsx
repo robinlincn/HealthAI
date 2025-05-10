@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserCog, UserPlus, Edit2, Trash2, Shield, KeyRound } from "lucide-react"; // Changed UsersCog to UserCog
+import { UserCog, UserPlus, Edit2, Trash2, Shield, KeyRound } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mock data
 const mockUsers = [
@@ -32,7 +32,7 @@ export default function DoctorSettingsUsersPage() {
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center">
-            <UserCog className="mr-3 h-7 w-7 text-primary" /> {/* Changed UsersCog to UserCog */}
+            <UserCog className="mr-3 h-7 w-7 text-primary" />
             用户与权限管理
           </CardTitle>
           <CardDescription>
@@ -55,7 +55,7 @@ export default function DoctorSettingsUsersPage() {
                   <TableHead>姓名</TableHead>
                   <TableHead>角色</TableHead>
                   <TableHead>邮箱</TableHead>
-                  <TableHead>操作</TableHead>
+                  <TableHead className="text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -64,10 +64,27 @@ export default function DoctorSettingsUsersPage() {
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell className="space-x-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7"><Edit2 className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7"><KeyRound className="h-4 w-4" title="重置密码"/></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    <TableCell className="space-x-1 text-right">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><Edit2 className="h-4 w-4" /></Button>
+                          </TooltipTrigger>
+                          <TooltipContent><p>编辑用户</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><KeyRound className="h-4 w-4" /></Button>
+                          </TooltipTrigger>
+                          <TooltipContent><p>重置密码</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/80"><Trash2 className="h-4 w-4" /></Button>
+                          </TooltipTrigger>
+                          <TooltipContent><p>删除用户</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -82,17 +99,23 @@ export default function DoctorSettingsUsersPage() {
             <CardTitle className="text-lg">角色与权限</CardTitle>
             <Button size="sm" variant="outline"><Shield className="mr-2 h-4 w-4" /> 新建角色</Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
              <Input placeholder="搜索角色名称..." className="mb-4" />
-             {mockRoles.map(role => (
-                 <div key={role.id} className="mb-3 p-3 border rounded-md">
-                     <div className="flex justify-between items-center">
-                        <h4 className="font-semibold">{role.name}</h4>
-                        <Button variant="ghost" size="sm"><Edit2 className="mr-1 h-3 w-3"/>编辑权限</Button>
-                     </div>
-                     <p className="text-xs text-muted-foreground">权限: {role.permissions.join(', ')}</p>
-                 </div>
-             ))}
+             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                {mockRoles.map(role => (
+                    <Card key={role.id} className="shadow-sm">
+                        <CardHeader className="flex flex-row justify-between items-center p-3">
+                            <CardTitle className="text-base">{role.name}</CardTitle>
+                            <Button variant="ghost" size="sm" className="h-7 px-2 py-1">
+                                <Edit2 className="mr-1 h-3 w-3"/>编辑权限
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-0">
+                            <p className="text-xs text-muted-foreground">权限: {role.permissions.join(', ')}</p>
+                        </CardContent>
+                    </Card>
+                ))}
+             </div>
             <p className="text-xs text-muted-foreground text-center mt-4">角色权限自定义分配功能正在建设中。</p>
           </CardContent>
         </Card>
@@ -100,4 +123,3 @@ export default function DoctorSettingsUsersPage() {
     </div>
   );
 }
-
