@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LineChart as LineChartIcon, BarChart3, Activity, TrendingUp, Dumbbell, Droplets, Scale } from "lucide-react";
+import { LineChart as LineChartIcon, BarChart3, Activity, TrendingUp, Dumbbell, Droplets, Scale, HeartPulse } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -78,10 +78,10 @@ export default function HealthDataPage() {
     // Reset form partially or fully as needed
   };
   
-  const renderInputFormCard = (title: string, icon: React.ElementType, fields: {id: string, label: string, type: string, placeholder: string, state: any, setState: Function, parentObjKey: string}[], dataObj: any, submitHandler: (e: FormEvent) => void) => (
+  const renderInputFormCard = (title: string, IconComponent: React.ElementType, fields: {id: string, label: string, type: string, placeholder: string, state: any, setState: Function, parentObjKey: string}[], dataObj: any, submitHandler: (e: FormEvent) => void) => (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center"><icon className="mr-2 h-5 w-5 text-primary" />记录{title}</CardTitle>
+        <CardTitle className="flex items-center"><IconComponent className="mr-2 h-5 w-5 text-primary" />记录{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={submitHandler} className="space-y-4">
@@ -277,3 +277,4 @@ export default function HealthDataPage() {
     </div>
   );
 }
+
