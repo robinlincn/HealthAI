@@ -7,17 +7,18 @@ import {
   UserCircle,
   Settings,
   BarChart3,
-  FileSpreadsheet, // Kept for AI Report in Analytics detail, not primary nav.
+  FileSpreadsheet, 
   ClipboardList,
   MessagesSquare,
   Send, 
-  TrendingUp, // For statistics/trends
-  ShieldCheck, // For statistics/evaluation
-  FilePieChart, // For statistics main & custom reports
+  TrendingUp, 
+  ShieldCheck, 
+  FilePieChart, 
   UserCog, 
   DatabaseBackup,
-  Settings2, // Renamed from Cog for System Config
-  PlugZap, // For integrations
+  Settings2, 
+  PlugZap,
+  TableProperties, // Added TableProperties to import
 } from 'lucide-react';
 
 export const doctorNavLinks: NavItem[] = [
@@ -43,7 +44,7 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '治疗方案与建议',
-    href: '/doctor/treatment-plans', // This now points to the list page
+    href: '/doctor/treatment-plans', 
     icon: ClipboardList, 
   },
   {
@@ -60,13 +61,12 @@ export const doctorNavLinks: NavItem[] = [
     title: '统计报告',
     href: '/doctor/statistics', 
     icon: FilePieChart,
-    // Sub-items for statistics are general statistical views, kept if they link to actual pages
   },
   {
     title: '病情趋势分析',
     href: '/doctor/statistics/trends',
     icon: TrendingUp,
-    label: '统计报告', // Optional label for grouping under "统计报告"
+    label: '统计报告', 
   },
   {
     title: '治疗效果评估',
@@ -77,20 +77,19 @@ export const doctorNavLinks: NavItem[] = [
   {
     title: '自定义报表',
     href: '/doctor/statistics/custom-reports',
-    icon: TableProperties, // Using a different icon for custom reports as FilePieChart is for main
+    icon: TableProperties, 
     label: '统计报告',
   },
   {
     title: '系统管理',
     href: '/doctor/settings', 
     icon: Settings,
-     // Sub-items for settings, kept if they link to actual pages
   },
   {
     title: '用户与权限',
     href: '/doctor/settings/users',
     icon: UserCog, 
-    label: '系统管理', // Optional label for grouping under "系统管理"
+    label: '系统管理', 
   },
   {
     title: '数据备份与恢复',
