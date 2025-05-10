@@ -30,23 +30,31 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock login logic
+    // Mock login logic - Simulating network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    if (phone === "13800138000" && password === "password123") {
-      toast({
-        title: "登录成功",
-        description: "欢迎回来！即将跳转到仪表盘。",
-      });
-      router.push("/dashboard");
-    } else {
-      toast({
-        title: "登录失败",
-        description: "手机号或密码错误，请重试。",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
+    // Allow login with any phone and password
+    toast({
+      title: "登录成功",
+      description: "欢迎回来！即将跳转到仪表盘。",
+    });
+    router.push("/dashboard");
+    
+    // Removed specific credential check:
+    // if (phone === "13800138000" && password === "password123") {
+    //   toast({
+    //     title: "登录成功",
+    //     description: "欢迎回来！即将跳转到仪表盘。",
+    //   });
+    //   router.push("/dashboard");
+    // } else {
+    //   toast({
+    //     title: "登录失败",
+    //     description: "手机号或密码错误，请重试。",
+    //     variant: "destructive",
+    //   });
+    //   setIsLoading(false);
+    // }
   };
 
   return (
