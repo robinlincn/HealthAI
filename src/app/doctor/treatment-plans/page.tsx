@@ -1,39 +1,35 @@
 
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardList, Pill, CalendarCheck2, Edit, PlusCircle, MessageCircleMore, CheckSquare } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, Search, Filter, ClipboardList, Eye } from "lucide-react"; // Changed icon to ClipboardList
+import Link from "next/link";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 
-// Mock data
-const mockPlan = {
-  patientName: "张三 (pat001)",
-  medications: [
-    { id: "med1", name: "硝苯地平控释片", dosage: "30mg", frequency: "每日一次", notes: "晨起服用" },
-    { id: "med2", name: "二甲双胍", dosage: "0.5g", frequency: "每日两次", notes: "餐后服用" },
-  ],
-  lifestyleAdjustments: "低盐低脂饮食，每日快走30分钟，监测血糖血压。",
-  shortTermGoals: "一周内空腹血糖控制在7.0mmol/L以下。",
-  longTermGoals: "三个月内糖化血红蛋白控制在7.0%以下，血压控制在130/80mmHg以下。",
-  adjustmentHistory: [
-    { date: "2024-04-15", change: "二甲双胍剂量由0.25g TID调整为0.5g BID。" },
-    { date: "2024-03-01", change: "初次制定方案。" },
-  ],
-};
+// Mock patient data (consistent with other doctor-side patient lists)
+const mockPatients = [
+  { id: "pat001", name: "张三", age: 45, gender: "男", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01" },
+  { id: "pat002", name: "李四", age: 62, gender: "女", diagnosis: "冠心病", lastVisit: "2024-05-10" },
+  { id: "pat003", name: "王五", age: 50, gender: "男", diagnosis: "高血脂", lastVisit: "2024-04-22" },
+  { id: "pat004", name: "赵六", age: 71, gender: "男", diagnosis: "慢性阻塞性肺疾病", lastVisit: "2024-05-15" },
+  { id: "pat005", name: "孙七", age: 58, gender: "女", diagnosis: "骨质疏松", lastVisit: "2024-03-30" },
+  { id: "pat006", name: "周八", age: 33, gender: "女", diagnosis: "哮喘", lastVisit: "2024-05-18" },
+  { id: "pat007", name: "吴九", age: 67, gender: "男", diagnosis: "痛风", lastVisit: "2024-05-05" },
+];
 
-const mockAdvice = [
-    { id: "adv1", patientName: "张三", advice: "请于下周复查空腹血糖及餐后2小时血糖。", date: "2024-05-10", status: "待执行" },
-    { id: "adv2", patientName: "李四", advice: "建议增加阿司匹林每日100mg。", date: "2024-05-08", status: "已执行" },
-]
+export default function DoctorTreatmentPlansListPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterDisease, setFilterDisease] = useState("all");
 
-export default function DoctorTreatmentPlansPage() {
-  const { toast } = useToast();
-  // Add states for form inputs if creating/editing plans
+  const filteredPatients = mockPatients.filter(patient => {
+    const nameMatch = patient.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const diseaseMatch = filterDisease === "all" || patient.diagnosis.toLowerCase().includes(filterDisease.toLowerCase());
+    return nameMatch && diseaseMatch;
+  });
 
   return (
     <div className="space-y-6">
@@ -41,114 +37,82 @@ export default function DoctorTreatmentPlansPage() {
         <CardHeader>
           <CardTitle className="text-2xl flex items-center">
             <ClipboardList className="mr-3 h-7 w-7 text-primary" />
-            个性化治疗方案与建议
+            个性化治疗方案与建议 - 选择病人
           </CardTitle>
           <CardDescription>
-            管理病人的药物使用、治疗计划、调整记录，并记录和跟踪治疗建议的执行情况。
+            请从下方列表中选择病人以制定或查看其治疗方案与建议。
           </CardDescription>
         </CardHeader>
-      </Card>
-
-      {/* Placeholder for patient selection */}
-      <Card>
-        <CardHeader>
-            <CardTitle className="text-lg">选择病人</CardTitle>
-        </CardHeader>
         <CardContent>
-            <Input placeholder="搜索病人姓名或ID (功能建设中)" className="max-w-sm"/>
-            <p className="text-sm text-muted-foreground mt-2">当前显示病人：<strong>{mockPlan.patientName}</strong> (示例)</p>
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="按姓名搜索病人..." 
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={filterDisease} onValueChange={setFilterDisease}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="筛选疾病类型" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">所有疾病</SelectItem>
+                  <SelectItem value="高血压">高血压</SelectItem>
+                  <SelectItem value="2型糖尿病">2型糖尿病</SelectItem>
+                  <SelectItem value="冠心病">冠心病</SelectItem>
+                  <SelectItem value="高血脂">高血脂</SelectItem>
+                  <SelectItem value="哮喘">哮喘</SelectItem>
+                  <SelectItem value="痛风">痛风</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-
-      <Tabs defaultValue="treatmentPlan" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-2">
-          <TabsTrigger value="treatmentPlan">
-            <CalendarCheck2 className="mr-2 h-4 w-4" /> 治疗方案管理
-          </TabsTrigger>
-          <TabsTrigger value="treatmentAdvice">
-            <MessageCircleMore className="mr-2 h-4 w-4" /> 治疗建议记录
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="treatmentPlan">
-          <Card>
-            <CardHeader className="flex flex-row justify-between items-center">
-              <CardTitle>当前治疗方案: {mockPlan.patientName}</CardTitle>
-              <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> 编辑方案</Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <section>
-                <h3 className="text-lg font-semibold mb-2 flex items-center"><Pill className="mr-2 h-5 w-5 text-primary/80"/>药物管理</h3>
-                <ul className="space-y-2">
-                  {mockPlan.medications.map(med => (
-                    <li key={med.id} className="p-3 border rounded-md bg-muted/30">
-                      <p><strong>{med.name}</strong> - {med.dosage}, {med.frequency}</p>
-                      {med.notes && <p className="text-sm text-muted-foreground">备注: {med.notes}</p>}
-                    </li>
-                  ))}
-                </ul>
-                <Button variant="ghost" size="sm" className="mt-2"><PlusCircle className="mr-2 h-4 w-4"/> 添加药物</Button>
-              </section>
-              
-              <section>
-                <h3 className="text-lg font-semibold mb-1">生活方式调整</h3>
-                <p className="text-sm">{mockPlan.lifestyleAdjustments}</p>
-              </section>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <section>
-                    <h3 className="text-lg font-semibold mb-1">短期治疗目标</h3>
-                    <p className="text-sm">{mockPlan.shortTermGoals}</p>
-                </section>
-                <section>
-                    <h3 className="text-lg font-semibold mb-1">长期治疗目标</h3>
-                    <p className="text-sm">{mockPlan.longTermGoals}</p>
-                </section>
-              </div>
-
-              <section>
-                <h3 className="text-lg font-semibold mb-2">方案调整记录</h3>
-                <ul className="space-y-1 text-sm">
-                  {mockPlan.adjustmentHistory.map((adj, idx) => (
-                    <li key={idx} className="text-muted-foreground"><strong>{adj.date}:</strong> {adj.change}</li>
-                  ))}
-                </ul>
-              </section>
-              <p className="text-center text-muted-foreground text-sm pt-4">完整的治疗方案制定与编辑功能正在建设中。</p>
+      {filteredPatients.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredPatients.map((patient) => (
+            <Card key={patient.id} className="flex flex-col hover:shadow-lg transition-shadow duration-200 ease-in-out rounded-xl overflow-hidden">
+              <CardHeader className="items-center text-center p-4 bg-muted/30">
+                <Avatar className="w-20 h-20 mb-2 border-2 border-primary/20 shadow-sm">
+                  <AvatarImage src={`https://picsum.photos/seed/${patient.id}/100/100`} alt={patient.name} data-ai-hint="patient avatar" />
+                  <AvatarFallback className="text-2xl bg-primary/10 text-primary font-semibold">{patient.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <CardTitle className="text-lg">{patient.name}</CardTitle>
+                <CardDescription className="text-xs">{patient.age}岁 / {patient.gender}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow p-3 text-xs">
+                <p className="text-muted-foreground line-clamp-2"><strong className="font-medium text-foreground/90">诊断:</strong> {patient.diagnosis}</p>
+              </CardContent>
+              <CardFooter className="p-3 border-t">
+                <Button asChild variant="outline" className="w-full text-sm hover:bg-primary/10 hover:text-primary">
+                  <Link href={`/doctor/treatment-plans/detail/${patient.id}`}>
+                    <ClipboardList className="mr-2 h-4 w-4" /> 制定/查看方案
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+            <CardContent className="py-16">
+                <div className="flex flex-col items-center text-center">
+                    <Users className="w-24 h-24 text-primary/20 mb-6" />
+                    <h3 className="text-2xl font-semibold text-foreground/80 mb-2">未找到匹配的病人</h3>
+                    <p className="text-muted-foreground max-w-md">
+                        请尝试调整您的搜索或筛选条件。
+                    </p>
+                </div>
             </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="treatmentAdvice">
-          <Card>
-            <CardHeader className="flex flex-row justify-between items-center">
-              <CardTitle>治疗建议记录</CardTitle>
-              <Button variant="outline"><PlusCircle className="mr-2 h-4 w-4" /> 新增建议</Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockAdvice.map(advice => (
-                <Card key={advice.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold">病人: {advice.patientName}</p>
-                      <p className="text-sm">{advice.advice}</p>
-                      <p className="text-xs text-muted-foreground">建议时间: {advice.date}</p>
-                    </div>
-                    <div className="text-right">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${advice.status === "已执行" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                            {advice.status}
-                        </span>
-                        <Button variant="ghost" size="sm" className="mt-1"><CheckSquare className="mr-1 h-3 w-3"/> 更新状态</Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-              <p className="text-center text-muted-foreground text-sm pt-4">建议内容编辑、病人反馈跟踪等功能正在建设中。</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </Card>
+      )}
     </div>
   );
 }
