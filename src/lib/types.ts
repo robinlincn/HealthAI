@@ -99,3 +99,13 @@ export interface AiAssistantMessage {
   content: string;
   timestamp: Date;
 }
+
+export interface Appointment {
+  id: string;
+  patientName: string;
+  patientId?: string; // Optional: if linking to a patient record system
+  date: Date;
+  time: string; // e.g., "10:00 AM" or "14:30"
+  reason?: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
+}
