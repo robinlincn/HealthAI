@@ -16,6 +16,33 @@ import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 
+const mockDoctorConsultations: Consultation[] = [
+    {
+        id: "mockPending1",
+        patientId: "patientMock001",
+        patientName: "模拟患者A (演示)",
+        doctorName: "当前医生",
+        date: format(new Date(new Date().setDate(new Date().getDate() - 1)), "yyyy-MM-dd"),
+        timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+        question: "医生您好，我最近感觉有些头晕，早上起来血糖有点高，大概在8.5左右，我应该怎么办？这是模拟的问题。",
+        status: 'pending_reply',
+        attachments: [{ name: "血糖记录示例.jpg", type: 'image'}]
+    },
+    {
+        id: "mockReplied1",
+        patientId: "patientMock002",
+        patientName: "模拟患者B (演示)",
+        doctorName: "当前医生",
+        date: format(new Date(new Date().setDate(new Date().getDate() - 2)), "yyyy-MM-dd"),
+        timestamp: new Date(new Date().setDate(new Date().getDate() - 2)),
+        question: "我按照您上次的建议调整了饮食，感觉好多了，谢谢医生！这是另一个模拟问题。",
+        status: 'replied',
+        reply: "不客气，继续保持良好的生活习惯，定期监测。这是模拟的回复。",
+        doctorReplyTimestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+    }
+];
+
+
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,29 +55,26 @@ export default function DoctorConsultationsPage() {
 
   const fetchConsultations = useCallback(async () => {
     setIsLoading(true);
+    let fetchedConsultationsFromDB: Consultation[] = [];
+    let fetchErrorOccurred = false;
     try {
-      // For now, fetch all. In a real app, filter by doctorId or team.
       const q = query(collection(db, "consultations"), orderBy("timestamp", "desc"));
       const querySnapshot = await getDocs(q);
-      const fetchedConsultations: Consultation[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
         const docTimestamp = data.timestamp;
         let processedTimestamp: Date | null = null;
         if (docTimestamp && typeof docTimestamp.toDate === 'function') {
           processedTimestamp = docTimestamp.toDate();
         } else if (docTimestamp instanceof Date) {
           processedTimestamp = docTimestamp;
-        } else if (docTimestamp && docTimestamp._seconds !== undefined && docTimestamp._nanoseconds !== undefined) {
-          // Handle cases where it might be a plain object from Firestore Admin SDK or similar
+        } else if (docTimestamp && typeof docTimestamp.seconds === 'number' && typeof docTimestamp.nanoseconds === 'number') {
            try {
-             processedTimestamp = new FirestoreTimestamp(docTimestamp._seconds, docTimestamp._nanoseconds).toDate();
+             processedTimestamp = new FirestoreTimestamp(docTimestamp.seconds, docTimestamp.nanoseconds).toDate();
            } catch (e) {
-             console.warn(`Error converting plain object timestamp for doc ${doc.id}:`, e);
+             console.warn(`Error converting plain object timestamp for doc ${docSnap.id}:`, e);
            }
         }
-
 
         const docDoctorReplyTimestamp = data.doctorReplyTimestamp;
         let processedDoctorReplyTimestamp: Date | undefined = undefined;
@@ -58,11 +82,11 @@ export default function DoctorConsultationsPage() {
           processedDoctorReplyTimestamp = docDoctorReplyTimestamp.toDate();
         } else if (docDoctorReplyTimestamp instanceof Date) {
           processedDoctorReplyTimestamp = docDoctorReplyTimestamp;
-        } else if (docDoctorReplyTimestamp && docDoctorReplyTimestamp._seconds !== undefined && docDoctorReplyTimestamp._nanoseconds !== undefined) {
+        } else if (docDoctorReplyTimestamp && typeof docDoctorReplyTimestamp.seconds === 'number' && typeof docDoctorReplyTimestamp.nanoseconds === 'number') {
            try {
-             processedDoctorReplyTimestamp = new FirestoreTimestamp(docDoctorReplyTimestamp._seconds, docDoctorReplyTimestamp._nanoseconds).toDate();
+             processedDoctorReplyTimestamp = new FirestoreTimestamp(docDoctorReplyTimestamp.seconds, docDoctorReplyTimestamp.nanoseconds).toDate();
            } catch (e) {
-            console.warn(`Error converting plain object doctorReplyTimestamp for doc ${doc.id}:`, e);
+            console.warn(`Error converting plain object doctorReplyTimestamp for doc ${docSnap.id}:`, e);
            }
         }
         
@@ -71,10 +95,9 @@ export default function DoctorConsultationsPage() {
         const question = typeof data.question === 'string' ? data.question : '无问题描述';
         const status = ['pending_reply', 'replied', 'closed'].includes(data.status) ? data.status as Consultation['status'] : 'pending_reply';
 
-
-        if (processedTimestamp) { // Only add if the main timestamp is valid
-          fetchedConsultations.push({
-            id: doc.id,
+        if (processedTimestamp) {
+          fetchedConsultationsFromDB.push({
+            id: docSnap.id,
             patientId,
             patientName,
             doctorName: data.doctorName, 
@@ -88,15 +111,22 @@ export default function DoctorConsultationsPage() {
             attachments: Array.isArray(data.attachments) ? data.attachments : [], 
           });
         } else {
-          console.warn(`Consultation document ${doc.id} has invalid or missing timestamp. Skipping.`);
+          console.warn(`Consultation document ${docSnap.id} has invalid or missing timestamp. Skipping.`);
         }
       });
-      setConsultations(fetchedConsultations);
     } catch (error) {
       console.error("Error fetching consultations:", error);
       toast({ title: "获取咨询列表失败", description: "请稍后重试。", variant: "destructive" });
+      fetchErrorOccurred = true;
     } finally {
       setIsLoading(false);
+    }
+
+    if (!fetchErrorOccurred && fetchedConsultationsFromDB.length === 0) {
+      setConsultations(mockDoctorConsultations);
+      toast({ title: "提示", description: "已加载模拟咨询数据用于演示。", variant: "default" });
+    } else if (!fetchErrorOccurred) {
+      setConsultations(fetchedConsultationsFromDB);
     }
   }, [toast]);
 
@@ -125,6 +155,17 @@ export default function DoctorConsultationsPage() {
         toast({ title: "请输入回复内容", variant: "destructive" });
         return;
     }
+    if (selectedConsultationId.startsWith("mock")) { // Handle mock data update
+        setConsultations(prev => prev.map(c => 
+            c.id === selectedConsultationId 
+            ? { ...c, reply: replyContent, status: "replied", doctorReplyTimestamp: new Date() } 
+            : c
+          ));
+        toast({ title: "模拟回复已发送"});
+        setIsReplying(false);
+        return;
+    }
+
     setIsReplying(true);
     try {
       const consultationRef = doc(db, "consultations", selectedConsultationId);
@@ -151,8 +192,8 @@ export default function DoctorConsultationsPage() {
   
   const getStatusText = (status: Consultation['status']) => {
     const map = {
-        scheduled: '已安排', // Though not typical for consultations, good to have a map
-        completed: '已完成', // More for appointments
+        scheduled: '已安排', 
+        completed: '已完成', 
         pending_reply: '待回复',
         replied: '已回复',
         closed: '已关闭',
@@ -165,7 +206,7 @@ export default function DoctorConsultationsPage() {
       case 'pending_reply': return 'bg-yellow-100 text-yellow-700';
       case 'replied': return 'bg-green-100 text-green-700';
       case 'closed': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700'; // Default for any other status like 'scheduled' or 'completed'
+      default: return 'bg-gray-100 text-gray-700'; 
     }
   };
 
@@ -213,7 +254,7 @@ export default function DoctorConsultationsPage() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             ): filteredConsultations.length > 0 ? (
-              <ScrollArea className="h-[calc(100vh-20rem)] md:h-[calc(100vh-25rem)] lg:h-[600px]"> {/* Adjusted height */}
+              <ScrollArea className="h-[calc(100vh-20rem)] md:h-[calc(100vh-25rem)] lg:h-[600px]">
                 {filteredConsultations.map(consult => (
                     <div 
                         key={consult.id} 
@@ -228,7 +269,7 @@ export default function DoctorConsultationsPage() {
                         </div>
                         <p className="text-xs text-muted-foreground truncate mt-0.5">{consult.question}</p>
                         <p className="text-xs text-muted-foreground text-right">
-                            {consult.timestamp instanceof Date ? format(consult.timestamp, "yyyy-MM-dd HH:mm") : 'N/A'}
+                            {consult.timestamp instanceof Date ? format(consult.timestamp, "yyyy-MM-dd HH:mm") : String(consult.timestamp)}
                         </p>
                     </div>
                 ))}
@@ -248,9 +289,9 @@ export default function DoctorConsultationsPage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold">病人: {selectedConsultation.patientName} ({selectedConsultation.patientId})</h4>
-                  <p className="text-sm text-muted-foreground">时间: {selectedConsultation.timestamp instanceof Date ? format(selectedConsultation.timestamp, "yyyy-MM-dd HH:mm") : 'N/A'}</p>
+                  <p className="text-sm text-muted-foreground">时间: {selectedConsultation.timestamp instanceof Date ? format(selectedConsultation.timestamp, "yyyy-MM-dd HH:mm") : String(selectedConsultation.timestamp)}</p>
                 </div>
-                <ScrollArea className="p-3 border rounded-md bg-background max-h-40"> {/* Made question scrollable */}
+                <ScrollArea className="p-3 border rounded-md bg-background max-h-40"> 
                   <p className="text-sm whitespace-pre-wrap">{selectedConsultation.question}</p>
                   {selectedConsultation.attachments && selectedConsultation.attachments.length > 0 && (
                     <div className="mt-2">
@@ -267,12 +308,12 @@ export default function DoctorConsultationsPage() {
                 </ScrollArea>
 
                 {selectedConsultation.reply && (
-                     <ScrollArea className="p-3 border rounded-md bg-primary/10 max-h-40"> {/* Made reply scrollable */}
+                     <ScrollArea className="p-3 border rounded-md bg-primary/10 max-h-40"> 
                         <h5 className="text-sm font-semibold text-primary mb-1">您的回复:</h5>
                         <p className="text-sm whitespace-pre-wrap">{selectedConsultation.reply}</p>
                         {selectedConsultation.doctorReplyTimestamp && (
                              <p className="text-xs text-primary/70 text-right mt-1">
-                                回复于: {selectedConsultation.doctorReplyTimestamp instanceof Date ? format(selectedConsultation.doctorReplyTimestamp, "yyyy-MM-dd HH:mm") : 'N/A'}
+                                回复于: {selectedConsultation.doctorReplyTimestamp instanceof Date ? format(selectedConsultation.doctorReplyTimestamp, "yyyy-MM-dd HH:mm") : String(selectedConsultation.doctorReplyTimestamp)}
                             </p>
                         )}
                     </ScrollArea>
@@ -283,7 +324,7 @@ export default function DoctorConsultationsPage() {
                     <Textarea 
                         id="replyTextarea"
                         placeholder={selectedConsultation.status === 'closed' ? "此咨询已关闭，无法回复。" : "输入您的回复..."}
-                        rows={selectedConsultation.status === 'closed' ? 2 : 5} // Increased rows
+                        rows={selectedConsultation.status === 'closed' ? 2 : 5} 
                         value={replyContent}
                         onChange={e => setReplyContent(e.target.value)}
                         disabled={isReplying || selectedConsultation.status === 'closed'}
@@ -319,6 +360,3 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
-
-
-    
