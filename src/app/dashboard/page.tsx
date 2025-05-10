@@ -1,15 +1,16 @@
 
-"use client"; 
+"use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { navLinks } from "@/lib/nav-links";
 import { ChevronRight } from "lucide-react";
+import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner"; // Added import
 
 export default function DashboardPage() {
-  const quickAccessLinks = navLinks.filter(link => 
-    link.href !== '/dashboard' && 
-    (link.href === '/dashboard/health-data' || 
+  const quickAccessLinks = navLinks.filter(link =>
+    link.href !== '/dashboard' &&
+    (link.href === '/dashboard/health-data' ||
      link.href === '/dashboard/nutrition' ||
      link.href === '/dashboard/reports' ||
      link.href === '/dashboard/reminders' ||
@@ -18,12 +19,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      <Card className="shadow-sm bg-primary/5">
-        <CardHeader className="p-4">
-          <CardTitle className="text-lg font-semibold text-primary">欢迎回来, 示例用户!</CardTitle>
-          <CardDescription className="text-sm">快速开始您的健康管理。</CardDescription>
-        </CardHeader>
-      </Card>
+      <WelcomeBanner /> {/* Replaced simple card with WelcomeBanner component */}
 
       <div className="space-y-3">
         <CardHeader className="px-0 pt-2 pb-1">
@@ -48,7 +44,7 @@ export default function DashboardPage() {
           );
         })}
       </div>
-      
+
       <Card className="shadow-sm">
         <CardHeader className="p-4">
             <CardTitle className="text-base font-medium">今日概览 (示例)</CardTitle>
