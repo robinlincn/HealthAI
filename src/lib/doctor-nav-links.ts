@@ -14,7 +14,7 @@ import {
   TrendingUp,
   ShieldCheck,
   FilePieChart,
-  UsersCog,
+  UserCog, // Changed from UsersCog
   DatabaseBackup,
   Settings2,
   PlugZap,
@@ -97,7 +97,7 @@ export const doctorNavLinks: NavItem[] = [
   {
     title: '用户与权限',
     href: '/doctor/settings/users',
-    icon: UsersCog,
+    icon: UserCog, // Changed from UsersCog
   },
   {
     title: '数据备份与恢复',
