@@ -1,10 +1,17 @@
 
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image"; 
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-between min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
@@ -42,9 +49,10 @@ export default function HomePage() {
       </main>
 
       <footer className="w-full text-center text-xs text-muted-foreground py-6">
-        <p>&copy; {currentYear} AI慢病管理系统. 保留所有权利。</p>
+        <p>&copy; {currentYear !== null ? currentYear : new Date().getFullYear()} AI慢病管理系统. 保留所有权利。</p>
         <p className="mt-1">本系统提供的健康信息仅供参考，不能替代专业医疗建议。</p>
       </footer>
     </div>
   );
 }
+

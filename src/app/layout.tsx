@@ -19,10 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} font-sans antialiased`}> {/* Removed geistMono.variable */}
+      <body className={`${geistSans.variable} font-sans antialiased`} suppressHydrationWarning={true}> {/* Removed geistMono.variable and added suppressHydrationWarning */}
         {children}
         <Toaster />
       </body>
     </html>
   );
 }
+
