@@ -11,10 +11,21 @@ export interface NavItem {
   external?: boolean;
 }
 
+export type Gender = "male" | "female" | "other";
+export type BloodType = "A" | "B" | "O" | "AB" | "unknown";
+export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "other";
+
+
 export interface UserProfile {
   name: string;
-  gender: string;
-  age: number;
+  gender: Gender;
+  // age: number; // Replaced by dob for better precision
+  dob?: string; // Date of Birth YYYY-MM-DD
+  address?: string;
+  bloodType?: BloodType;
+  maritalStatus?: MaritalStatus;
+  occupation?: string;
+  educationLevel?: string;
   contactPhone: string;
   contactEmail: string;
 }
@@ -26,12 +37,30 @@ export interface EmergencyContact {
   phone: string;
 }
 
-export interface MedicalHistory {
-  diagnosis: string[];
-  pastConditions: string[];
-  familyHistory: string[];
-  allergies: string[];
+export interface FamilyMedicalHistoryEntry {
+  relative: "self" | "father" | "mother" | "paternal_grandparents" | "maternal_grandparents";
+  conditions: string[]; // Array of condition names
 }
+
+export interface MedicationEntry {
+  id: string; // for useFieldArray key
+  drugName: string;
+  dosage: string;
+  frequency: string;
+  notes?: string;
+}
+
+export interface MedicalHistory {
+  // diagnosis: string[]; // This seems to be covered by pastConditions or a more general diagnosis field
+  pastMedicalHistoryText?: string; // Replaces pastConditions for a single textarea
+  familyMedicalHistory?: FamilyMedicalHistoryEntry[];
+  allergies?: string[]; // Kept as array of strings for simplicity
+  currentSymptoms?: string[];
+  medicationHistory?: MedicationEntry[];
+  otherMedicalInfo?: string;
+  healthGoals?: string[]; // For "您最希望解决的健康问题"
+}
+
 
 export interface ExaminationReport {
   id: string;

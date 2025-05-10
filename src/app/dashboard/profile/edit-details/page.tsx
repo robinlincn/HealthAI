@@ -20,7 +20,7 @@ export default function EditProfileDetailsPage() {
             <UserCircle className="mr-1 h-4 w-4" /> 基本信息
           </TabsTrigger>
           <TabsTrigger value="medicalHistory" className="px-1 py-2 sm:px-3">
-            <HeartHandshake className="mr-1 h-4 w-4" /> 病历信息
+            <HeartHandshake className="mr-1 h-4 w-4" /> 病史与症状
           </TabsTrigger>
           <TabsTrigger value="emergencyContacts" className="px-1 py-2 sm:px-3">
             <ShieldAlert className="mr-1 h-4 w-4" /> 紧急联系
@@ -34,7 +34,7 @@ export default function EditProfileDetailsPage() {
           <Card className="shadow-sm">
             <CardHeader className="p-4">
               <CardTitle className="text-base">基本信息</CardTitle>
-              <CardDescription className="text-xs">管理您的姓名、性别、年龄和联系方式。</CardDescription>
+              <CardDescription className="text-xs">管理您的姓名、联系方式、家庭住址、血型、婚姻等个人信息。</CardDescription>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <BasicInfoForm />
@@ -45,8 +45,8 @@ export default function EditProfileDetailsPage() {
         <TabsContent value="medicalHistory">
           <Card className="shadow-sm">
             <CardHeader className="p-4">
-              <CardTitle className="text-base">病历信息</CardTitle>
-              <CardDescription className="text-xs">管理您的疾病诊断、既往病史、家族病史和过敏史。</CardDescription>
+              <CardTitle className="text-base">病史与症状</CardTitle>
+              <CardDescription className="text-xs">管理您的家族病史、现有症状、既往史、用药史、过敏史等信息。</CardDescription>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <MedicalHistoryForm />
