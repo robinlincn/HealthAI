@@ -1,19 +1,20 @@
+
 import type { NavItem } from '@/lib/types';
 import {
   LayoutDashboard,
   UserCircle,
   FileText,
-  HeartPulse, // Maintained for '健康提醒' as it was previously for '消息通知'
+  HeartPulse, 
   Apple,
   ClipboardList,
   MessageSquare,
   Bot,
   Settings,
-  LineChart, // Maintained for '健康数据' as it was previously for '健康可视化'
-  BookOpen, // For Health Courses
-  Users, // For Community
-  HelpCircle, // For Help & Support
-  BellRing, // More direct icon for Reminders
+  LineChart, 
+  BookOpen, 
+  Users, 
+  HelpCircle, 
+  BellRing, 
 } from 'lucide-react';
 
 export const navLinks: NavItem[] = [
@@ -21,11 +22,6 @@ export const navLinks: NavItem[] = [
     title: '仪表盘',
     href: '/dashboard',
     icon: LayoutDashboard,
-  },
-  {
-    title: '个人信息', // 病历记录的一部分
-    href: '/dashboard/profile',
-    icon: UserCircle,
   },
   {
     title: '健康数据', // 原 健康可视化
@@ -38,12 +34,12 @@ export const navLinks: NavItem[] = [
     icon: Apple,
   },
   {
-    title: '检查报告', // 病历记录的一部分
+    title: '检查报告', 
     href: '/dashboard/reports',
     icon: FileText,
   },
   {
-    title: '治疗方案', // 查看医生制定的方案
+    title: '治疗方案', 
     href: '/dashboard/treatment',
     icon: ClipboardList,
   },
@@ -58,7 +54,7 @@ export const navLinks: NavItem[] = [
     icon: Bot,
   },
   {
-    title: '健康提醒', // 原 消息通知
+    title: '健康提醒', 
     href: '/dashboard/reminders',
     icon: BellRing, 
   },
@@ -71,6 +67,11 @@ export const navLinks: NavItem[] = [
     title: '社区互动',
     href: '/dashboard/community',
     icon: Users,
+  },
+   {
+    title: '我的', // Changed from '个人信息' to '我的' to match new design and typical app navigation
+    href: '/dashboard/profile',
+    icon: UserCircle,
   },
   {
     title: '系统设置',
