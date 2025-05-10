@@ -17,17 +17,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import React from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const doctorAppTitle = "AI慢病管理系统-医生端";
 
 // Inner component to ensure useSidebar is called within SidebarProvider's context
 function DoctorLayoutContent({ children }: { children: React.ReactNode }) {
   const { setOpenMobile, isMobile } = useSidebar();
+  const router = useRouter(); // Initialize useRouter
 
   const handleLinkClick = () => {
     if (isMobile && typeof setOpenMobile === 'function') {
       setOpenMobile(false); 
     }
+  };
+
+  const handleLogout = () => {
+    // In a real app, you would clear session, tokens, etc.
+    router.push('/doctor/auth/login'); // Redirect to doctor login page
   };
 
   return (
@@ -40,7 +47,11 @@ function DoctorLayoutContent({ children }: { children: React.ReactNode }) {
           <SidebarNav items={doctorNavLinks} onLinkClick={handleLinkClick} />
         </SidebarContent>
         <SidebarFooter>
-          <Button variant="ghost" className="w-full justify-start group-data-[collapsible=icon]/sidebar-wrapper:justify-center group-data-[collapsible=icon]/sidebar-wrapper:px-2">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start group-data-[collapsible=icon]/sidebar-wrapper:justify-center group-data-[collapsible=icon]/sidebar-wrapper:px-2"
+            onClick={handleLogout} // Add onClick handler
+          >
             <LogOut className="mr-2 h-5 w-5 flex-shrink-0" />
             <span className="group-data-[collapsible=icon]/sidebar-wrapper:hidden">退出登录</span>
           </Button>
@@ -96,3 +107,4 @@ export default function DoctorLayout({
     </SidebarProvider>
   );
 }
+
