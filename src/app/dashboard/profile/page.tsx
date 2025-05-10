@@ -1,9 +1,12 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { MedicalHistoryForm } from "@/components/profile/MedicalHistoryForm";
 import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
-import { UserCircle, HeartHandshake, ShieldAlert } from "lucide-react";
+import { UserCircle, HeartHandshake, ShieldAlert, FileText } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
   return (
@@ -12,16 +15,16 @@ export default function ProfilePage() {
         <CardHeader>
           <CardTitle className="text-2xl flex items-center">
             <UserCircle className="mr-3 h-7 w-7 text-primary" />
-            个人信息管理
+            病历记录与个人档案
           </CardTitle>
           <CardDescription>
-            查看和更新您的个人资料、医疗记录和紧急联系人信息。
+            管理您的个人基本信息、详细病历资料、紧急联系人以及查看已上传的检查报告。
           </CardDescription>
         </CardHeader>
       </Card>
 
       <Tabs defaultValue="basicInfo" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4">
           <TabsTrigger value="basicInfo">
             <UserCircle className="mr-2 h-4 w-4" /> 基本信息
           </TabsTrigger>
@@ -30,6 +33,9 @@ export default function ProfilePage() {
           </TabsTrigger>
           <TabsTrigger value="emergencyContacts">
             <ShieldAlert className="mr-2 h-4 w-4" /> 紧急联系人
+          </TabsTrigger>
+          <TabsTrigger value="uploadedReports">
+            <FileText className="mr-2 h-4 w-4" /> 已上传报告
           </TabsTrigger>
         </TabsList>
 
@@ -67,6 +73,23 @@ export default function ProfilePage() {
               <EmergencyContacts />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="uploadedReports">
+            <Card>
+                <CardHeader>
+                    <CardTitle>已上传的检查报告</CardTitle>
+                    <CardDescription>您可以在此处快速访问已上传的检查报告。详细管理请前往“健康报告”页面。</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-center">
+                    <FileText className="w-20 h-20 text-primary/30 mx-auto mb-4" />
+                    <p className="text-muted-foreground">检查报告列表将在此处显示预览。</p>
+                    <Button asChild variant="outline">
+                        <Link href="/dashboard/reports">前往健康报告中心查看和上传</Link>
+                    </Button>
+                     <p className="text-xs text-muted-foreground mt-2">此区域为快捷访问，完整功能请到健康报告页面。</p>
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>

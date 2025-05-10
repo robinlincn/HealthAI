@@ -3,13 +3,17 @@ import {
   LayoutDashboard,
   UserCircle,
   FileText,
-  HeartPulse,
+  HeartPulse, // Maintained for '健康提醒' as it was previously for '消息通知'
   Apple,
   ClipboardList,
   MessageSquare,
   Bot,
   Settings,
-  LineChart
+  LineChart, // Maintained for '健康数据' as it was previously for '健康可视化'
+  BookOpen, // For Health Courses
+  Users, // For Community
+  HelpCircle, // For Help & Support
+  BellRing, // More direct icon for Reminders
 } from 'lucide-react';
 
 export const navLinks: NavItem[] = [
@@ -19,27 +23,27 @@ export const navLinks: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: '个人信息',
+    title: '个人信息', // 病历记录的一部分
     href: '/dashboard/profile',
     icon: UserCircle,
   },
   {
-    title: '健康报告',
-    href: '/dashboard/reports',
-    icon: FileText,
+    title: '健康数据', // 原 健康可视化
+    href: '/dashboard/health-data',
+    icon: LineChart,
   },
   {
-    title: '营养管理',
+    title: '饮食记录',
     href: '/dashboard/nutrition',
     icon: Apple,
   },
   {
-    title: '健康可视化',
-    href: '/dashboard/visualizations',
-    icon: LineChart,
+    title: '检查报告', // 病历记录的一部分
+    href: '/dashboard/reports',
+    icon: FileText,
   },
   {
-    title: '治疗方案',
+    title: '治疗方案', // 查看医生制定的方案
     href: '/dashboard/treatment',
     icon: ClipboardList,
   },
@@ -54,14 +58,28 @@ export const navLinks: NavItem[] = [
     icon: Bot,
   },
   {
-    title: '消息通知',
-    href: '/dashboard/messages',
-    icon: HeartPulse, // Using HeartPulse as a placeholder for notifications related to health
+    title: '健康提醒', // 原 消息通知
+    href: '/dashboard/reminders',
+    icon: BellRing, 
   },
-  // {
-  //   title: '系统设置',
-  //   href: '/dashboard/settings',
-  //   icon: Settings,
-  //   disabled: true, // Example for a future feature
-  // },
+  {
+    title: '健康课程',
+    href: '/dashboard/health-courses',
+    icon: BookOpen,
+  },
+  {
+    title: '社区互动',
+    href: '/dashboard/community',
+    icon: Users,
+  },
+  {
+    title: '系统设置',
+    href: '/dashboard/settings',
+    icon: Settings,
+  },
+  {
+    title: '帮助与支持',
+    href: '/dashboard/help',
+    icon: HelpCircle,
+  },
 ];
