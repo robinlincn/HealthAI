@@ -1,3 +1,4 @@
+
 "use client"
 
 // Inspired by react-hot-toast library
@@ -176,13 +177,19 @@ function useToast() {
 
   React.useEffect(() => {
     listeners.push(setState)
+    // Ensure the component has the latest state upon mounting,
+    // in case memoryState changed between useState initialization and effect execution.
+    // This can help prevent issues if the initial memoryState is stale.
+    if (state !== memoryState) {
+        setState(memoryState);
+    }
     return () => {
       const index = listeners.indexOf(setState)
       if (index > -1) {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, []) // Changed dependency array from [state] to []
 
   return {
     ...state,
