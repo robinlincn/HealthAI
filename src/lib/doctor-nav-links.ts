@@ -7,14 +7,13 @@ import {
   UserCircle,
   Settings,
   BarChart3,
-  FileSpreadsheet,
   ClipboardList,
   MessagesSquare,
-  Send, // Changed from Mail for Push, Megaphone could also work
+  Send, 
   TrendingUp,
   ShieldCheck,
   FilePieChart,
-  UserCog, // Changed from UsersCog
+  UserCog, 
   DatabaseBackup,
   Settings2,
   PlugZap,
@@ -38,26 +37,13 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '病情分析',
-    href: '/doctor/analytics', // Main group, can be a non-clickable group header or link to overview
-    icon: BarChart3, // Placeholder, can be changed if we make this a group
-    // For now, let's assume direct links or a future sub-menu capability
-    // If we want sub-menus, the structure of NavItem and SidebarNav needs to support it.
-    // For simplicity now, flat list.
-  },
-  {
-    title: '健康数据可视化',
-    href: '/doctor/analytics/visualization',
-    icon: BarChart3, // Or LineChart
-  },
-  {
-    title: '数据分析报告 (AI)',
-    href: '/doctor/analytics/reports',
-    icon: FileSpreadsheet,
+    href: '/doctor/analytics', 
+    icon: BarChart3,
   },
   {
     title: '治疗方案与建议',
     href: '/doctor/treatment-plans',
-    icon: ClipboardList, // Consistent with user side
+    icon: ClipboardList, 
   },
   {
     title: '病人咨询',
@@ -66,14 +52,15 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '消息推送',
-    href: '/doctor/messages', // Existing page, will be refined
+    href: '/doctor/messages', 
     icon: Send,
   },
   {
     title: '统计报告',
-    href: '/doctor/statistics', // Main group for statistics
+    href: '/doctor/statistics', 
     icon: FilePieChart,
   },
+  // Sub-items for statistics are still relevant as they are general statistical views
   {
     title: '病情趋势分析',
     href: '/doctor/statistics/trends',
@@ -87,17 +74,18 @@ export const doctorNavLinks: NavItem[] = [
   {
     title: '自定义报表',
     href: '/doctor/statistics/custom-reports',
-    icon: FilePieChart, // Or `TableProperties`
+    icon: FilePieChart, 
   },
   {
     title: '系统管理',
-    href: '/doctor/settings', // Main group for settings
+    href: '/doctor/settings', 
     icon: Settings,
   },
+   // Sub-items for settings are still relevant
   {
     title: '用户与权限',
     href: '/doctor/settings/users',
-    icon: UserCog, // Changed from UsersCog
+    icon: UserCog, 
   },
   {
     title: '数据备份与恢复',
