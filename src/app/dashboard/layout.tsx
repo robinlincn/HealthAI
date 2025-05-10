@@ -1,4 +1,3 @@
-
 "use client";
 
 import { navLinks } from "@/lib/nav-links";
@@ -30,7 +29,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+    // Changed from flex-col to flex (row is default for flex)
+    // This allows Sidebar and the content div to be side-by-side
+    <div className="flex min-h-screen w-full bg-muted/40">
       <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader>
           <AppLogo />
@@ -45,7 +46,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </Button>
         </SidebarFooter>
       </Sidebar>
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14 group-data-[state=expanded]/sidebar-wrapper:sm:pl-[16rem] transition-[padding-left] duration-200 ease-linear">
+      {/* 
+        This div is the main content wrapper.
+        - Added `flex-1` to take available horizontal space.
+        - Removed `sm:pl-14`, `group-data-[state=expanded]/sidebar-wrapper:sm:pl-[16rem]`, and `transition-[padding-left]`.
+          Spacing is now handled by the "gap" div rendered within the Sidebar component itself.
+      */}
+      <div className="flex flex-1 flex-col sm:gap-4 sm:py-4">
         <Header />
         <SidebarInset>
           <main className="flex-1 p-4 sm:px-6 sm:py-0 md:p-6 bg-background">
