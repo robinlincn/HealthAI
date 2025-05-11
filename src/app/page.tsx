@@ -45,13 +45,17 @@ export default function HomePage() {
                   <Link href="/doctor/auth/login"><span>医生端入口 &rarr;</span></Link>
               </Button>
               <Button asChild size="sm" variant="ghost" className="text-accent-foreground hover:text-accent">
-                 {/* 
-                    The Vue app is expected to be served under /vue-patient-app/ path.
-                    This requires server configuration (e.g., Nginx proxy_pass or Vercel rewrites) 
-                    to serve the Vue app's build output from the 'vue-patient-app/dist' directory 
-                    when the /vue-patient-app/ path is accessed.
-                 */}
                 <a href="/vue-patient-app/" target="_blank" rel="noopener noreferrer"><span>病人端入口 (Vue版) &rarr;</span></a>
+              </Button>
+              <Button asChild size="sm" variant="ghost" className="text-muted-foreground hover:text-primary">
+                  {/* The SAAS admin app is expected to be available at /admin path relative to the main app's domain.
+                      This typically requires a reverse proxy setup or deploying the SAAS admin app in a subdirectory
+                      if they are part of the same deployment.
+                      For Project IDX, if saas-admin is a separate Next.js app, it might run on a different port
+                      and the link here would need to be an absolute URL to that port, or a rewrite needs to be configured.
+                      Assuming it's hosted under /saas-admin/ path or the SAAS admin root path is /admin
+                  */}
+                  <Link href="/admin"><span>SAAS管理后台 (Next.js版) &rarr;</span></Link>
               </Button>
           </div>
         </div>
