@@ -19,16 +19,15 @@ import {
   LayoutDashboard,
   Shield,
   Network,
-  ListChecks, // Added for SOP/Community
-  ListOrdered, // Added for Order Management
-  Settings2, // Added for System Settings
-  FileText, // Re-added for general reports/API if needed, or could use Network
-  ListTodo, // Added for Outbound tasks
-  Activity, // For monitoring
-  KeyRound, // For API/Permissions
-  Palette, // For System Settings (theme)
-  BellRing, // For System Settings (notifications)
-  ServerCog // For System Settings (maintenance)
+  ListChecks, 
+  ListOrdered, 
+  Settings2, 
+  ListTodo, 
+  Activity, 
+  KeyRound, 
+  Palette, 
+  BellRing, 
+  ServerCog 
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -85,14 +84,14 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '订单管理',
         href: `${baseSaasPath}/service-center/order-management`,
-        icon: ListOrdered, // Using ListOrdered for orders
+        icon: ListOrdered, 
       },
     ],
   },
   {
     title: '社群管理',
     href: `${baseSaasPath}/community-management`,
-    icon: MessageSquare, // Keeping MessageSquare, ListChecks could be an alternative for "logs"
+    icon: MessageSquare, 
     label: '运营管理',
   },
   {
@@ -104,7 +103,7 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '外呼任务',
     href: `${baseSaasPath}/outbound-call-tasks`,
-    icon: Send, // Send or ListTodo could work
+    icon: Send, 
     label: '运营管理',
   },
   {
@@ -131,7 +130,7 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '系统设置',
         href: `${baseSaasPath}/system-management/system-settings`,
-        icon: Settings2, // Using Settings2 for general system settings
+        icon: Settings2, 
       },
     ],
   },
@@ -163,5 +162,3 @@ export const saasNavLinks: SaasNavItem[] = [
 // Helper icons that might be used on pages but not in nav:
 // KeyRound, ListChecks, ListTodo, Activity, Palette, BellRing, ServerCog
 // FileText - general purpose
-
-```

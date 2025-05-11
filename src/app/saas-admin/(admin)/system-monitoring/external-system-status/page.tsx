@@ -40,5 +40,3 @@ export default function ExternalSystemStatusPage() {
     </div>
   );
 }
-
-```

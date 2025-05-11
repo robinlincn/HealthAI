@@ -40,5 +40,3 @@ export default function ApiManagementPage() {
     </div>
   );
 }
-
-```
