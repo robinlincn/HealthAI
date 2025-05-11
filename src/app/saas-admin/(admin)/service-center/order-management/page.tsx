@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { OrderTable } from "./components/OrderTable";
 import { OrderDetailDialog } from "./components/OrderDetailDialog"; 
 import type { SaasOrder, SaasEnterprise, SaasServicePackage } from '@/lib/types';
-import { ShoppingCart, Search, Filter, CalendarDays, Briefcase, Download } from "lucide-react";
+import { ShoppingCart, Search, Filter, CalendarDays, Briefcase, Download, Package } from "lucide-react"; // Added Package
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
@@ -195,3 +195,4 @@ export default function OrderManagementPage() {
     </div>
   );
 }
+
