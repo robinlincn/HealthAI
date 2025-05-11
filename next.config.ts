@@ -18,6 +18,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/vue-patient-app/:path*',
+        // Assuming the Vue app's dev server runs on port 9003
+        destination: 'http://localhost:9003/:path*', 
+      },
+    ];
+  },
 };
 
 export default nextConfig;
