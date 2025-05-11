@@ -22,7 +22,21 @@ const nextConfig: NextConfig = {
   async rewrites() {
     // For development, proxy /vue-patient-app to the Vue dev server
     // The Vue dev server should be running (e.g., via `npm run dev:vue`)
-    const vueDevServerUrl = process.env.VUE_DEV_SERVER_URL || 'http://127.0.0.1:9003';
+    let vueDevServerUrl = process.env.VUE_DEV_SERVER_URL || 'http://127.0.0.1:9003';
+
+    try {
+      // Validate if vueDevServerUrl is a proper URL structure.
+      // new URL() will throw an error if the URL is malformed.
+      new URL(vueDevServerUrl);
+    } catch (e) {
+      console.error(
+        `[Next.js Config] Invalid VUE_DEV_SERVER_URL: "${process.env.VUE_DEV_SERVER_URL}". ` +
+        `Error: ${(e as Error).message}. ` +
+        `Defaulting to 'http://127.0.0.1:9003'. ` +
+        `Please ensure VUE_DEV_SERVER_URL is a complete and valid URL (e.g., http://localhost:9003).`
+      );
+      vueDevServerUrl = 'http://127.0.0.1:9003';
+    }
     
     return [
       {
