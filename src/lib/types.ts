@@ -86,7 +86,7 @@ export interface Consultation {
   date: string; 
   timestamp: Timestamp | Date; 
   question: string;
-  status: 'pending_reply' | 'replied' | 'closed';
+  status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled'; // Added more statuses
   reply?: string;
   doctorReplyTimestamp?: Timestamp | Date; 
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
@@ -252,12 +252,27 @@ export interface SaasSopService {
   name: string;
   type: 'Coze' | 'Dify' | 'Other';
   apiEndpoint: string;
-  apiKey?: string; // Should be stored securely and not directly exposed
+  apiKey?: string; 
   description?: string;
   status: 'active' | 'inactive' | 'error';
-  creationDate: string; // ISO date string
-  lastCallTimestamp?: string; // ISO date string
+  creationDate: string; 
+  lastCallTimestamp?: string; 
   callCount?: number;
   errorCount?: number;
-  parameters?: string; // JSON string for additional parameters
+  parameters?: string; 
+}
+
+export interface SaasOutboundCallTask {
+  id: string;
+  name: string;
+  targetType: 'customer_segment' | 'employee_group' | 'custom_list' | 'individual_patient';
+  targetDetails: string; // e.g., Customer Segment Name, Employee Department, List Name, Patient ID
+  status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+  creationDate: string; // ISO date string
+  scheduledTime?: string; // ISO date string
+  scriptId?: string; // Link to an SOP/script
+  assignedTo?: string; // Employee ID if manual
+  callCount?: number;
+  successCount?: number;
+  notes?: string;
 }
