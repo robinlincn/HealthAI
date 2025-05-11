@@ -19,8 +19,7 @@ export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "
 export interface UserProfile {
   name: string;
   gender: Gender;
-  // age: number; // Replaced by dob for better precision
-  dob?: string; // Date of Birth YYYY-MM-DD
+  dob?: string; 
   address?: string;
   bloodType?: BloodType;
   maritalStatus?: MaritalStatus;
@@ -39,11 +38,11 @@ export interface EmergencyContact {
 
 export interface FamilyMedicalHistoryEntry {
   relative: "self" | "father" | "mother" | "paternal_grandparents" | "maternal_grandparents";
-  conditions: string[]; // Array of condition names
+  conditions: string[]; 
 }
 
 export interface MedicationEntry {
-  id: string; // for useFieldArray key
+  id: string; 
   drugName: string;
   dosage: string;
   frequency: string;
@@ -51,14 +50,13 @@ export interface MedicationEntry {
 }
 
 export interface MedicalHistory {
-  // diagnosis: string[]; // This seems to be covered by pastConditions or a more general diagnosis field
-  pastMedicalHistoryText?: string; // Replaces pastConditions for a single textarea
+  pastMedicalHistoryText?: string; 
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
-  allergies?: string[]; // Kept as array of strings for simplicity
+  allergies?: string[]; 
   currentSymptoms?: string[];
   medicationHistory?: MedicationEntry[];
   otherMedicalInfo?: string;
-  healthGoals?: string[]; // For "您最希望解决的健康问题"
+  healthGoals?: string[]; 
 }
 
 
@@ -66,7 +64,7 @@ export interface ExaminationReport {
   id: string;
   name: string;
   type: 'image' | 'pdf';
-  url: string; // or File object for upload
+  url: string; 
   uploadDate: string;
   dataAiHint?: string;
 }
@@ -79,19 +77,18 @@ export interface MealEntry {
   notes?: string;
 }
 
-// Updated Consultation type for Firestore linkage
 export interface Consultation {
-  id: string; // Firestore document ID
+  id: string; 
   patientId: string;
-  patientName: string; // Denormalized for doctor's UI
-  doctorName?: string; // Assigned doctor or department
-  doctorId?: string; // Actual doctor user ID
-  date: string; // YYYY-MM-DD string, derived from timestamp for display
-  timestamp: Timestamp | Date; // Firestore Timestamp on write/read, Date object in app state
+  patientName: string; 
+  doctorName?: string; 
+  doctorId?: string; 
+  date: string; 
+  timestamp: Timestamp | Date; 
   question: string;
   status: 'pending_reply' | 'replied' | 'closed';
   reply?: string;
-  doctorReplyTimestamp?: Timestamp | Date; // Firestore Timestamp or Date object
+  doctorReplyTimestamp?: Timestamp | Date; 
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
 }
 
@@ -129,7 +126,7 @@ export interface HealthNotification {
 export interface ChartDataPoint {
   date: string;
   value: number;
-  [key: string]: any; // For multiple lines or additional data
+  [key: string]: any; 
 }
 
 export interface AiAssistantMessage {
@@ -158,13 +155,13 @@ export interface SaasEnterprise {
   contactPhone: string;
   address?: string;
   status: 'active' | 'inactive' | 'pending_approval' | 'suspended';
-  creationDate: string; // ISO date string e.g. "2024-05-15T10:00:00Z"
+  creationDate: string; 
   assignedResources: {
     maxUsers: number;
     maxStorageGB: number;
     maxPatients: number;
   };
-  servicePackageId?: string; // ID of the subscribed service package
+  servicePackageId?: string; 
   notes?: string;
 }
 
@@ -173,7 +170,7 @@ export interface SaasDepartment {
   enterpriseId: string; 
   name: string;
   parentDepartmentId?: string | null; 
-  headEmployeeId?: string; 
+  headEmployeeId?: string | null; 
   description?: string;
   creationDate: string; 
 }
@@ -181,24 +178,17 @@ export interface SaasDepartment {
 export interface SaasEmployee {
   id: string;
   enterpriseId: string;
-  departmentId?: string;
+  departmentId?: string | null;
   name: string;
   email: string;
   phone?: string;
-  roleId?: string; // Role within the enterprise, not SAAS system role
-  status: 'active' | 'invited' | 'disabled';
-  joinDate: string; // ISO date string
   employeeNumber?: string;
+  roleTitle?: string; // e.g., "主任医师", "护士长" - This is a descriptive title within the enterprise
+  status: 'active' | 'invited' | 'disabled';
+  joinDate: string; 
 }
 
-export interface SaasRole { // This refers to SAAS System Roles
-  id: string;
-  name: string; 
-  permissions: string[]; 
-  description?: string;
-}
-
-export interface SaasPatient { // Client of an Enterprise
+export interface SaasPatient { 
   id: string;
   enterpriseId: string; 
   name: string;
@@ -233,4 +223,22 @@ export interface SaasOrder {
   currency: string; 
   transactionId?: string;
   renewalDate?: string; 
+}
+
+
+// SAAS System Specific User and Role
+export interface SaasSystemUser {
+  id: string;
+  name: string;
+  email: string;
+  systemRoleId: string; // Links to SaasSystemRole
+  status: 'active' | 'disabled';
+  lastLogin?: string; // ISO date string
+}
+
+export interface SaasSystemRole {
+  id: string;
+  name: string; 
+  description?: string;
+  permissions: string[]; // Array of permission keys, e.g., "manage_enterprises", "view_orders"
 }

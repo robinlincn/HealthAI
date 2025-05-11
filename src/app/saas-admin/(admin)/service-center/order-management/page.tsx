@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ListOrdered } from "lucide-react"; 
+import { ListOrdered, ShoppingCart } from "lucide-react"; // Added ShoppingCart
 
 export default function OrderManagementPage() {
   return (
@@ -8,11 +8,11 @@ export default function OrderManagementPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
-            <ListOrdered className="h-6 w-6 text-primary" />
+            <ShoppingCart className="h-6 w-6 text-primary" />
             订单管理
           </CardTitle>
           <CardDescription>
-            查看和管理企业/医院购买服务包的订单记录。
+            查看和管理企业/医院购买服务包的订单记录、支付状态和订阅周期。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -20,7 +20,7 @@ export default function OrderManagementPage() {
             <ListOrdered className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-lg font-semibold text-muted-foreground">订单管理功能正在开发中</p>
             <p className="text-sm text-muted-foreground mt-1">
-              此功能将用于跟踪和管理服务包的销售订单，包括订单状态和支付信息。
+              此功能将用于跟踪和管理服务包的销售订单，包括订单详情、支付信息、发票管理和订阅续费等。
             </p>
           </div>
         </CardContent>
