@@ -1,12 +1,11 @@
-
 import type { LucideIcon } from 'lucide-react';
 import {
   Briefcase,
   Building2,
-  Users,
-  HeartHandshake,
+  Users, // Keep for Employee Management and Online Users
+  // HeartHandshake, // Removed, using Users for Customer Center now
   Package,
-  ShoppingCart,
+  ShoppingCart, // Using ShoppingCart for Order Management
   MessageSquare,
   Settings,
   Send,
@@ -20,7 +19,7 @@ import {
   Shield,
   Network,
   ListChecks, 
-  ListOrdered, 
+  // ListOrdered, // Removed, using ShoppingCart now
   Settings2, 
   ListTodo, 
   Activity, 
@@ -61,13 +60,13 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '员工管理',
     href: `${baseSaasPath}/employee-management`,
-    icon: Users,
+    icon: UsersRound, // Changed to UsersRound for staff
     label: '客户与服务',
   },
   {
-    title: '客户中心',
+    title: '客户中心', // (Hospital Patient Management)
     href: `${baseSaasPath}/customer-center`,
-    icon: HeartHandshake,
+    icon: Users, // Changed from HeartHandshake to generic Users
     label: '客户与服务',
   },
   {
@@ -84,7 +83,7 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '订单管理',
         href: `${baseSaasPath}/service-center/order-management`,
-        icon: ListOrdered, 
+        icon: ShoppingCart, // Changed from ListOrdered to ShoppingCart
       },
     ],
   },
