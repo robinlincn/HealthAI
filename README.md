@@ -1,10 +1,11 @@
+
 # AI慢病管理系统 (AI Chronic Disease Management System)
 
 本项目是一个基于Next.js开发的AI慢病管理系统，旨在为患者提供个性化的慢性病管理方案、健康建议和持续支持，同时为医生提供高效的病人管理、病情分析和治疗辅助工具。
 
 ## 主要特性
 
-系统包含两大主要部分：**病人端 (手机App风格)** 和 **医生端 (PC管理后台)**。
+系统包含三大主要部分：**病人端 (手机App风格)**, **医生端 (PC管理后台)**, 和 **SAAS管理后台**。
 
 ### 病人端核心功能 (Next.js Version):
 
@@ -72,9 +73,30 @@
   - 与电子病历系统(EMR)、检查设备(LIS)、第三方健康服务集成（规划中）。
   - API接口管理（规划中）。
 
+### SAAS管理后台核心功能:
+- **企业管理 (医院管理)**: 管理SAAS平台中的企业或医院账户。
+- **部门管理 (医院科室管理)**: 针对每个企业/医院账户，管理其内部的部门或科室结构。
+- **员工管理 (医院医生/员工管理)**: 管理企业/医院账户下的员工信息和系统访问权限。
+- **客户中心 (医院病人管理)**: 查看和管理由各企业/医院服务的最终客户（病人）信息。
+- **服务中心**:
+    - **服务包管理**: 创建、编辑和管理平台提供的各类服务包，并配置其权限。
+    - **订单管理**: 查看和管理企业/医院购买服务包的订单记录。
+- **社群管理**: 记录和管理微信群聊天记录和日志。
+- **SOP服务管理**: 管理中台Coze、Dify等工作流的API相关内容。
+- **外呼任务**: 设置和管理自动或人工外呼任务。
+- **系统管理**:
+    - **API管理**: 管理系统对外提供的API接口。
+    - **用户管理**: 管理SAAS平台自身的管理员用户账户。
+    - **权限管理**: 定义系统中的角色及其对应的操作权限。
+    - **系统设置**: 配置SAAS平台的全局设置。
+- **系统监控**:
+    - **外部系统状态监控**: 监控依赖的外部系统（如影刀、微信服务等）是否正常。
+    - **在线用户**: 实时获取SAAS平台当前在线用户数量和列表。
+    - **定时任务管理**: 管理和监控系统中的定时任务。
+
 ## 技术栈
 
-- **Next.js 前端 (病人端 + 医生端)**: Next.js (App Router), React, TypeScript
+- **Next.js 前端 (病人端 + 医生端 + SAAS后台)**: Next.js (App Router), React, TypeScript
 - **Vue.js 前端 (病人端 - 新增)**: Vue 3, Vite, TypeScript, Vue Router, Pinia
 - **UI**: Tailwind CSS, ShadCN UI (Next.js), Lucide React/Lucide-vue-next (图标), Recharts (图表 - Next.js)
 - **状态管理 & 表单**: React Hook Form (Next.js), Zod (数据校验 - Next.js), Pinia (Vue.js)
@@ -84,28 +106,33 @@
 
 ## 项目结构 (概览)
 
-- `src/app/`: Next.js App Router 页面和布局。
-  - `(auth)/`: 认证相关页面 (登录、注册)。
+- `src/app/`: Next.js 主应用页面和布局。
+  - `(auth)/`: 主应用认证相关页面 (登录、注册 - 病人端)。
   - `dashboard/`: 病人端主要功能页面。
   - `doctor/`: 医生端主要功能页面。
-- `src/components/`: Next.js 可复用UI组件。
+- `src/components/`: Next.js 主应用可复用UI组件。
   - `ui/`: ShadCN UI 基础组件。
   - `layout/`: 布局相关组件。
   - `assistant/`, `profile/`, `reports/`等: 特定功能模块组件。
-- `src/lib/`: Next.js 工具函数、类型定义、配置文件。
+- `src/lib/`: Next.js 主应用工具函数、类型定义、配置文件。
   - `firebase.ts`: Firebase 初始化与配置。
   - `nav-links.ts`, `doctor-nav-links.ts`: 导航链接配置。
   - `types.ts`: 全局TypeScript类型定义。
 - `src/ai/`: Genkit AI 相关代码。
   - `flows/`: Genkit Flow 定义。
   - `genkit.ts`: Genkit 初始化与配置。
-- `src/hooks/`: Next.js 自定义React Hooks。
-- `public/`: Next.js 静态资源。
+- `src/hooks/`: Next.js 主应用自定义React Hooks。
+- `public/`: Next.js 主应用静态资源。
 - `vue-patient-app/`: Vue.js 病人端应用。
   - `public/`: Vue app 静态资源。
   - `src/`: Vue app 源代码 (组件, 视图, 路由, 状态等)。
   - `vite.config.ts`: Vite 配置文件。
   - `tailwind.config.js`: Tailwind CSS 配置文件 for Vue app。
+- `saas-admin/`: Next.js SAAS管理后台应用。
+  - `src/app/`: SAAS后台页面和布局。
+  - `src/components/`: SAAS后台可复用UI组件。
+  - `src/lib/`: SAAS后台工具函数、类型定义。
+
 
 ## 风格指南
 
@@ -133,11 +160,15 @@ yarn install
 # 或者
 pnpm install
 ```
-如果需要为 Vue 应用单独安装或更新依赖，请进入 `vue-patient-app` 目录:
+如果需要为 Vue 应用或 SAAS 后台应用单独安装或更新依赖，请进入相应目录:
 ```bash
 cd vue-patient-app
 npm install
 cd .. 
+
+cd saas-admin
+npm install
+cd ..
 ```
 
 ### 配置环境变量
@@ -155,29 +186,27 @@ cd ..
    # Genkit/Google AI (if applicable)
    GOOGLE_API_KEY=YOUR_GOOGLE_GENERATIVE_AI_API_KEY
    ```
-   **注意**: 将 `YOUR_...` 替换为您的实际 Firebase 和 Google AI 配置值。Vue 应用可能也需要通过 Vite 的环境变量机制访问这些值 (例如，通过 `VITE_` 前缀)。
+   **注意**: 将 `YOUR_...` 替换为您的实际 Firebase 和 Google AI 配置值。Vue 应用可能也需要通过 Vite 的环境变量机制访问这些值 (例如，通过 `VITE_` 前缀)。SAAS 后台如果需要环境变量，也应按需配置。
 
 ### 运行开发服务器
 
-**Next.js 应用 (包含医生端和病人端React版本):**
+**主 Next.js 应用 (病人端React版 + 医生端):**
 ```bash
 npm run dev
-# 或者
-yarn dev
-# 或者
-pnpm dev
 ```
-Next.js 应用默认运行在 `http://localhost:9002`。
+主 Next.js 应用默认运行在 `http://localhost:9002`。
 
 **Vue.js 病人端应用:**
 ```bash
 npm run dev:vue
-# 或者
-cd vue-patient-app
-npm run dev 
-# (然后返回根目录: cd ..)
 ```
 Vue.js 应用通常运行在 `http://localhost:9003` (或其他 Vite 配置的端口)。
+
+**SAAS 管理后台 Next.js 应用:**
+```bash
+npm run dev:saas
+```
+SAAS 管理后台应用默认运行在 `http://localhost:3000` (或 Next.js 选择的下一个可用端口)。
 
 ### 运行 Genkit 开发服务器 (AI功能)
 
@@ -191,7 +220,7 @@ Genkit 服务通常运行在 `http://localhost:3100` (Genkit UI 在 `http://loca
 
 ### 构建生产版本
 
-**Next.js 应用:**
+**主 Next.js 应用:**
 ```bash
 npm run build
 ```
@@ -199,24 +228,29 @@ npm run build
 **Vue.js 应用:**
 ```bash
 npm run build:vue
-# 或者
-cd vue-patient-app
-npm run build
-cd ..
 ```
 
-### 启动生产服务器 (Next.js)
+**SAAS 管理后台 Next.js 应用:**
+```bash
+# 进入 saas-admin 目录
+cd saas-admin
+npm run build
+cd ..
+# 或者，如果package.json在根目录有相应脚本: npm run build:saas
+```
+
+### 启动生产服务器 (主 Next.js 应用)
 
 ```bash
 npm run start
 ```
-(Vue.js 应用的生产部署通常涉及将 `vue-patient-app/dist` 目录的内容部署到静态文件服务器。)
+(Vue.js 应用的生产部署通常涉及将 `vue-patient-app/dist` 目录的内容部署到静态文件服务器。SAAS 管理后台的生产部署类似主 Next.js 应用。)
 
-## 代码质量与检查 (Next.js)
+## 代码质量与检查 (Next.js 主应用)
 
 - **Linting**: `npm run lint`
 - **Type Checking**: `npm run typecheck`
-(Vue.js 应用的 linting 和 type checking 将通过其自身的 `package.json` 脚本配置。)
+(Vue.js 应用和 SAAS 后台应用的 linting 和 type checking 将通过其各自的 `package.json` 脚本配置。)
 
 ---
 
