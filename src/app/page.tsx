@@ -45,11 +45,13 @@ export default function HomePage() {
                   <Link href="/doctor/auth/login"><span>医生端入口 &rarr;</span></Link>
               </Button>
               <Button asChild size="sm" variant="ghost" className="text-accent-foreground hover:text-accent">
-                 {/* For development, linking to a different port requires a regular <a> tag. 
-                     Next.js Link is for client-side navigation within the same app. 
-                     In a production setup, this might be a sub-path or a different domain.
+                 {/* 
+                    The Vue app is expected to be served under /vue-patient-app/ path.
+                    This requires server configuration (e.g., Nginx proxy_pass or Vercel rewrites) 
+                    to serve the Vue app's build output from the 'vue-patient-app/dist' directory 
+                    when the /vue-patient-app/ path is accessed.
                  */}
-                <a href="http://localhost:9003" target="_blank" rel="noopener noreferrer"><span>病人端入口 (Vue版) &rarr;</span></a>
+                <a href="/vue-patient-app/" target="_blank" rel="noopener noreferrer"><span>病人端入口 (Vue版) &rarr;</span></a>
               </Button>
           </div>
         </div>
