@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormDescription } from "@/components/ui/form"; // Added import
 import { Settings2, Palette, BellRing, ShieldAlert, ServerCrash, Languages, Clock } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
@@ -129,3 +130,4 @@ export default function SystemSettingsPage() {
     </div>
   );
 }
+
