@@ -16,7 +16,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         >
           <Menu className="h-6 w-6" />
         </button>
-        <Link href="/saas-admin/(admin)" className="text-xl font-semibold text-primary hidden md:block">
+        <Link href="/saas-admin" className="text-xl font-semibold text-primary hidden md:block">
           SAAS Admin
         </Link>
       </div>

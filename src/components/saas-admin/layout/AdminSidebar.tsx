@@ -13,13 +13,12 @@ interface AdminSidebarProps {
 
 const NavLink: React.FC<{ item: SaasNavItem; currentPath: string; onClick?: () => void; isSubItem?: boolean }> = ({ item, currentPath, onClick, isSubItem = false }) => {
   // Active state should consider the (admin) group for exact parent matches
-  const baseHref = item.href.replace(/\/\(admin\)\//, '/admin/'); // Normalize for comparison if needed, or ensure exact match
-  const normalizedCurrentPath = currentPath.replace(/\/\(admin\)\//, '/admin/');
+  const normalizedCurrentPath = currentPath; // No need to normalize (admin) out of path for matching
 
-  const [isExpanded, setIsExpanded] = useState(normalizedCurrentPath.startsWith(item.href.replace(/\/\(admin\)\/?$/, ''))); // Check startsWith for parent
+  const [isExpanded, setIsExpanded] = useState(normalizedCurrentPath.startsWith(item.href)); 
   
   const isActive = (!item.children && normalizedCurrentPath === item.href) || 
-                   (item.children && normalizedCurrentPath === item.href); // Exact match for parent
+                   (item.children && normalizedCurrentPath === item.href); 
   const isParentActive = item.children && normalizedCurrentPath.startsWith(item.href);
 
 
@@ -35,7 +34,7 @@ const NavLink: React.FC<{ item: SaasNavItem; currentPath: string; onClick?: () =
   return (
     <li>
       <Link
-        href={item.href} // Use original href which includes (admin)
+        href={item.href} 
         onClick={handleToggleExpand}
         className={`flex items-center justify-between rounded-md py-2.5 text-sm font-medium transition-colors
           ${isSubItem ? 'pl-10 pr-3' : 'px-3'}
@@ -79,7 +78,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         ${isOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'}`}
       >
         <div className="flex h-16 items-center border-b border-border px-6">
-          <Link href="/saas-admin/(admin)" className="text-2xl font-bold text-primary">
+          <Link href="/saas-admin" className="text-2xl font-bold text-primary">
             SAAS Admin
           </Link>
         </div>
@@ -101,7 +100,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </nav>
         <div className="mt-auto border-t border-border p-4">
           <Link
-            href="/saas-admin/(auth)/login" // Corrected logout to redirect to SAAS login
+            href="/saas-admin/login" 
             className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-5 w-5 text-muted-foreground" />

@@ -28,12 +28,12 @@ export interface SaasNavItem {
   children?: SaasNavItem[];
 }
 
-const baseSaasPath = '/saas-admin/(admin)';
+const baseSaasPath = '/saas-admin'; // Corrected base path
 
 export const saasNavLinks: SaasNavItem[] = [
   {
     title: '仪表盘',
-    href: `${baseSaasPath}`, // Root dashboard
+    href: `${baseSaasPath}`, // Root dashboard for /saas-admin
     icon: LayoutDashboard,
   },
   {
