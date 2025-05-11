@@ -2,16 +2,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form'; // Removed Controller, not needed if using FormField
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormField, FormItem, FormControl } from "@/components/ui/form"; // Added FormField, FormItem, FormControl
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Adjusted path
+import { Button } from '@/components/ui/button'; // Adjusted path
+import { Input } from '@/components/ui/input'; // Adjusted path
+import { Label } from '@/components/ui/label'; // Adjusted path
+import { Textarea } from '@/components/ui/textarea'; // Adjusted path
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Adjusted path
+import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form"; // Added Form, FormMessage
 import type { SaasDepartment, SaasEmployee } from '@/lib/types'; 
 
 const departmentSchema = z.object({
@@ -42,7 +42,7 @@ export function DepartmentDialog({
     existingDepartments,
     enterpriseEmployees 
 }: DepartmentDialogProps) {
-  const { register, handleSubmit, reset, formState: { errors }, control } = useForm<DepartmentFormValues>({
+  const form = useForm<DepartmentFormValues>({ // Changed to 'form'
     resolver: zodResolver(departmentSchema),
     defaultValues: department ? {
       name: department.name,
@@ -60,14 +60,14 @@ export function DepartmentDialog({
   useEffect(() => {
     if (isOpen) {
         if (department) {
-        reset({
+        form.reset({ // Use form.reset
             name: department.name,
             parentDepartmentId: department.parentDepartmentId || null,
             headEmployeeId: department.headEmployeeId || null,
             description: department.description || '',
         });
         } else {
-        reset({
+        form.reset({ // Use form.reset
             name: '',
             parentDepartmentId: null,
             headEmployeeId: null,
@@ -75,7 +75,7 @@ export function DepartmentDialog({
         });
         }
     }
-  }, [department, reset, isOpen]);
+  }, [department, form.reset, isOpen, form]); // Added form to dependencies
 
   const handleFormSubmit: SubmitHandler<DepartmentFormValues> = (data) => {
     const departmentToSubmit: SaasDepartment = {
@@ -99,74 +99,91 @@ export function DepartmentDialog({
             {department ? '修改部门的详细信息。' : '为当前企业创建一个新的部门或科室。'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-          <div>
-            <Label htmlFor="name">部门名称</Label>
-            <Input id="name" {...register('name')} />
-            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
-          </div>
-
-          <FormField
-            control={control}
-            name="parentDepartmentId"
-            render={({ field }) => (
-              <FormItem>
-                <Label htmlFor="parentDepartmentId-select">上级部门 (可选)</Label>
-                <Select onValueChange={(value) => field.onChange(value === 'none' ? null : value)} value={field.value || 'none'}>
-                  <FormControl>
-                    <SelectTrigger id="parentDepartmentId-select">
-                        <SelectValue placeholder="选择上级部门" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">无上级部门 (设为顶级)</SelectItem>
-                    {existingDepartments
-                      .filter(d => d.id !== department?.id) 
-                      .map(d => (
-                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.parentDepartmentId && <p className="text-sm text-destructive mt-1">{errors.parentDepartmentId.message}</p>}
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={control}
-            name="headEmployeeId"
-            render={({ field }) => (
-              <FormItem>
-                <Label htmlFor="headEmployeeId-select">部门负责人 (可选)</Label>
-                <Select onValueChange={(value) => field.onChange(value === 'none' ? null : value)} value={field.value || 'none'}>
-                    <FormControl>
-                        <SelectTrigger id="headEmployeeId-select">
-                            <SelectValue placeholder="选择部门负责人" />
-                        </SelectTrigger>
+        <Form {...form}> {/* Wrap with Form provider */}
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+            <FormField
+                control={form.control}
+                name="name"
+                render={({field}) => (
+                    <FormItem>
+                        <Label htmlFor="name">部门名称</Label> {/* Standard Label */}
+                        <FormControl>
+                             <Input id="name" {...field} />
+                        </FormControl>
+                        <FormMessage/>
+                    </FormItem>
+                )}
+            />
+            <FormField
+              control={form.control}
+              name="parentDepartmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <Label htmlFor="parentDepartmentId-select">上级部门 (可选)</Label> {/* Standard Label */}
+                  <Select onValueChange={(value) => field.onChange(value === 'none' ? null : value)} value={field.value || 'none'}>
+                    <FormControl> {/* This FormControl now gets context */}
+                      <SelectTrigger id="parentDepartmentId-select">
+                          <SelectValue placeholder="选择上级部门" />
+                      </SelectTrigger>
                     </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">暂不指定负责人</SelectItem>
-                    {enterpriseEmployees.map(emp => (
-                      <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.email})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.headEmployeeId && <p className="text-sm text-destructive mt-1">{errors.headEmployeeId.message}</p>}
-               </FormItem>
-            )}
-          />
+                    <SelectContent>
+                      <SelectItem value="none">无上级部门 (设为顶级)</SelectItem>
+                      {existingDepartments
+                        .filter(d => d.id !== department?.id) 
+                        .map(d => (
+                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage /> {/* Use FormMessage from ui/form */}
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="headEmployeeId"
+              render={({ field }) => (
+                <FormItem>
+                  <Label htmlFor="headEmployeeId-select">部门负责人 (可选)</Label> {/* Standard Label */}
+                  <Select onValueChange={(value) => field.onChange(value === 'none' ? null : value)} value={field.value || 'none'}>
+                      <FormControl> {/* This FormControl now gets context */}
+                          <SelectTrigger id="headEmployeeId-select">
+                              <SelectValue placeholder="选择部门负责人" />
+                          </SelectTrigger>
+                      </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">暂不指定负责人</SelectItem>
+                      {enterpriseEmployees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.email})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage /> {/* Use FormMessage from ui/form */}
+                 </FormItem>
+              )}
+            />
 
-          <div>
-            <Label htmlFor="description">部门描述 (可选)</Label>
-            <Textarea id="description" {...register('description')} />
-            {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
-          </div>
+            <FormField
+                control={form.control}
+                name="description"
+                render={({field}) => (
+                     <FormItem>
+                        <Label htmlFor="description">部门描述 (可选)</Label> {/* Standard Label */}
+                        <FormControl>
+                            <Textarea id="description" {...field} />
+                        </FormControl>
+                        <FormMessage/>
+                    </FormItem>
+                )}
+            />
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>取消</Button>
-            <Button type="submit">{department ? '保存更改' : '创建部门'}</Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>取消</Button>
+              <Button type="submit">{department ? '保存更改' : '创建部门'}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
         <DialogClose asChild><button type="button" className="sr-only">Close</button></DialogClose>
       </DialogContent>
     </Dialog>
