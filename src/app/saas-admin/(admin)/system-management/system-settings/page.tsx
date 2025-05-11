@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormDescription } from "@/components/ui/form"; // Added import
 import { Settings2, Palette, BellRing, ShieldAlert, ServerCrash, Languages, Clock } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
@@ -114,7 +113,7 @@ export default function SystemSettingsPage() {
                     <Label htmlFor="maintenanceMode" className="flex-grow">启用维护模式</Label>
                     <Switch id="maintenanceMode" name="maintenanceMode" checked={settings.maintenanceMode} onCheckedChange={(checked) => handleSwitchChange("maintenanceMode", checked)} />
                 </div>
-                 <FormDescription className="text-xs -mt-2">启用后，普通用户将无法访问平台，仅管理员可见。</FormDescription>
+                 <p className="text-xs text-muted-foreground -mt-2">启用后，普通用户将无法访问平台，仅管理员可见。</p>
                 
                 <div>
                     <Label htmlFor="sessionTimeout">会话超时时间 (分钟)</Label>
