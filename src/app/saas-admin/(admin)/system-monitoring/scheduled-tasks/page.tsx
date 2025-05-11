@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, PlusCircle, Search, Filter, Play, Pause, Edit, Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
