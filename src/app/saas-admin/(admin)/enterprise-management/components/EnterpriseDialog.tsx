@@ -8,10 +8,10 @@ import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectItem } from "@/components/ui/select"; // Uses saas-admin's local Select
-import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+// Imports Radix UI Select components from the main app
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
+import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
 import type { SaasEnterprise } from '@/lib/types';
 
 const enterpriseSchema = z.object({
@@ -43,6 +43,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
     resolver: zodResolver(enterpriseSchema),
     defaultValues: enterprise ? {
       ...enterprise,
+      status: enterprise.status || 'pending_approval', // ensure status has a default
       assignedResources: {
         maxUsers: enterprise.assignedResources?.maxUsers || 10,
         maxStorageGB: enterprise.assignedResources?.maxStorageGB || 5,
@@ -65,6 +66,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
         if (enterprise) {
         form.reset({
             ...enterprise,
+            status: enterprise.status || 'pending_approval',
             assignedResources: {
             maxUsers: enterprise.assignedResources?.maxUsers || 10,
             maxStorageGB: enterprise.assignedResources?.maxStorageGB || 5,
@@ -92,6 +94,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
       id: enterprise?.id || `ent-${Date.now().toString()}`, 
       creationDate: enterprise?.creationDate || new Date().toISOString(), 
       ...data,
+      notes: data.notes || undefined, // Ensure notes is undefined if empty
     };
     onSubmit(enterpriseToSubmit);
   };
@@ -114,7 +117,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                 name="name"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>企业名称</Label>
+                        <FormLabel>企业名称</FormLabel>
                         <FormControl>
                              <Input id={field.name} {...field} />
                         </FormControl>
@@ -127,7 +130,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                 name="contactPerson"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>联系人</Label>
+                        <FormLabel>联系人</FormLabel>
                         <FormControl>
                              <Input id={field.name} {...field} />
                         </FormControl>
@@ -140,7 +143,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                 name="contactEmail"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>联系邮箱</Label>
+                        <FormLabel>联系邮箱</FormLabel>
                         <FormControl>
                              <Input id={field.name} type="email" {...field} />
                         </FormControl>
@@ -153,7 +156,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                 name="contactPhone"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>联系电话</Label>
+                        <FormLabel>联系电话</FormLabel>
                         <FormControl>
                              <Input id={field.name} type="tel" {...field} />
                         </FormControl>
@@ -166,7 +169,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                 name="address"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>地址 (可选)</Label>
+                        <FormLabel>地址 (可选)</FormLabel>
                         <FormControl>
                              <Input id={field.name} {...field} />
                         </FormControl>
@@ -180,20 +183,20 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
               name="status"
               render={({ field }) => (
                   <FormItem>
-                      <Label htmlFor={field.name}>账户状态</Label>
-                      <FormControl>
-                        <Select // saas-admin's custom Select
-                            {...field}
-                            id={field.name}
-                            value={field.value}
-                            onChange={(e) => field.onChange(e.target.value)}
-                        >
+                      <FormLabel>账户状态</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger id={field.name}>
+                                <SelectValue placeholder="选择账户状态" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
                             <SelectItem value="pending_approval">待审批</SelectItem>
                             <SelectItem value="active">已激活</SelectItem>
                             <SelectItem value="inactive">未激活</SelectItem>
                             <SelectItem value="suspended">已暂停</SelectItem>
-                        </Select>
-                      </FormControl>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                   </FormItem>
               )}
@@ -207,7 +210,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                     name="assignedResources.maxUsers"
                     render={({field}) => (
                         <FormItem>
-                            <Label htmlFor={field.name}>最大用户数</Label>
+                            <FormLabel>最大用户数</FormLabel>
                             <FormControl>
                                 <Input id={field.name} type="number" {...field} />
                             </FormControl>
@@ -220,7 +223,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                     name="assignedResources.maxStorageGB"
                     render={({field}) => (
                         <FormItem>
-                            <Label htmlFor={field.name}>最大存储 (GB)</Label>
+                            <FormLabel>最大存储 (GB)</FormLabel>
                             <FormControl>
                                 <Input id={field.name} type="number" {...field} />
                             </FormControl>
@@ -233,7 +236,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                     name="assignedResources.maxPatients"
                     render={({field}) => (
                         <FormItem>
-                            <Label htmlFor={field.name}>最大病人额度</Label>
+                            <FormLabel>最大病人额度</FormLabel>
                             <FormControl>
                                 <Input id={field.name} type="number" {...field} />
                             </FormControl>
@@ -248,7 +251,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
                 name="notes"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>备注 (可选)</Label>
+                        <FormLabel>备注 (可选)</FormLabel>
                         <FormControl>
                             <Textarea id={field.name} {...field} />
                         </FormControl>

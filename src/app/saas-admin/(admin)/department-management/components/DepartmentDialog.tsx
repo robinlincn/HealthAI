@@ -8,18 +8,16 @@ import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-// Ensure this imports from saas-admin's local Select component which renders a native select.
-// The path alias `@/components/ui/select` inside saas-admin resolves to `saas-admin/src/components/ui/Select.tsx`.
-import { Select, SelectItem } from "@/components/ui/select"; 
-import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+// Imports Radix UI Select components from the main app (src/components/ui/select) due to path aliasing
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
+import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
 import type { SaasDepartment, SaasEmployee } from '@/lib/types'; 
 
 const departmentSchema = z.object({
   name: z.string().min(2, { message: "部门名称至少需要2个字符。" }),
-  parentDepartmentId: z.string().nullable().optional(),
-  headEmployeeId: z.string().nullable().optional(),
+  parentDepartmentId: z.string().optional(), // Value from Radix Select will be string or undefined
+  headEmployeeId: z.string().optional(),     // Value from Radix Select will be string or undefined
   description: z.string().optional(),
 });
 
@@ -48,13 +46,13 @@ export function DepartmentDialog({
     resolver: zodResolver(departmentSchema),
     defaultValues: department ? {
       name: department.name,
-      parentDepartmentId: department.parentDepartmentId || '', // Use empty string for native select if no value
-      headEmployeeId: department.headEmployeeId || '', // Use empty string for native select if no value
+      parentDepartmentId: department.parentDepartmentId ?? undefined, // Use undefined for Radix placeholder
+      headEmployeeId: department.headEmployeeId ?? undefined,
       description: department.description || '',
     } : {
       name: '',
-      parentDepartmentId: '',
-      headEmployeeId: '',
+      parentDepartmentId: undefined,
+      headEmployeeId: undefined,
       description: '',
     },
   });
@@ -64,15 +62,15 @@ export function DepartmentDialog({
         if (department) {
         form.reset({
             name: department.name,
-            parentDepartmentId: department.parentDepartmentId || '',
-            headEmployeeId: department.headEmployeeId || '',
+            parentDepartmentId: department.parentDepartmentId ?? undefined,
+            headEmployeeId: department.headEmployeeId ?? undefined,
             description: department.description || '',
         });
         } else {
         form.reset({
             name: '',
-            parentDepartmentId: '',
-            headEmployeeId: '',
+            parentDepartmentId: undefined,
+            headEmployeeId: undefined,
             description: '',
         });
         }
@@ -86,9 +84,9 @@ export function DepartmentDialog({
       creationDate: department?.creationDate || new Date().toISOString(),
       enterpriseId: enterpriseId, 
       name: data.name,
-      parentDepartmentId: data.parentDepartmentId === '' ? null : data.parentDepartmentId,
-      headEmployeeId: data.headEmployeeId === '' ? null : data.headEmployeeId,
-      description: data.description,
+      parentDepartmentId: data.parentDepartmentId || null, // Convert empty string/undefined to null
+      headEmployeeId: data.headEmployeeId || null,     // Convert empty string/undefined to null
+      description: data.description || undefined,        // Keep as string or undefined
     };
     onSubmit(departmentToSubmit);
   };
@@ -111,7 +109,7 @@ export function DepartmentDialog({
                 name="name"
                 render={({field}) => (
                     <FormItem>
-                        <Label htmlFor={field.name}>部门名称</Label>
+                        <FormLabel>部门名称</FormLabel>
                         <FormControl>
                              <Input id={field.name} {...field} />
                         </FormControl>
@@ -124,25 +122,26 @@ export function DepartmentDialog({
               name="parentDepartmentId"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor={field.name}>上级部门 (可选)</Label>
-                  <FormControl>
-                    <Select // This is saas-admin's custom Select which renders a native <select>
-                      {...field} // Spreads RHF field props (value, onChange, onBlur, name, ref)
-                      id={field.name} // Ensure id is passed to the underlying select for the label
-                      value={field.value || ''} // Native select expects string values, use empty for "no selection"
-                      onChange={(e) => { // Adapt native select's onChange
-                        const selectedValue = e.target.value;
-                        field.onChange(selectedValue === '' ? null : selectedValue); // RHF expects null for optional empty
-                      }}
-                    >
+                  <FormLabel>上级部门 (可选)</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value} // RHF's field.value will be string or undefined
+                    // defaultValue={field.value ?? undefined} // Not needed if value is controlled
+                  >
+                    <FormControl>
+                      <SelectTrigger id={field.name}>
+                        <SelectValue placeholder="无上级部门 (设为顶级)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
                       <SelectItem value="">无上级部门 (设为顶级)</SelectItem>
                       {existingDepartments
                         .filter(d => d.id !== department?.id) 
                         .map(d => (
                         <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                       ))}
-                    </Select>
-                  </FormControl>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -153,23 +152,24 @@ export function DepartmentDialog({
               name="headEmployeeId"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor={field.name}>部门负责人 (可选)</Label>
-                  <FormControl>
-                     <Select // This is saas-admin's custom Select
-                      {...field}
-                      id={field.name}
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        const selectedValue = e.target.value;
-                        field.onChange(selectedValue === '' ? null : selectedValue);
-                      }}
-                    >
+                  <FormLabel>部门负责人 (可选)</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                    // defaultValue={field.value ?? undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger id={field.name}>
+                        <SelectValue placeholder="暂不指定负责人" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
                       <SelectItem value="">暂不指定负责人</SelectItem>
                       {enterpriseEmployees.map(emp => (
                         <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.email})</SelectItem>
                       ))}
-                    </Select>
-                  </FormControl>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                  </FormItem>
               )}
@@ -180,7 +180,7 @@ export function DepartmentDialog({
                 name="description"
                 render={({field}) => (
                      <FormItem>
-                        <Label htmlFor={field.name}>部门描述 (可选)</Label>
+                        <FormLabel>部门描述 (可选)</FormLabel>
                         <FormControl>
                             <Textarea id={field.name} {...field} />
                         </FormControl>
