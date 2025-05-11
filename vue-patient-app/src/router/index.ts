@@ -6,28 +6,28 @@ import MobileAppLayout from '@/components/layout/MobileAppLayout.vue'
 
 // Patient dashboard routes, all nested under MobileAppLayout
 const dashboardRoutes = [
-  { path: '', name: 'DashboardHome', component: DashboardView },
-  // Add other dashboard pages here, e.g.:
-  // { path: 'health-data', name: 'HealthData', component: () => import('@/views/HealthDataView.vue') },
-  // { path: 'nutrition', name: 'Nutrition', component: () => import('@/views/NutritionView.vue') },
-  // { path: 'reports', name: 'Reports', component: () => import('@/views/ReportsView.vue') },
-  // { path: 'consultations', name: 'Consultations', component: () => import('@/views/ConsultationsView.vue') },
-  // { path: 'assistant', name: 'Assistant', component: () => import('@/views/AssistantView.vue') },
-  // { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue') },
-  // { path: 'settings', name: 'Settings', component: () => import('@/views/SettingsView.vue') },
-  // { path: 'help', name: 'Help', component: () => import('@/views/HelpView.vue') },
-  // { path: 'reminders', name: 'Reminders', component: () => import('@/views/RemindersView.vue') },
-  // { path: 'health-courses', name: 'HealthCourses', component: () => import('@/views/HealthCoursesView.vue') },
-  // { path: 'community', name: 'Community', component: () => import('@/views/CommunityView.vue') },
-  // { path: 'treatment', name: 'Treatment', component: () => import('@/views/TreatmentView.vue') },
+  { path: '', name: 'DashboardHome', component: DashboardView, meta: { title: '仪表盘' } },
+  { path: 'health-data', name: 'HealthData', component: () => import('@/views/HealthDataView.vue'), meta: { title: '健康数据' } },
+  { path: 'nutrition', name: 'Nutrition', component: () => import('@/views/NutritionView.vue'), meta: { title: '饮食记录' } },
+  { path: 'reports', name: 'Reports', component: () => import('@/views/ReportsView.vue'), meta: { title: '检查报告' } },
+  { path: 'treatment', name: 'Treatment', component: () => import('@/views/TreatmentView.vue'), meta: { title: '治疗方案' } },
+  { path: 'consultations', name: 'Consultations', component: () => import('@/views/ConsultationsView.vue'), meta: { title: '医生咨询' } },
+  { path: 'assistant', name: 'Assistant', component: () => import('@/views/AssistantView.vue'), meta: { title: 'AI小助手' } },
+  { path: 'reminders', name: 'Reminders', component: () => import('@/views/RemindersView.vue'), meta: { title: '健康提醒' } },
+  { path: 'health-courses', name: 'HealthCourses', component: () => import('@/views/HealthCoursesView.vue'), meta: { title: '健康课程' } },
+  { path: 'community', name: 'Community', component: () => import('@/views/CommunityView.vue'), meta: { title: '社区互动' } },
+  { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { title: '我的' } },
+  { path: 'profile/edit-details', name: 'EditProfileDetails', component: () => import('@/views/EditProfileDetailsView.vue'), meta: { title: '编辑资料' } },
+  { path: 'settings', name: 'Settings', component: () => import('@/views/SettingsView.vue'), meta: { title: '系统设置' } },
+  { path: 'help', name: 'Help', component: () => import('@/views/HelpView.vue'), meta: { title: '帮助与支持' } },
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL), // Ensure BASE_URL is correctly set in vite.config.ts
   routes: [
     {
       path: '/',
-      redirect: '/dashboard', // Or '/auth/login' if login is required first
+      redirect: '/dashboard', 
     },
     {
       path: '/auth/login',
@@ -49,19 +49,9 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
-      component: () => import('@/views/NotFoundView.vue') // Create this view
+      component: () => import('@/views/NotFoundView.vue')
     }
   ],
 })
-
-// Example navigation guard (optional)
-// router.beforeEach((to, from, next) => {
-//   const isAuthenticated = !!localStorage.getItem('user-token'); // Example auth check
-//   if (to.meta.requiresAuth && !isAuthenticated) {
-//     next({ name: 'Login' });
-//   } else {
-//     next();
-//   }
-// });
 
 export default router

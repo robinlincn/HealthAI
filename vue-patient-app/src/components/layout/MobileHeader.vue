@@ -3,7 +3,7 @@
     <button
       v-if="showBackButton"
       @click="goBack"
-      class="text-primary-foreground hover:bg-primary/80 p-2 rounded-full mr-2"
+      class="text-primary-foreground hover:bg-primary/80 mr-2 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
       aria-label="返回上一页"
     >
       <ChevronLeft class="h-6 w-6" />
@@ -14,8 +14,10 @@
         showBackButton ? 'flex-grow text-left' : 'w-full text-center'
       ]"
     >
-      {{ title }}
+      {{ pageTitle }}
     </h1>
+    <!-- Optional: If you need to perfectly center title when back button is present, add a spacer -->
+    <div v-if="showBackButton" class="w-10 h-6"></div> <!-- Adjust width to approximately match back button + margin -->
   </header>
 </template>
 
@@ -23,13 +25,19 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ChevronLeft } from 'lucide-vue-next';
-import { navLinks } from '@/lib/nav-links-vue'; // Assuming this file will be created
+import { navLinks } from '@/lib/nav-links-vue'; // Assuming this contains titles for main routes
 
 const route = useRoute();
 const router = useRouter();
 
-const title = computed(() => {
-  const matchedRoute = navLinks.find(link => {
+const pageTitle = computed(() => {
+  // Try to get title from route meta first
+  if (route.meta && route.meta.title) {
+    return route.meta.title as string;
+  }
+
+  // Fallback to navLinks if meta title is not available
+  const activeLink = navLinks.find(link => {
     if (link.href === '/dashboard' && route.path === '/dashboard') return true;
     if (link.href !== '/dashboard' && (route.path === link.href || route.path.startsWith(link.href + '/'))) {
       const linkSegments = link.href.split('/');
@@ -44,10 +52,11 @@ const title = computed(() => {
     }
     return false;
   });
-  if (matchedRoute) return matchedRoute.title;
+
+  if (activeLink) return activeLink.title;
   if (route.path === '/dashboard') return '仪表盘';
-  if (route.path.startsWith('/dashboard/profile/edit-details')) return '编辑资料';
-  return 'AI慢病管理'; // Default
+  
+  return 'AI慢病管理系统'; // Default title
 });
 
 const showBackButton = computed(() => route.path !== '/dashboard');
