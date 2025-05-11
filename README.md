@@ -6,7 +6,7 @@
 
 系统包含两大主要部分：**病人端 (手机App风格)** 和 **医生端 (PC管理后台)**。
 
-### 病人端核心功能:
+### 病人端核心功能 (Next.js Version):
 
 - **AI小助手**:
   - 智能问答：解答健康相关疑问。
@@ -35,6 +35,12 @@
   - 健康课程学习。
   - 病友社区互动。
   - 用户个人中心、设置、帮助与支持。
+
+### 病人端核心功能 (Vue.js Version - In Development):
+一个使用 Vue.js 3, Vite, Pinia, 和 Tailwind CSS 构建的病人端应用正在开发中。它旨在复制 Next.js 版本的功能和风格。
+- 目录: `vue-patient-app/`
+- 主要技术: Vue 3, Vite, Vue Router, Pinia, Tailwind CSS, Lucide-vue-next
+- 当前状态: 基础结构和部分页面已搭建。
 
 ### 医生端核心功能:
 
@@ -68,9 +74,10 @@
 
 ## 技术栈
 
-- **前端**: Next.js (App Router), React, TypeScript
-- **UI**: Tailwind CSS, ShadCN UI, Lucide React (图标), Recharts (图表)
-- **状态管理 & 表单**: React Hook Form, Zod (数据校验)
+- **Next.js 前端 (病人端 + 医生端)**: Next.js (App Router), React, TypeScript
+- **Vue.js 前端 (病人端 - 新增)**: Vue 3, Vite, TypeScript, Vue Router, Pinia
+- **UI**: Tailwind CSS, ShadCN UI (Next.js), Lucide React/Lucide-vue-next (图标), Recharts (图表 - Next.js)
+- **状态管理 & 表单**: React Hook Form (Next.js), Zod (数据校验 - Next.js), Pinia (Vue.js)
 - **后端 & 数据库**: Firebase (Firestore)
 - **AI 功能**: Genkit, Google AI (Gemini)
 - **开发工具**: ESLint, Prettier, VSCode
@@ -81,19 +88,24 @@
   - `(auth)/`: 认证相关页面 (登录、注册)。
   - `dashboard/`: 病人端主要功能页面。
   - `doctor/`: 医生端主要功能页面。
-- `src/components/`: 可复用UI组件。
+- `src/components/`: Next.js 可复用UI组件。
   - `ui/`: ShadCN UI 基础组件。
   - `layout/`: 布局相关组件。
   - `assistant/`, `profile/`, `reports/`等: 特定功能模块组件。
-- `src/lib/`: 工具函数、类型定义、配置文件。
+- `src/lib/`: Next.js 工具函数、类型定义、配置文件。
   - `firebase.ts`: Firebase 初始化与配置。
   - `nav-links.ts`, `doctor-nav-links.ts`: 导航链接配置。
   - `types.ts`: 全局TypeScript类型定义。
 - `src/ai/`: Genkit AI 相关代码。
   - `flows/`: Genkit Flow 定义。
   - `genkit.ts`: Genkit 初始化与配置。
-- `src/hooks/`: 自定义React Hooks。
-- `public/`: 静态资源。
+- `src/hooks/`: Next.js 自定义React Hooks。
+- `public/`: Next.js 静态资源。
+- `vue-patient-app/`: Vue.js 病人端应用。
+  - `public/`: Vue app 静态资源。
+  - `src/`: Vue app 源代码 (组件, 视图, 路由, 状态等)。
+  - `vite.config.ts`: Vite 配置文件。
+  - `tailwind.config.js`: Tailwind CSS 配置文件 for Vue app。
 
 ## 风格指南
 
@@ -113,12 +125,19 @@
 
 ### 安装依赖
 
+在项目根目录运行:
 ```bash
 npm install
 # 或者
 yarn install
 # 或者
 pnpm install
+```
+如果需要为 Vue 应用单独安装或更新依赖，请进入 `vue-patient-app` 目录:
+```bash
+cd vue-patient-app
+npm install
+cd .. 
 ```
 
 ### 配置环境变量
@@ -136,10 +155,11 @@ pnpm install
    # Genkit/Google AI (if applicable)
    GOOGLE_API_KEY=YOUR_GOOGLE_GENERATIVE_AI_API_KEY
    ```
-   **注意**: 将 `YOUR_...` 替换为您的实际 Firebase 和 Google AI 配置值。
+   **注意**: 将 `YOUR_...` 替换为您的实际 Firebase 和 Google AI 配置值。Vue 应用可能也需要通过 Vite 的环境变量机制访问这些值 (例如，通过 `VITE_` 前缀)。
 
 ### 运行开发服务器
 
+**Next.js 应用 (包含医生端和病人端React版本):**
 ```bash
 npm run dev
 # 或者
@@ -147,8 +167,17 @@ yarn dev
 # 或者
 pnpm dev
 ```
+Next.js 应用默认运行在 `http://localhost:9002`。
 
-应用默认运行在 `http://localhost:9002`。
+**Vue.js 病人端应用:**
+```bash
+npm run dev:vue
+# 或者
+cd vue-patient-app
+npm run dev 
+# (然后返回根目录: cd ..)
+```
+Vue.js 应用通常运行在 `http://localhost:9003` (或其他 Vite 配置的端口)。
 
 ### 运行 Genkit 开发服务器 (AI功能)
 
@@ -162,20 +191,32 @@ Genkit 服务通常运行在 `http://localhost:3100` (Genkit UI 在 `http://loca
 
 ### 构建生产版本
 
+**Next.js 应用:**
 ```bash
 npm run build
 ```
 
-### 启动生产服务器
+**Vue.js 应用:**
+```bash
+npm run build:vue
+# 或者
+cd vue-patient-app
+npm run build
+cd ..
+```
+
+### 启动生产服务器 (Next.js)
 
 ```bash
 npm run start
 ```
+(Vue.js 应用的生产部署通常涉及将 `vue-patient-app/dist` 目录的内容部署到静态文件服务器。)
 
-## 代码质量与检查
+## 代码质量与检查 (Next.js)
 
 - **Linting**: `npm run lint`
 - **Type Checking**: `npm run typecheck`
+(Vue.js 应用的 linting 和 type checking 将通过其自身的 `package.json` 脚本配置。)
 
 ---
 
