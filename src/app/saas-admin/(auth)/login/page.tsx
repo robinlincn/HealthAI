@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -39,9 +38,9 @@ export default function SaasAdminLoginPage() {
       title: "登录成功 (SAAS Admin)",
       description: "欢迎管理员！即将跳转到SAAS管理仪表盘。",
     });
-    router.push("/saas-admin/dashboard"); // Adjusted redirect path
+    router.push("/saas-admin/(admin)"); // Adjusted redirect path to the admin group dashboard
     
-    setIsLoading(false);
+    // setIsLoading(false); // This was commented out, ensure it's correctly handled or removed if not needed after push
   };
 
   return (
@@ -101,6 +100,9 @@ export default function SaasAdminLoginPage() {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} AI慢病管理系统 SAAS平台
           </p>
+           <Button variant="link" asChild className="mt-2 text-xs">
+              <Link href="/">返回主页</Link>
+           </Button>
         </CardFooter>
       </Card>
     </div>

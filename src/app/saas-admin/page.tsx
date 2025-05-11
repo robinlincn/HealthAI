@@ -1,17 +1,15 @@
-
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// This page will redirect to the SAAS admin dashboard or login page
+// This page will redirect to the admin dashboard or login page
 export default function SaasRootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // For now, directly redirect to SAAS admin dashboard.
-    // Later, this can check auth state and redirect to /saas-admin/auth/login if not authenticated.
-    router.replace('/saas-admin/dashboard'); // Updated to dashboard, login logic separate
+    // Redirect to the main SAAS admin dashboard page within the (admin) group.
+    router.replace('/saas-admin/(admin)'); 
   }, [router]);
 
   return (
