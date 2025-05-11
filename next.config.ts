@@ -40,31 +40,28 @@ const nextConfig: NextConfig = {
       vueDevServerUrl = 'http://localhost:9003'; // Default without trailing slash
     }
     
-    let saasAdminServerUrl = (process.env.SAAS_ADMIN_SERVER_URL || 'http://localhost:3000').replace(/\/$/, "");
-    try {
-      new URL(saasAdminServerUrl);
-    } catch (e) {
-       console.error(
-        `[Next.js Config] Invalid SAAS_ADMIN_SERVER_URL: "${process.env.SAAS_ADMIN_SERVER_URL}". ` +
-        `Error: ${(e as Error).message}. ` +
-        `Defaulting to 'http://localhost:3000'. ` +
-        `Please ensure SAAS_ADMIN_SERVER_URL is a complete and valid URL (e.g., http://localhost:3000).`
-      );
-      saasAdminServerUrl = 'http://localhost:3000'; // Correctly assign default on error
-    }
+    // SAAS Admin will now be part of the main app, so no rewrite needed for it.
+    // let saasAdminServerUrl = (process.env.SAAS_ADMIN_SERVER_URL || 'http://localhost:3000').replace(/\/$/, "");
+    // try {
+    //   new URL(saasAdminServerUrl);
+    // } catch (e) {
+    //    console.error(
+    //     `[Next.js Config] Invalid SAAS_ADMIN_SERVER_URL: "${process.env.SAAS_ADMIN_SERVER_URL}". ` +
+    //     `Error: ${(e as Error).message}. ` +
+    //     `Defaulting to 'http://localhost:3000'. ` +
+    //     `Please ensure SAAS_ADMIN_SERVER_URL is a complete and valid URL (e.g., http://localhost:3000).`
+    //   );
+    //   saasAdminServerUrl = 'http://localhost:3000'; // Correctly assign default on error
+    // }
 
 
     return [
-      {
-        source: '/saas-admin/:path*',
-        // Proxy to the SAAS admin app, including its basePath in the destination
-        // Assuming the SAAS admin app is configured with basePath: '/saas-admin'
-        // and runs on saasAdminServerUrl (e.g. http://localhost:3000)
-        destination: `${saasAdminServerUrl}/saas-admin/:path*`, 
-      },
+      // {
+      //   source: '/saas-admin/:path*',
+      //   destination: `${saasAdminServerUrl}/saas-admin/:path*`, 
+      // },
       {
         source: '/vue-patient-app/:path*',
-        // The destination path combines the sanitized vueDevServerUrl with the expected base path of the Vue app.
         destination: `${vueDevServerUrl}/vue-patient-app/:path*`,
       },
     ];
