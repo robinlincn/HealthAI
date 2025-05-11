@@ -1,46 +1,31 @@
 
-import type { ReactNode, SelectHTMLAttributes, OptionHTMLAttributes } from 'react';
+import React, { type ReactNode, type SelectHTMLAttributes, type OptionHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Assuming this path is correct for saas-admin's utils
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectPropsOriginal extends SelectHTMLAttributes<HTMLSelectElement> {
   children: ReactNode;
 }
 
-export function Select({ children, className, ...props }: SelectProps) {
-  return (
-    <div className={`relative ${className || ''}`}>
-      <select
-        className="appearance-none flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        {...props}
-      >
-        {children}
-      </select>
-      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50 pointer-events-none" />
-    </div>
-  );
-}
+const Select = React.forwardRef<HTMLSelectElement, SelectPropsOriginal>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      // The div wrapper is for styling the chevron, the ref goes to the select itself.
+      <div className={cn('relative w-full', className)}>
+        <select
+          ref={ref}
+          className="appearance-none flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          {...props}
+        >
+          {children}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50 pointer-events-none" />
+      </div>
+    );
+  }
+);
+Select.displayName = "Select";
 
-// These are simplified to work with the native select.
-// ShadCN's Select uses Radix UI for a custom dropdown experience.
-
-export function SelectTrigger({ children, className }: { children: ReactNode, className?: string }) {
-  // This component is more of a conceptual placeholder when using native select.
-  // The actual trigger is the <select> element itself.
-  // For API consistency, it can wrap children, but won't render a separate trigger.
-  return <div className={className}>{children}</div>; // Or simply return <>{children}</>;
-}
-
-export function SelectValue({ placeholder }: { placeholder?: string }) {
-  // This is also conceptual for native select. The selected value is displayed by the select itself.
-  // It could render the placeholder if nothing is selected, but native select handles this.
-  return null; // Or <span className="text-muted-foreground">{placeholder}</span> if used carefully.
-}
-
-export function SelectContent({ children, className }: { children: ReactNode, className?: string }) {
-  // The content (options) are direct children of the <select> element.
-  // This component is for API consistency.
-  return <>{children}</>; // Or a div wrapper if specific styling for the option group is needed.
-}
 
 interface SelectItemProps extends OptionHTMLAttributes<HTMLOptionElement> {
   children: ReactNode;
@@ -53,3 +38,27 @@ export function SelectItem({ children, value, className, ...props }: SelectItemP
     </option>
   );
 }
+
+// These are conceptual stubs for API consistency if used elsewhere for display purposes,
+// but not for react-hook-form control in this native setup.
+export function SelectTrigger({ children, className }: { children: ReactNode, className?: string }) {
+  // This is a display-only component if not used as the actual form control target
+  return <div className={cn("flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm", className)}>{children}</div>;
+}
+
+export function SelectValue({ placeholder, children }: { placeholder?: string, children?: ReactNode }) {
+  // In a native select, the browser handles displaying the selected value.
+  // This could render placeholder if no value is selected, but usually handled by <select> itself or a label.
+  // If children are provided, it means we might be trying to display the selected value manually.
+  if (children) return <span className="text-sm">{children}</span>;
+  if (placeholder) return <span className="text-sm text-muted-foreground">{placeholder}</span>;
+  return null;
+}
+
+export function SelectContent({ children, className }: { children: ReactNode, className?: string }) {
+  // Native <select> doesn't have a separate content wrapper like Radix.
+  // This component would wrap <SelectItem> if used outside RHF, or just be a fragment.
+  return <>{children}</>;
+}
+
+export { Select };
