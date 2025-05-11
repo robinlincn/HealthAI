@@ -4,6 +4,7 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/vue-patient-app/', // Set the base path for the application
   plugins: [vue()],
   resolve: {
     alias: {

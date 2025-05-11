@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -19,11 +20,16 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    // For development, proxy /vue-patient-app to the Vue dev server
+    // The Vue dev server should be running (e.g., via `npm run dev:vue`)
+    const vueDevServerUrl = process.env.VUE_DEV_SERVER_URL || 'http://127.0.0.1:9003';
+    
     return [
       {
         source: '/vue-patient-app/:path*',
-        // Assuming the Vue app's dev server runs on port 9003
-        destination: 'http://localhost:9003/:path*', 
+        // The destination must also include the base path if the Vue app is configured with one.
+        // e.g., if Vue's base is '/vue-patient-app/', then Next.js needs to proxy to 'http://localhost:9003/vue-patient-app/:path*'
+        destination: `${vueDevServerUrl}/vue-patient-app/:path*`,
       },
     ];
   },
