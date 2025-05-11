@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm, type SubmitHandler, Controller } from 'react-hook-form'; // Added Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormField, FormItem, FormControl } from "@/components/ui/form"; // Added FormField, FormItem, FormControl
 import type { SaasEnterprise } from '@/lib/types';
 
 const enterpriseSchema = z.object({
@@ -60,7 +61,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
   });
 
   useEffect(() => {
-    if (isOpen) { // Only reset when dialog opens or enterprise changes
+    if (isOpen) { 
         if (enterprise) {
         reset({
             ...enterprise,
@@ -88,11 +89,12 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
   const handleFormSubmit: SubmitHandler<EnterpriseFormValues> = (data) => {
     const enterpriseToSubmit: SaasEnterprise = {
       ...enterprise, 
-      id: enterprise?.id || Date.now().toString(), 
+      id: enterprise?.id || `ent-${Date.now().toString()}`, 
       creationDate: enterprise?.creationDate || new Date().toISOString(), 
       ...data,
     };
     onSubmit(enterpriseToSubmit);
+    // onClose(); // Moved to parent to control dialog state after submission
   };
 
   if (!isOpen) return null;
@@ -133,7 +135,7 @@ export function EnterpriseDialog({ isOpen, onClose, onSubmit, enterprise }: Ente
             {errors.address && <p className="text-sm text-destructive mt-1">{errors.address.message}</p>}
           </div>
           
-          <FormField
+          <Controller
             control={control}
             name="status"
             render={({ field }) => (

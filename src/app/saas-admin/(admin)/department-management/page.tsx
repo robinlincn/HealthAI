@@ -11,11 +11,12 @@ import { DepartmentDialog } from "./components/DepartmentDialog";
 import type { SaasDepartment, SaasEnterprise, SaasEmployee } from '@/lib/types';
 import { Building2, PlusCircle, Search, Briefcase } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
+import { Label } from "@/components/ui/label"; // Added import for Label
 
 // Mock data - ideally fetched or from context
 const mockEnterprises: SaasEnterprise[] = [
-  { id: 'ent-001', name: '示例医院A', contactPerson: '张三院长', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'123', status: 'active', assignedResources: {maxUsers:10,maxStorageGB:10,maxPatients:100}},
-  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四主任', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'123', status: 'active', assignedResources: {maxUsers:10,maxStorageGB:10,maxPatients:100}},
+  { id: 'ent-001', name: '示例医院A', contactPerson: '张三院长', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'13800000001', status: 'active', assignedResources: {maxUsers:10,maxStorageGB:10,maxPatients:100}},
+  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四主任', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'13900000002', status: 'active', assignedResources: {maxUsers:10,maxStorageGB:10,maxPatients:100}},
 ];
 
 const mockInitialDepartments: SaasDepartment[] = [
@@ -37,20 +38,26 @@ export default function DepartmentManagementPage() {
   const [employees, setEmployees] = useState<SaasEmployee[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<SaasDepartment | null>(null);
-  const [selectedEnterpriseId, setSelectedEnterpriseId] = useState<string | null>(mockEnterprises[0]?.id || null);
+  const [selectedEnterpriseId, setSelectedEnterpriseId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
+    // Load initial data only on client-side to avoid hydration issues with dates
+    // In a real app, fetch enterprises first, then allow selection, then fetch departments.
+    if (mockEnterprises.length > 0 && !selectedEnterpriseId) {
+        setSelectedEnterpriseId(mockEnterprises[0].id);
+    }
     setDepartments(mockInitialDepartments);
     setEmployees(mockInitialEmployees);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddDepartment = () => {
     if (!selectedEnterpriseId) {
-      toast({ title: '请先选择一个企业', variant: 'destructive' });
+      toast({ title: '请先选择一个企业', variant: 'destructive', description: '无法在未选择企业的情况下添加部门。' });
       return;
     }
     setEditingDepartment(null);
@@ -63,8 +70,19 @@ export default function DepartmentManagementPage() {
   };
 
   const handleDeleteDepartment = (departmentId: string) => {
-    if (window.confirm('确定要删除此部门吗？此操作不可撤销。')) {
+    // Check if department has sub-departments or assigned employees before deleting
+    const hasSubDepartments = departments.some(d => d.parentDepartmentId === departmentId);
+    const hasEmployees = employees.some(e => e.departmentId === departmentId);
+
+    let confirmMessage = '确定要删除此部门吗？';
+    if (hasSubDepartments) confirmMessage += '\n注意：此部门包含下级部门，删除后下级部门的上级关系将丢失。';
+    if (hasEmployees) confirmMessage += '\n注意：此部门仍有员工分配，删除后员工的部门信息将丢失。';
+    confirmMessage += '\n此操作不可撤销。';
+
+    if (window.confirm(confirmMessage)) {
       setDepartments(prev => prev.filter(d => d.id !== departmentId));
+      // Also update employees who were in this department (optional, based on requirements)
+      setEmployees(prev => prev.map(e => e.departmentId === departmentId ? {...e, departmentId: undefined} : e));
       toast({ title: '删除成功', description: '部门已删除。' });
     }
   };
@@ -76,9 +94,9 @@ export default function DepartmentManagementPage() {
     } else {
       const newDepartment = { 
         ...data, 
-        id: data.id || Date.now().toString(), 
+        id: data.id || `dept-${Date.now().toString()}`, // Ensure new ID is unique
         creationDate: data.creationDate || new Date().toISOString(),
-        enterpriseId: selectedEnterpriseId! // Should be set if add is enabled
+        enterpriseId: selectedEnterpriseId! 
       };
       setDepartments(prev => [newDepartment, ...prev]);
       toast({ title: '创建成功', description: `新部门 "${data.name}" 已添加。`});
@@ -103,7 +121,7 @@ export default function DepartmentManagementPage() {
   if (!isClient) {
     return (
       <div className="space-y-6">
-        <Card><CardHeader><CardTitle>部门管理</CardTitle></CardHeader><CardContent><p>加载中...</p></CardContent></Card>
+        <Card><CardHeader><CardTitle>部门管理</CardTitle></CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载部门数据...</p></CardContent></Card>
       </div>
     );
   }
@@ -117,7 +135,7 @@ export default function DepartmentManagementPage() {
             部门管理 (医院科室管理)
           </CardTitle>
           <CardDescription>
-            针对每个企业/医院账户，管理其内部的部门或科室结构。
+            针对每个企业/医院账户，管理其内部的部门或科室结构。请先从下方选择一个企业。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -166,7 +184,7 @@ export default function DepartmentManagementPage() {
             />
           ) : (
             <div className="text-center text-muted-foreground py-8 border border-dashed rounded-md">
-              请先选择一个企业以查看或管理其部门。
+              请先从上方选择一个企业以查看或管理其部门。
             </div>
           )}
 
@@ -183,10 +201,11 @@ export default function DepartmentManagementPage() {
           onSubmit={handleDialogSubmit}
           department={editingDepartment}
           enterpriseId={selectedEnterpriseId}
-          existingDepartments={departmentsForSelectedEnterprise}
+          existingDepartments={departments.filter(d => d.enterpriseId === selectedEnterpriseId)} // Pass all departments of selected enterprise
           enterpriseEmployees={employeesForSelectedEnterprise}
         />
       )}
     </div>
   );
 }
+

@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { SaasDepartment, SaasEmployee } from '@/lib/types'; // Assuming SaasEmployee type exists
+import { FormField, FormItem, FormControl } from "@/components/ui/form"; // Added FormField, FormItem, FormControl
+import type { SaasDepartment, SaasEmployee } from '@/lib/types'; 
 
 const departmentSchema = z.object({
   name: z.string().min(2, { message: "部门名称至少需要2个字符。" }),
@@ -27,9 +28,9 @@ interface DepartmentDialogProps {
   onClose: () => void;
   onSubmit: (data: SaasDepartment) => void;
   department?: SaasDepartment | null;
-  enterpriseId: string; // To associate department with an enterprise
-  existingDepartments: SaasDepartment[]; // For parent department selection
-  enterpriseEmployees: SaasEmployee[]; // For head employee selection
+  enterpriseId: string; 
+  existingDepartments: SaasDepartment[]; 
+  enterpriseEmployees: SaasEmployee[]; 
 }
 
 export function DepartmentDialog({ 
@@ -79,7 +80,7 @@ export function DepartmentDialog({
   const handleFormSubmit: SubmitHandler<DepartmentFormValues> = (data) => {
     const departmentToSubmit: SaasDepartment = {
       ...department, 
-      id: department?.id || Date.now().toString(), 
+      id: department?.id || `dept-${Date.now().toString()}`, 
       creationDate: department?.creationDate || new Date().toISOString(),
       enterpriseId: enterpriseId, 
       ...data,
@@ -105,40 +106,44 @@ export function DepartmentDialog({
             {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
           </div>
 
-          <Controller
-            name="parentDepartmentId"
+          <FormField
             control={control}
+            name="parentDepartmentId"
             render={({ field }) => (
-              <div>
-                <Label htmlFor="parentDepartmentId">上级部门 (可选)</Label>
+              <FormItem>
+                <Label htmlFor="parentDepartmentId-select">上级部门 (可选)</Label>
                 <Select onValueChange={(value) => field.onChange(value === 'none' ? null : value)} value={field.value || 'none'}>
-                  <SelectTrigger id="parentDepartmentId">
-                    <SelectValue placeholder="选择上级部门" />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger id="parentDepartmentId-select">
+                        <SelectValue placeholder="选择上级部门" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     <SelectItem value="none">无上级部门 (设为顶级)</SelectItem>
                     {existingDepartments
-                      .filter(d => d.id !== department?.id) // Prevent self-referencing
+                      .filter(d => d.id !== department?.id) 
                       .map(d => (
                       <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {errors.parentDepartmentId && <p className="text-sm text-destructive mt-1">{errors.parentDepartmentId.message}</p>}
-              </div>
+              </FormItem>
             )}
           />
           
-          <Controller
-            name="headEmployeeId"
+          <FormField
             control={control}
+            name="headEmployeeId"
             render={({ field }) => (
-              <div>
-                <Label htmlFor="headEmployeeId">部门负责人 (可选)</Label>
+              <FormItem>
+                <Label htmlFor="headEmployeeId-select">部门负责人 (可选)</Label>
                 <Select onValueChange={(value) => field.onChange(value === 'none' ? null : value)} value={field.value || 'none'}>
-                  <SelectTrigger id="headEmployeeId">
-                    <SelectValue placeholder="选择部门负责人" />
-                  </SelectTrigger>
+                    <FormControl>
+                        <SelectTrigger id="headEmployeeId-select">
+                            <SelectValue placeholder="选择部门负责人" />
+                        </SelectTrigger>
+                    </FormControl>
                   <SelectContent>
                     <SelectItem value="none">暂不指定负责人</SelectItem>
                     {enterpriseEmployees.map(emp => (
@@ -147,7 +152,7 @@ export function DepartmentDialog({
                   </SelectContent>
                 </Select>
                 {errors.headEmployeeId && <p className="text-sm text-destructive mt-1">{errors.headEmployeeId.message}</p>}
-              </div>
+               </FormItem>
             )}
           />
 
