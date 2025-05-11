@@ -2,7 +2,7 @@
   <nav class="bg-card border-t border-border sticky bottom-0 z-20 flex-shrink-0">
     <div class="flex justify-around items-center h-16">
       <router-link
-        v-for="link in bottomNavLinksData"
+        v-for="link in bottomNavLinks"
         :key="link.title"
         :to="link.href"
         class="flex flex-col items-center justify-center flex-1 p-1 text-center"
@@ -19,25 +19,22 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { LayoutDashboard, LineChart, MessageCircle, UserCircle } from 'lucide-vue-next'; // Using MessageCircle instead of Bot
-import type { NavItemVue } from '@/lib/types-vue'; // Assuming this will be created
+import type { NavItemVue } from '@/lib/types-vue';
+import { LayoutDashboard, LineChart, MessageSquare, UserCircle } from 'lucide-vue-next'; // Using MessageSquare as placeholder for Bot
+
+const bottomNavLinks: NavItemVue[] = [
+  { title: '仪表盘', href: '/dashboard', icon: LayoutDashboard },
+  { title: '健康数据', href: '/dashboard/health-data', icon: LineChart },
+  { title: 'AI助手', href: '/dashboard/assistant', icon: MessageSquare }, // Placeholder
+  { title: '我的', href: '/dashboard/profile', icon: UserCircle },
+];
 
 const route = useRoute();
 
-const bottomNavLinksData: NavItemVue[] = [
-  { title: '仪表盘', href: '/dashboard', icon: LayoutDashboard },
-  { title: '健康数据', href: '/dashboard/health-data', icon: LineChart }, // Example, actual page might not exist yet
-  { title: 'AI助手', href: '/dashboard/assistant', icon: MessageCircle }, // Example, actual page might not exist yet
-  { title: '我的', href: '/dashboard/profile', icon: UserCircle }, // Example, actual page might not exist yet
-];
-
-const isActive = (path: string) => {
-  if (path === '/dashboard' && route.path === '/dashboard') {
-    return true;
+const isActive = (href: string) => {
+  if (href === '/dashboard') {
+    return route.path === '/dashboard';
   }
-  if (path !== '/dashboard' && route.path.startsWith(path)) {
-    return true;
-  }
-  return false;
+  return route.path.startsWith(href);
 };
 </script>

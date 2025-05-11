@@ -3,21 +3,19 @@
     <button
       v-if="showBackButton"
       @click="goBack"
-      class="text-primary-foreground hover:bg-primary/80 mr-2 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
+      class="text-primary-foreground hover:bg-primary/80 mr-2 p-2 rounded-full"
       aria-label="返回上一页"
     >
       <ChevronLeft class="h-6 w-6" />
     </button>
-    <h1 
+    <h1
       :class="[
         'text-lg font-semibold truncate',
-        showBackButton ? 'flex-grow text-left' : 'w-full text-center'
+        showBackButton ? 'flex-grow text-left' : 'w-full text-center',
       ]"
     >
-      {{ pageTitle }}
+      {{ currentTitle }}
     </h1>
-    <!-- Optional: If you need to perfectly center title when back button is present, add a spacer -->
-    <div v-if="showBackButton" class="w-10 h-6"></div> <!-- Adjust width to approximately match back button + margin -->
   </header>
 </template>
 
@@ -25,38 +23,34 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ChevronLeft } from 'lucide-vue-next';
-import { navLinks } from '@/lib/nav-links-vue'; // Assuming this contains titles for main routes
+import { navLinks } from '@/lib/nav-links-vue';
 
 const route = useRoute();
 const router = useRouter();
 
-const pageTitle = computed(() => {
-  // Try to get title from route meta first
-  if (route.meta && route.meta.title) {
-    return route.meta.title as string;
-  }
-
-  // Fallback to navLinks if meta title is not available
-  const activeLink = navLinks.find(link => {
-    if (link.href === '/dashboard' && route.path === '/dashboard') return true;
-    if (link.href !== '/dashboard' && (route.path === link.href || route.path.startsWith(link.href + '/'))) {
-      const linkSegments = link.href.split('/');
-      const pathSegments = route.path.split('/');
-      if (pathSegments.length >= linkSegments.length && linkSegments[2] === pathSegments[2]) {
-        if (route.path === link.href || (pathSegments.length > linkSegments.length && link.href.includes(pathSegments[2]))) {
-          return true;
+const currentTitle = computed(() => {
+  const matchedRoute = navLinks.find(link => {
+     const currentPath = route.path;
+     if (link.href === '/dashboard' && currentPath === '/dashboard') return true;
+     if (link.href !== '/dashboard' && (currentPath === link.href || currentPath.startsWith(link.href + '/'))) {
+        const linkSegments = link.href.split('/');
+        const pathSegments = currentPath.split('/');
+        if (pathSegments.length >= linkSegments.length && linkSegments[2] === pathSegments[2]) {
+            if (currentPath === link.href || (pathSegments.length > linkSegments.length && link.href.includes(pathSegments[2]))) {
+                 return true;
+            }
+        } else if (currentPath === link.href) {
+            return true;
         }
-      } else if (route.path === link.href) {
-        return true;
-      }
-    }
-    return false;
+     }
+     return false;
   });
 
-  if (activeLink) return activeLink.title;
+  if (matchedRoute) return matchedRoute.title;
+  if (route.meta && route.meta.title) return route.meta.title as string;
   if (route.path === '/dashboard') return '仪表盘';
-  
-  return 'AI慢病管理系统'; // Default title
+  if (route.path.startsWith('/dashboard/profile/edit-details')) return '编辑资料';
+  return 'AI慢病管理系统';
 });
 
 const showBackButton = computed(() => route.path !== '/dashboard');

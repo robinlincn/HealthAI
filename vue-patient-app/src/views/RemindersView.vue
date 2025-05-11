@@ -1,14 +1,17 @@
 <template>
-  <div class="p-4">
-    <h1 class="text-xl font-semibold mb-4">健康提醒</h1>
-    <div class="bg-card p-6 rounded-lg shadow-md text-center">
-      <BellRing class="w-16 h-16 text-primary/50 mx-auto mb-4" />
-      <p class="text-muted-foreground">健康提醒功能正在建设中。</p>
-      <p class="text-sm mt-2">您将能够在此设置和管理服药提醒、检查提醒，并接收健康建议推送。</p>
+  <div class="space-y-4">
+    <div class="bg-card p-6 rounded-lg shadow">
+      <h1 class="text-xl font-semibold text-primary mb-2">健康提醒</h1>
+      <p class="text-sm text-muted-foreground">
+        管理您的服药提醒、检查提醒和接收健康通知。(内容建设中)
+      </p>
+    </div>
+    <div class="bg-card p-6 rounded-lg shadow">
+        <p class="text-center text-muted-foreground">提醒设置、通知中心等功能正在开发中。</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { BellRing } from 'lucide-vue-next';
+// Reminders page logic will go here
 </script>

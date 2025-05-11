@@ -1,8 +1,8 @@
 <template>
-  <div class="mb-6 rounded-lg border bg-card text-card-foreground shadow-md overflow-hidden">
+  <div class="mb-6 shadow-md overflow-hidden bg-card rounded-lg">
     <div class="p-4 flex items-center space-x-4">
-      <div class="h-16 w-16 border-2 border-primary/30 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
-        <img v-if="mockUserData.avatarUrl" :src="mockUserData.avatarUrl" :alt="mockUserData.name" :data-ai-hint="mockUserData.dataAiHint" class="h-full w-full object-cover" />
+      <div class="h-16 w-16 border-2 border-primary/30 rounded-full flex items-center justify-center bg-muted">
+        <img v-if="mockUserData.avatarUrl" :src="mockUserData.avatarUrl" :alt="mockUserData.name" class="h-full w-full rounded-full object-cover" />
         <UserCircle v-else :size="36" class="text-muted-foreground" />
       </div>
       <div class="flex-1">
@@ -21,11 +21,9 @@
 <script setup lang="ts">
 import { UserCircle, Stethoscope } from 'lucide-vue-next';
 
-// Mock data - in a real app, this would come from user's profile and their assigned doctor
 const mockUserData = {
-  name: "示例用户",
-  avatarUrl: "https://picsum.photos/seed/useravatarvue/100/100", // Different seed for Vue
-  dataAiHint: "user avatar",
-  managingDoctor: "王医生",
+  name: "示例用户 (Vue)",
+  avatarUrl: "https://picsum.photos/seed/useravatarvue/100/100",
+  managingDoctor: "王医生 (Vue)",
 };
 </script>

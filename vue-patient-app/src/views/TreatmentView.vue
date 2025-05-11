@@ -1,14 +1,17 @@
 <template>
-  <div class="p-4">
-    <h1 class="text-xl font-semibold mb-4">治疗方案</h1>
-    <div class="bg-card p-6 rounded-lg shadow-md text-center">
-      <ClipboardList class="w-16 h-16 text-primary/50 mx-auto mb-4" />
-      <p class="text-muted-foreground">治疗方案查看功能正在建设中。</p>
-      <p class="text-sm mt-2">您将能够在此查看医生为您制定的治疗方案和建议。</p>
+  <div class="space-y-4">
+    <div class="bg-card p-6 rounded-lg shadow">
+      <h1 class="text-xl font-semibold text-primary mb-2">治疗方案</h1>
+      <p class="text-sm text-muted-foreground">
+        查看医生为您制定的药物、治疗计划及调整记录。(内容建设中)
+      </p>
+    </div>
+     <div class="bg-card p-6 rounded-lg shadow">
+        <p class="text-center text-muted-foreground">详细的治疗方案和建议记录功能正在开发中。</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ClipboardList } from 'lucide-vue-next';
+// Treatment page logic will go here
 </script>

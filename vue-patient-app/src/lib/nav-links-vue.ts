@@ -3,10 +3,10 @@ import {
   LayoutDashboard,
   UserCircle,
   FileText,
-  HeartPulse, 
+  // HeartPulse, // Not used in bottom bar, can be added if needed elsewhere
   Apple,
   ClipboardList,
-  MessageSquare, // Using MessageSquare as Bot is not directly available in lucide-vue-next in the same way
+  MessageSquare, 
   Settings,
   LineChart, 
   BookOpen, 
@@ -15,6 +15,8 @@ import {
   BellRing, 
 } from 'lucide-vue-next';
 
+// These are for the main navigation structure if a sidebar or full list were used.
+// The BottomNavigationBar uses a subset of these or its own list.
 export const navLinks: NavItemVue[] = [
   {
     title: '仪表盘',
@@ -44,12 +46,12 @@ export const navLinks: NavItemVue[] = [
   {
     title: '医生咨询',
     href: '/dashboard/consultations',
-    icon: MessageSquare, // Changed from MessageSquare (React specific)
+    icon: MessageSquare,
   },
   {
     title: 'AI小助手',
     href: '/dashboard/assistant',
-    icon: MessageSquare, // Changed icon to MessageSquare as a placeholder for Bot
+    icon: MessageSquare, // Using MessageSquare as a placeholder for Bot
   },
   {
     title: '健康提醒', 
@@ -70,6 +72,11 @@ export const navLinks: NavItemVue[] = [
     title: '我的',
     href: '/dashboard/profile',
     icon: UserCircle,
+  },
+   {
+    title: '编辑资料', // Often a sub-route of Profile
+    href: '/dashboard/profile/edit-details',
+    icon: UserCircle, // Or a more specific edit icon
   },
   {
     title: '系统设置',

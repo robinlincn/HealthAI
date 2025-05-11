@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
-import DashboardView from '@/views/DashboardView.vue'
 import MobileAppLayout from '@/components/layout/MobileAppLayout.vue'
 
 // Patient dashboard routes, all nested under MobileAppLayout
 const dashboardRoutes = [
-  { path: '', name: 'DashboardHome', component: DashboardView, meta: { title: '仪表盘' } },
+  { path: '', name: 'DashboardHome', component: () => import('@/views/DashboardView.vue'), meta: { title: '仪表盘' } },
   { path: 'health-data', name: 'HealthData', component: () => import('@/views/HealthDataView.vue'), meta: { title: '健康数据' } },
   { path: 'nutrition', name: 'Nutrition', component: () => import('@/views/NutritionView.vue'), meta: { title: '饮食记录' } },
   { path: 'reports', name: 'Reports', component: () => import('@/views/ReportsView.vue'), meta: { title: '检查报告' } },
@@ -23,35 +22,46 @@ const dashboardRoutes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL), // Ensure BASE_URL is correctly set in vite.config.ts
+  history: createWebHistory(import.meta.env.BASE_URL), // BASE_URL should be '/vue-patient-app/'
   routes: [
     {
-      path: '/',
+      path: '/', // This will be relative to the base: /vue-patient-app/
       redirect: '/dashboard', 
     },
     {
-      path: '/auth/login',
+      path: '/auth/login', // Actual path: /vue-patient-app/auth/login
       name: 'Login',
       component: LoginView,
+       meta: { title: '登录' }
     },
     {
-      path: '/auth/register',
+      path: '/auth/register', // Actual path: /vue-patient-app/auth/register
       name: 'Register',
       component: RegisterView,
+      meta: { title: '注册' }
     },
     {
-      path: '/dashboard',
+      path: '/dashboard', // Actual path: /vue-patient-app/dashboard
       component: MobileAppLayout,
       children: dashboardRoutes,
       // meta: { requiresAuth: true } // Example for auth guard
     },
-    // Fallback route for 404
+    // Fallback route for 404 within the Vue app's base
     {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
-      component: () => import('@/views/NotFoundView.vue')
+      component: () => import('@/views/NotFoundView.vue'),
+      meta: { title: '页面未找到' }
     }
   ],
 })
+
+router.afterEach((to) => {
+  if (to.meta && to.meta.title) {
+    document.title = `AI慢病管理 - ${to.meta.title}`;
+  } else {
+    document.title = 'AI慢病管理系统 - 病人端 (Vue)';
+  }
+});
 
 export default router
