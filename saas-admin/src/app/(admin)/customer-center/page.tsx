@@ -28,6 +28,7 @@ export default function CustomerCenterPage() {
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
             <HeartHandshake className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">客户（病人）信息管理功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含病人列表、筛选搜索、账户操作等功能。</p>
           </div>
         </CardContent>
       </Card>

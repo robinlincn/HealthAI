@@ -27,6 +27,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         <button className="rounded-full p-1 hover:bg-muted" aria-label="User profile">
           <UserCircle className="h-7 w-7 text-muted-foreground" />
         </button>
+        {/* Future: Dropdown for user profile */}
       </div>
     </header>
   );

@@ -32,6 +32,7 @@ export default function ExternalSystemStatusPage() {
             </div>
             <Power className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">外部系统状态监控配置和展示功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含服务状态列表、健康检查配置、告警历史等。</p>
           </div>
         </CardContent>
       </Card>

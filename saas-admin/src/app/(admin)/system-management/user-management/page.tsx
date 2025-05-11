@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { UsersRound, UserPlus, Edit, Trash2 } from "lucide-react";
+import { UsersRound, UserPlus, Edit, Trash2 } from "lucide-react"; // UsersRound or UserCog for SAAS admins
 
 export default function UserManagementPage() {
   return (
@@ -31,6 +31,7 @@ export default function UserManagementPage() {
             </div>
             <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">SAAS平台管理员账户管理功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含管理员列表、添加/编辑表单、权限分配等。</p>
           </div>
         </CardContent>
       </Card>

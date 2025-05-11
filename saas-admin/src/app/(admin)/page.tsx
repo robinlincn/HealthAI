@@ -64,6 +64,14 @@ export default function AdminDashboardPage() {
               <span className="text-sm">外呼服务</span>
               <span className="text-sm font-semibold text-orange-500">轻微延迟</span>
             </div>
+             <div className="flex items-center justify-between">
+              <span className="text-sm">微信服务</span>
+              <span className="text-sm font-semibold text-green-500">运行正常</span>
+            </div>
+             <div className="flex items-center justify-between">
+              <span className="text-sm">影刀RPA</span>
+              <span className="text-sm font-semibold text-red-500">已停止</span>
+            </div>
           </CardContent>
         </Card>
       </div>

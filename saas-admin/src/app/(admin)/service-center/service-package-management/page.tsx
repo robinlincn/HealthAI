@@ -33,6 +33,7 @@ export default function ServicePackageManagementPage() {
             </div>
             <Package className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">服务包创建、编辑和权限管理功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含服务包列表、添加/编辑表单、权限配置界面等。</p>
           </div>
         </CardContent>
       </Card>

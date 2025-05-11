@@ -27,6 +27,7 @@ export default function OrderManagementPage() {
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
             <ListOrdered className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">订单列表、状态管理和筛选功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含订单表格、筛选器、订单详情查看等。</p>
           </div>
         </CardContent>
       </Card>

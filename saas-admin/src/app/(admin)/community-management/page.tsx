@@ -27,6 +27,7 @@ export default function CommunityManagementPage() {
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
             <ListChecks className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">微信群聊天记录接入和管理功能正在建设中，并依赖外部接口能力。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含聊天记录查看器、搜索功能、分析图表等。</p>
           </div>
         </CardContent>
       </Card>

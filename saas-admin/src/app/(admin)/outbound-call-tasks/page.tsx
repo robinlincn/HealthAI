@@ -32,6 +32,7 @@ export default function OutboundCallTasksPage() {
             </div>
             <Send className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">外呼任务设置、执行和结果记录功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含任务创建表单、任务列表、结果统计等。</p>
           </div>
         </CardContent>
       </Card>

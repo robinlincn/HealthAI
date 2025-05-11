@@ -14,6 +14,7 @@ export default function SystemMonitoringRedirectPage() {
   return (
     <div className="flex h-full items-center justify-center">
       <p>正在跳转到系统监控...</p>
+      {/* You could add a spinner here */}
     </div>
   );
 }

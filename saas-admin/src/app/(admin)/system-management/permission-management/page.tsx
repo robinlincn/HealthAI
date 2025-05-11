@@ -31,6 +31,7 @@ export default function PermissionManagementPage() {
             </div>
             <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">角色定义和权限分配功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含角色列表、权限树/列表、角色-权限关联界面等。</p>
           </div>
         </CardContent>
       </Card>

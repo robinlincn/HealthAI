@@ -19,14 +19,16 @@ export default function DepartmentManagementPage() {
             此功能允许管理员为选定的企业或医院账户设置和管理其组织结构：
           </p>
           <ul className="list-disc list-inside space-y-1 text-muted-foreground mt-2">
+            <li>选择目标企业/医院账户。</li>
             <li>创建、编辑、删除部门或科室。</li>
             <li>建立部门层级关系（如父部门、子部门）。</li>
             <li>为部门分配负责人或管理员。</li>
-            <li>查看各企业/医院的部门/科室列表。</li>
+            <li>查看各企业/医院的部门/科室列表，通常以树状结构或表格展示。</li>
           </ul>
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">部门/科室管理功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含企业选择器、部门树状图/列表、添加/编辑表单等。</p>
           </div>
         </CardContent>
       </Card>

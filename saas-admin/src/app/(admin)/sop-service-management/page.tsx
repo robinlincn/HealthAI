@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { SlidersHorizontal, Settings2, Activity } from "lucide-react";
+import { SlidersHorizontal, Settings2, Activity } from "lucide-react"; // Assuming SlidersHorizontal for SOP/workflow
 
 export default function SopServiceManagementPage() {
   return (
@@ -32,6 +32,7 @@ export default function SopServiceManagementPage() {
             </div>
             <SlidersHorizontal className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">Coze、Dify等工作流API集成和管理功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含API配置表单、调用日志表格、监控图表等。</p>
           </div>
         </CardContent>
       </Card>

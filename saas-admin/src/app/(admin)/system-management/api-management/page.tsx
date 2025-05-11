@@ -32,6 +32,7 @@ export default function ApiManagementPage() {
             </div>
             <Network className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">API接口列表、密钥管理和权限配置功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含API文档链接、密钥生成/管理界面、权限设置等。</p>
           </div>
         </CardContent>
       </Card>

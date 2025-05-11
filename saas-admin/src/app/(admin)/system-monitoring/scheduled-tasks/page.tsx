@@ -33,6 +33,7 @@ export default function ScheduledTasksPage() {
             </div>
             <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">定时任务配置、监控和日志查看功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含任务列表、创建/编辑表单、日志查看器等。</p>
           </div>
         </CardContent>
       </Card>

@@ -8,13 +8,17 @@ import React, { useState } from 'react';
 
 interface AdminSidebarProps {
   isOpen: boolean;
-  onClose?: () => void;
+  onClose?: () => void; // Optional: for closing on mobile when a link is clicked
 }
 
 const NavLink: React.FC<{ item: SaasNavItem; currentPath: string; onClick?: () => void; isSubItem?: boolean }> = ({ item, currentPath, onClick, isSubItem = false }) => {
   const [isExpanded, setIsExpanded] = useState(currentPath.startsWith(item.href));
-  const isActive = !item.children && currentPath === item.href;
+  // Check if the current path is an exact match for items without children,
+  // or if it's a parent route for items with children.
+  const isActive = (!item.children && currentPath === item.href) || 
+                   (item.children && currentPath.startsWith(item.href) && currentPath.split('/').length === item.href.split('/').length); // Exact match for parent
   const isParentActive = item.children && currentPath.startsWith(item.href);
+
 
   const handleToggleExpand = (e: React.MouseEvent) => {
     if (item.children) {
@@ -30,12 +34,12 @@ const NavLink: React.FC<{ item: SaasNavItem; currentPath: string; onClick?: () =
       <Link
         href={item.href}
         onClick={handleToggleExpand}
-        className={`flex items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-colors
+        className={`flex items-center justify-between rounded-md py-2.5 text-sm font-medium transition-colors
           ${isSubItem ? 'pl-10 pr-3' : 'px-3'}
-          ${isActive || isParentActive ? 'bg-primary/10 text-primary' : 'text-foreground/70 hover:bg-muted hover:text-foreground'}`}
+          ${isActive || (isParentActive && !isSubItem) ? 'bg-primary/10 text-primary' : 'text-foreground/70 hover:bg-muted hover:text-foreground'}`}
       >
         <div className="flex items-center gap-3">
-          <item.icon className={`h-5 w-5 ${isActive || isParentActive ? 'text-primary' : 'text-muted-foreground'}`} />
+          <item.icon className={`h-5 w-5 ${isActive || (isParentActive && !isSubItem) ? 'text-primary' : 'text-muted-foreground'}`} />
           <span>{item.title}</span>
         </div>
         {item.children && (isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />)}
@@ -53,8 +57,10 @@ const NavLink: React.FC<{ item: SaasNavItem; currentPath: string; onClick?: () =
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
+  
+  // Group links by label
   const groupedLinks = saasNavLinks.reduce((acc, link) => {
-    const groupLabel = link.label || 'General';
+    const groupLabel = link.label || 'General'; // Default group if no label
     if (!acc[groupLabel]) {
       acc[groupLabel] = [];
     }
@@ -80,7 +86,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <ul className="space-y-2">
             {Object.entries(groupedLinks).map(([label, links]) => (
               <React.Fragment key={label}>
-                {label !== 'General' && (
+                {label !== 'General' && ( // Don't show "General" label if it's the default
                   <li className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     {label}
                   </li>
@@ -94,7 +100,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </nav>
         <div className="mt-auto border-t border-border p-4">
           <Link
-            href="/auth/logout" // Assuming a logout route exists
+            href="/admin/auth/logout" // Assuming a logout route exists or will be created
             className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-5 w-5 text-muted-foreground" />

@@ -33,6 +33,7 @@ export default function SystemSettingsPage() {
             </div>
             <Cog className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">全局系统配置功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含各类配置表单、选项开关等。</p>
           </div>
         </CardContent>
       </Card>

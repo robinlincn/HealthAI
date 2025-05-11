@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card'; // Assuming Card component exists
 import Image from 'next/image';
 import { LogIn, Loader2 } from 'lucide-react';
 
@@ -24,7 +24,7 @@ export default function SaasAdminLoginPage() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-cover bg-center bg-no-repeat p-4" style={{backgroundImage: "url('https://picsum.photos/seed/saasloginbg/1920/1080')"}} data-ai-hint="office building">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div> {/* Overlay for blur and darkening */}
       <Card className="relative z-10 w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <Image 

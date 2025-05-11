@@ -28,6 +28,7 @@ export default function EnterpriseManagementPage() {
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
             <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">企业/医院账户列表和管理功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含表格展示账户、添加/编辑表单、资源分配滑块等交互元素。</p>
           </div>
         </CardContent>
       </Card>

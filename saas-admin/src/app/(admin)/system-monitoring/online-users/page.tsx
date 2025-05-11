@@ -28,6 +28,7 @@ export default function OnlineUsersPage() {
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
             <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">在线用户实时监控和列表展示功能正在建设中。</p>
+            <p className="text-xs text-muted-foreground mt-1">将包含实时在线用户数、用户列表表格、筛选器等。</p>
           </div>
         </CardContent>
       </Card>

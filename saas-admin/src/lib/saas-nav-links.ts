@@ -26,7 +26,7 @@ export interface SaasNavItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  label?: string;
+  label?: string; // For grouping in the sidebar
   children?: SaasNavItem[];
 }
 
@@ -62,14 +62,14 @@ export const saasNavLinks: SaasNavItem[] = [
   },
   {
     title: '服务中心',
-    href: '/admin/service-center',
+    href: '/admin/service-center', // Parent route
     icon: Package,
     label: '运营管理',
     children: [
       {
         title: '服务包管理',
         href: '/admin/service-center/service-package-management',
-        icon: Package, // Use same icon or a more specific one if available
+        icon: Package, // Can use a more specific icon if available or same
       },
       {
         title: '订单管理',
@@ -98,35 +98,35 @@ export const saasNavLinks: SaasNavItem[] = [
   },
   {
     title: '系统管理',
-    href: '/admin/system-management',
+    href: '/admin/system-management', // Parent route
     icon: Settings,
     label: '系统配置',
     children: [
       {
         title: 'API管理',
         href: '/admin/system-management/api-management',
-        icon: Network, // Using FileText as placeholder for API
+        icon: Network, // Changed from FileText for better semantics
       },
       {
-        title: '用户管理',
+        title: '用户管理', // SAAS Platform Admins
         href: '/admin/system-management/user-management',
-        icon: UsersRound, // Using Users for general user management
+        icon: UsersRound, // Specific icon for admin users
       },
       {
         title: '权限管理',
         href: '/admin/system-management/permission-management',
-        icon: Shield, // Using Shield for permissions
+        icon: Shield,
       },
       {
         title: '系统设置',
         href: '/admin/system-management/system-settings',
-        icon: Cog, // Using Cog for general system settings
+        icon: Cog,
       },
     ],
   },
   {
     title: '系统监控',
-    href: '/admin/system-monitoring',
+    href: '/admin/system-monitoring', // Parent route
     icon: MonitorPlay,
     label: '系统配置',
     children: [
@@ -138,7 +138,7 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '在线用户',
         href: '/admin/system-monitoring/online-users',
-        icon: Users,
+        icon: Users, // Generic users icon for online users
       },
       {
         title: '定时任务',
