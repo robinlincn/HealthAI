@@ -43,7 +43,6 @@ export default function PermissionManagementPage() {
   };
 
   const handleDeleteRole = (roleId: string) => {
-    // Add check if role is in use by any SaasSystemUser
     if (window.confirm('确定要删除此系统角色吗？如果角色已被分配给用户，请先解除分配。此操作不可撤销。')) {
       setSystemRoles(prev => prev.filter(r => r.id !== roleId));
       toast({ title: '删除成功', description: '系统角色已删除。' });
@@ -71,9 +70,10 @@ export default function PermissionManagementPage() {
   }, [systemRoles, searchTerm]);
 
   if (!isClient) {
+    // Simplified loading state for diagnostics
     return (
-      <div className="space-y-6">
-        <Card><CardHeader><CardTitle>权限管理</CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载角色数据...</p></CardContent></Card>
+      <div className="flex justify-center items-center min-h-[300px]">
+        <p className="text-muted-foreground">正在加载角色数据...</p>
       </div>
     );
   }
