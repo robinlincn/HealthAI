@@ -1,17 +1,25 @@
 <template>
-  <div class="space-y-4">
-    <div class="bg-card p-6 rounded-lg shadow">
-      <h1 class="text-xl font-semibold text-primary mb-2">帮助与支持</h1>
-      <p class="text-sm text-muted-foreground">
-        查看常见问题、使用指南或联系客服。(内容建设中)
-      </p>
-    </div>
-    <div class="bg-card p-6 rounded-lg shadow">
-        <p class="text-center text-muted-foreground">FAQ、使用指南和联系客服功能正在开发中。</p>
-    </div>
+  <div class="space-y-6">
+    <VCard>
+      <VCardHeader>
+        <VCardTitle>帮助与支持</VCardTitle>
+        <VCardDescription>获取使用帮助和联系客服。</VCardDescription>
+      </VCardHeader>
+      <VCardContent>
+        <p class="text-muted-foreground">帮助中心和客服联系功能正在开发中。</p>
+         <div class="mt-4 p-6 border border-dashed rounded-md text-center">
+          <HelpCircle class="h-12 w-12 mx-auto text-primary/30 mb-2" />
+          <p class="text-lg font-semibold text-muted-foreground">用户支持</p>
+          <p class="text-sm text-muted-foreground mt-1">
+            常见问题解答、使用指南和联系客服渠道将在此提供。
+          </p>
+        </div>
+      </VCardContent>
+    </VCard>
   </div>
 </template>
 
 <script setup lang="ts">
-// Help page logic will go here
+import { VCard, VCardContent, VCardHeader, VCardTitle, VCardDescription } from '@/components/ui/VCard';
+import { HelpCircle } from 'lucide-vue-next';
 </script>

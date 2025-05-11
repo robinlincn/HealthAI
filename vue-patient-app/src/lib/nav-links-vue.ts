@@ -3,89 +3,95 @@ import {
   LayoutDashboard,
   UserCircle,
   FileText,
-  // HeartPulse, // Not used in bottom bar, can be added if needed elsewhere
   Apple,
   ClipboardList,
-  MessageSquare, 
+  MessageSquare,
   Settings,
-  LineChart, 
-  BookOpen, 
-  Users, 
-  HelpCircle, 
-  BellRing, 
+  LineChart,
+  BookOpen,
+  Users,
+  HelpCircle,
+  BellRing,
+  Bot, // Use Bot icon for AI Assistant
 } from 'lucide-vue-next';
 
-// These are for the main navigation structure if a sidebar or full list were used.
-// The BottomNavigationBar uses a subset of these or its own list.
-export const navLinks: NavItemVue[] = [
+export const navLinksVue: NavItemVue[] = [
   {
     title: '仪表盘',
-    href: '/dashboard',
+    href: '/vue-patient-app/dashboard',
     icon: LayoutDashboard,
   },
   {
     title: '健康数据',
-    href: '/dashboard/health-data',
+    href: '/vue-patient-app/dashboard/health-data',
     icon: LineChart,
   },
   {
     title: '饮食记录',
-    href: '/dashboard/nutrition',
+    href: '/vue-patient-app/dashboard/nutrition',
     icon: Apple,
   },
   {
-    title: '检查报告', 
-    href: '/dashboard/reports',
+    title: '检查报告',
+    href: '/vue-patient-app/dashboard/reports',
     icon: FileText,
   },
   {
-    title: '治疗方案', 
-    href: '/dashboard/treatment',
+    title: '治疗方案',
+    href: '/vue-patient-app/dashboard/treatment',
     icon: ClipboardList,
   },
   {
     title: '医生咨询',
-    href: '/dashboard/consultations',
+    href: '/vue-patient-app/dashboard/consultations',
     icon: MessageSquare,
   },
   {
     title: 'AI小助手',
-    href: '/dashboard/assistant',
-    icon: MessageSquare, // Using MessageSquare as a placeholder for Bot
+    href: '/vue-patient-app/dashboard/assistant',
+    icon: Bot, // Changed to Bot icon
   },
   {
-    title: '健康提醒', 
-    href: '/dashboard/reminders',
-    icon: BellRing, 
+    title: '健康提醒',
+    href: '/vue-patient-app/dashboard/reminders',
+    icon: BellRing,
   },
   {
     title: '健康课程',
-    href: '/dashboard/health-courses',
+    href: '/vue-patient-app/dashboard/health-courses',
     icon: BookOpen,
   },
   {
     title: '社区互动',
-    href: '/dashboard/community',
+    href: '/vue-patient-app/dashboard/community',
     icon: Users,
   },
-   {
+  {
     title: '我的',
-    href: '/dashboard/profile',
+    href: '/vue-patient-app/dashboard/profile',
     icon: UserCircle,
   },
-   {
-    title: '编辑资料', // Often a sub-route of Profile
-    href: '/dashboard/profile/edit-details',
-    icon: UserCircle, // Or a more specific edit icon
+  { // This is a sub-page, usually navigated to from '我的'
+    title: '编辑资料',
+    href: '/vue-patient-app/dashboard/profile/edit-details',
+    icon: UserCircle, // Or specific edit icon
   },
   {
     title: '系统设置',
-    href: '/dashboard/settings',
+    href: '/vue-patient-app/dashboard/settings',
     icon: Settings,
   },
   {
     title: '帮助与支持',
-    href: '/dashboard/help',
+    href: '/vue-patient-app/dashboard/help',
     icon: HelpCircle,
   },
+];
+
+// For bottom navigation bar
+export const bottomNavLinksVue: NavItemVue[] = [
+  { title: '仪表盘', href: '/vue-patient-app/dashboard', icon: LayoutDashboard },
+  { title: '健康数据', href: '/vue-patient-app/dashboard/health-data', icon: LineChart },
+  { title: 'AI助手', href: '/vue-patient-app/dashboard/assistant', icon: Bot }, // Changed to Bot icon
+  { title: '我的', href: '/vue-patient-app/dashboard/profile', icon: UserCircle },
 ];

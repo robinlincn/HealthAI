@@ -1,17 +1,25 @@
 <template>
-  <div class="space-y-4">
-    <div class="bg-card p-6 rounded-lg shadow">
-      <h1 class="text-xl font-semibold text-primary mb-2">检查报告</h1>
-      <p class="text-sm text-muted-foreground">
-        您可以在此上传和查看您的检查报告。(内容建设中)
-      </p>
-    </div>
-    <div class="bg-card p-6 rounded-lg shadow">
-        <p class="text-center text-muted-foreground">报告上传、列表查看和AI分析功能正在开发中。</p>
-    </div>
+  <div class="space-y-6">
+    <VCard>
+      <VCardHeader>
+        <VCardTitle>检查报告</VCardTitle>
+        <VCardDescription>上传和查看您的检查报告。</VCardDescription>
+      </VCardHeader>
+      <VCardContent>
+        <p class="text-muted-foreground">检查报告上传和查看功能正在开发中。</p>
+        <div class="mt-4 p-6 border border-dashed rounded-md text-center">
+          <FileText class="h-12 w-12 mx-auto text-primary/30 mb-2" />
+          <p class="text-lg font-semibold text-muted-foreground">报告管理</p>
+          <p class="text-sm text-muted-foreground mt-1">
+            您将能在此上传PDF或图片格式的检查报告，并随时查看。
+          </p>
+        </div>
+      </VCardContent>
+    </VCard>
   </div>
 </template>
 
 <script setup lang="ts">
-// Reports page logic will go here
+import { VCard, VCardContent, VCardHeader, VCardTitle, VCardDescription } from '@/components/ui/VCard';
+import { FileText } from 'lucide-vue-next';
 </script>
