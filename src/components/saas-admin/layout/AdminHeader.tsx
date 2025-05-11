@@ -1,3 +1,4 @@
+
 import { Menu, Bell, UserCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -16,8 +17,8 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         >
           <Menu className="h-6 w-6" />
         </button>
-        <Link href="/saas-admin" className="text-xl font-semibold text-primary hidden md:block">
-          SAAS Admin
+        <Link href="/saas-admin" className="text-lg font-semibold text-primary hidden md:block whitespace-nowrap">
+          AI慢病SAAS管理平台-管理员端
         </Link>
       </div>
       <div className="flex items-center gap-4">
@@ -32,3 +33,4 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     </header>
   );
 }
+

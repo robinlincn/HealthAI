@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -77,9 +78,9 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         className={`fixed inset-y-0 left-0 z-40 flex h-full w-64 transform flex-col border-r border-border bg-background transition-transform duration-300 ease-in-out md:translate-x-0 
         ${isOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'}`}
       >
-        <div className="flex h-16 items-center border-b border-border px-6">
-          <Link href="/saas-admin" className="text-2xl font-bold text-primary">
-            SAAS Admin
+        <div className="flex h-16 items-center border-b border-border px-4"> {/* Reduced padding for longer title */}
+          <Link href="/saas-admin" className="text-lg font-bold text-primary whitespace-nowrap"> {/* Adjusted font size */}
+            AI慢病SAAS管理平台
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-4">
@@ -111,3 +112,4 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     </>
   );
 }
+
