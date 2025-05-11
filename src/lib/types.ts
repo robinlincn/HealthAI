@@ -183,10 +183,10 @@ export interface SaasEmployee {
   email: string;
   phone?: string;
   employeeNumber?: string;
-  roleTitle?: string; // e.g., "主任医师", "护士长" - This is a descriptive title within the enterprise
+  roleTitle?: string; 
   status: 'active' | 'invited' | 'disabled';
   joinDate: string; 
-  creationDate?: string; // Added for consistency, can default to joinDate if specific creation is not tracked
+  creationDate?: string; 
 }
 
 export interface SaasPatient { 
@@ -218,34 +218,46 @@ export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
-  orderDate: string; // ISO date string
+  orderDate: string; 
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
-  currency: string; // e.g., "CNY"
+  currency: string; 
   transactionId?: string;
   billingCycle: 'monthly' | 'annually' | 'one-time';
-  renewalDate?: string; // ISO date string, if applicable for subscriptions
+  renewalDate?: string; 
   invoiceNumber?: string;
   notes?: string;
-  // Denormalized fields for easier display in tables
   enterpriseName?: string; 
   servicePackageName?: string;
 }
 
-
-// SAAS System Specific User and Role
 export interface SaasSystemUser {
   id: string;
   name: string;
   email: string;
-  systemRoleId: string; // Links to SaasSystemRole
+  systemRoleId: string; 
   status: 'active' | 'disabled';
-  lastLogin?: string; // ISO date string
+  lastLogin?: string; 
 }
 
 export interface SaasSystemRole {
   id: string;
   name: string; 
   description?: string;
-  permissions: string[]; // Array of permission keys, e.g., "manage_enterprises", "view_orders"
+  permissions: string[]; 
+}
+
+export interface SaasSopService {
+  id: string;
+  name: string;
+  type: 'Coze' | 'Dify' | 'Other';
+  apiEndpoint: string;
+  apiKey?: string; // Should be stored securely and not directly exposed
+  description?: string;
+  status: 'active' | 'inactive' | 'error';
+  creationDate: string; // ISO date string
+  lastCallTimestamp?: string; // ISO date string
+  callCount?: number;
+  errorCount?: number;
+  parameters?: string; // JSON string for additional parameters
 }
