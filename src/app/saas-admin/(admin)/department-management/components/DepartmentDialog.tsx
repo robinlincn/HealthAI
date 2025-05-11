@@ -9,15 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-// Imports Radix UI Select components from the main app (src/components/ui/select) due to path aliasing
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
 import type { SaasDepartment, SaasEmployee } from '@/lib/types'; 
 
+const NO_PARENT_VALUE = "__NO_PARENT_DEPARTMENT__";
+const NO_HEAD_VALUE = "__NO_DEPARTMENT_HEAD__";
+
 const departmentSchema = z.object({
   name: z.string().min(2, { message: "部门名称至少需要2个字符。" }),
-  parentDepartmentId: z.string().optional(), // Value from Radix Select will be string or undefined
-  headEmployeeId: z.string().optional(),     // Value from Radix Select will be string or undefined
+  parentDepartmentId: z.string().optional(), 
+  headEmployeeId: z.string().optional(),     
   description: z.string().optional(),
 });
 
@@ -46,7 +48,7 @@ export function DepartmentDialog({
     resolver: zodResolver(departmentSchema),
     defaultValues: department ? {
       name: department.name,
-      parentDepartmentId: department.parentDepartmentId ?? undefined, // Use undefined for Radix placeholder
+      parentDepartmentId: department.parentDepartmentId ?? undefined,
       headEmployeeId: department.headEmployeeId ?? undefined,
       description: department.description || '',
     } : {
@@ -84,9 +86,9 @@ export function DepartmentDialog({
       creationDate: department?.creationDate || new Date().toISOString(),
       enterpriseId: enterpriseId, 
       name: data.name,
-      parentDepartmentId: data.parentDepartmentId || null, // Convert empty string/undefined to null
-      headEmployeeId: data.headEmployeeId || null,     // Convert empty string/undefined to null
-      description: data.description || undefined,        // Keep as string or undefined
+      parentDepartmentId: data.parentDepartmentId === NO_PARENT_VALUE || !data.parentDepartmentId ? null : data.parentDepartmentId,
+      headEmployeeId: data.headEmployeeId === NO_HEAD_VALUE || !data.headEmployeeId ? null : data.headEmployeeId,
+      description: data.description || undefined,
     };
     onSubmit(departmentToSubmit);
   };
@@ -125,8 +127,7 @@ export function DepartmentDialog({
                   <FormLabel>上级部门 (可选)</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    value={field.value} // RHF's field.value will be string or undefined
-                    // defaultValue={field.value ?? undefined} // Not needed if value is controlled
+                    value={field.value} 
                   >
                     <FormControl>
                       <SelectTrigger id={field.name}>
@@ -134,7 +135,7 @@ export function DepartmentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">无上级部门 (设为顶级)</SelectItem>
+                      <SelectItem value={NO_PARENT_VALUE}>无上级部门 (设为顶级)</SelectItem>
                       {existingDepartments
                         .filter(d => d.id !== department?.id) 
                         .map(d => (
@@ -156,7 +157,6 @@ export function DepartmentDialog({
                   <Select 
                     onValueChange={field.onChange} 
                     value={field.value}
-                    // defaultValue={field.value ?? undefined}
                   >
                     <FormControl>
                       <SelectTrigger id={field.name}>
@@ -164,7 +164,7 @@ export function DepartmentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">暂不指定负责人</SelectItem>
+                      <SelectItem value={NO_HEAD_VALUE}>暂不指定负责人</SelectItem>
                       {enterpriseEmployees.map(emp => (
                         <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.email})</SelectItem>
                       ))}
