@@ -170,11 +170,12 @@ export interface SaasEnterprise {
 
 export interface SaasDepartment {
   id: string;
-  enterpriseId: string;
+  enterpriseId: string; 
   name: string;
-  parentDepartmentId?: string | null; // For hierarchical structure
-  headEmployeeId?: string; // Employee ID of the department head
+  parentDepartmentId?: string | null; 
+  headEmployeeId?: string; 
   description?: string;
+  creationDate: string; 
 }
 
 export interface SaasEmployee {
@@ -184,29 +185,28 @@ export interface SaasEmployee {
   name: string;
   email: string;
   phone?: string;
-  roleId: string; // ID of SaasRole
+  roleId?: string; // Role within the enterprise, not SAAS system role
   status: 'active' | 'invited' | 'disabled';
   joinDate: string; // ISO date string
   employeeNumber?: string;
 }
 
-export interface SaasRole {
+export interface SaasRole { // This refers to SAAS System Roles
   id: string;
-  name: string; // e.g., "企业管理员", "医生", "护士"
-  permissions: string[]; // Array of permission keys
+  name: string; 
+  permissions: string[]; 
   description?: string;
 }
 
 export interface SaasPatient { // Client of an Enterprise
   id: string;
-  enterpriseId: string; // Which enterprise this patient belongs to
-  // ... other patient fields mirroring UserProfile/MedicalHistory but managed by enterprise
+  enterpriseId: string; 
   name: string;
   gender: Gender;
   dob?: string;
   contactPhone?: string;
-  primaryDisease?: string; // Main diagnosed condition
-  lastInteractionDate?: string; // Last contact or service date
+  primaryDisease?: string; 
+  lastInteractionDate?: string; 
 }
 
 export interface SaasServicePackage {
@@ -215,7 +215,7 @@ export interface SaasServicePackage {
   type: 'basic' | 'standard' | 'premium' | 'custom';
   priceMonthly: number;
   priceAnnually?: number;
-  features: string[]; // List of feature descriptions or keys
+  features: string[]; 
   highlights?: string;
   maxUsers: number;
   maxStorageGB: number;
@@ -227,12 +227,10 @@ export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
-  orderDate: string; // ISO date string
+  orderDate: string; 
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   amount: number;
-  currency: string; // e.g., "CNY"
+  currency: string; 
   transactionId?: string;
-  renewalDate?: string; // If subscription based
+  renewalDate?: string; 
 }
-
-// Add more SAAS specific types as needed for SOP, Outbound Call, etc.
