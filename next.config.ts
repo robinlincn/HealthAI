@@ -1,4 +1,3 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -40,7 +39,24 @@ const nextConfig: NextConfig = {
       vueDevServerUrl = 'http://localhost:9003'; // Default without trailing slash
     }
     
+    const saasAdminServerUrl = (process.env.SAAS_ADMIN_SERVER_URL || 'http://localhost:3000').replace(/\/$/, "");
+    try {
+      new URL(saasAdminServerUrl);
+    } catch (e) {
+       console.error(
+        `[Next.js Config] Invalid SAAS_ADMIN_SERVER_URL: "${process.env.SAAS_ADMIN_SERVER_URL}". ` +
+        `Error: ${(e as Error).message}. ` +
+        `Defaulting to 'http://localhost:3000'. ` +
+        `Please ensure SAAS_ADMIN_SERVER_URL is a complete and valid URL (e.g., http://localhost:3000).`
+      );
+    }
+
+
     return [
+      {
+        source: '/saas-admin/:path*',
+        destination: `${saasAdminServerUrl}/:path*`, // Proxy to the root of the SAAS admin app
+      },
       {
         source: '/vue-patient-app/:path*',
         // The destination path combines the sanitized vueDevServerUrl with the expected base path of the Vue app.
@@ -51,4 +67,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
