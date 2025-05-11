@@ -1,5 +1,6 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { UsersRound, UserPlus, Edit, Trash2 } from "lucide-react"; // UsersRound or UserCog for SAAS admins
+import { UsersRound } from "lucide-react"; 
 
 export default function UserManagementPage() {
   return (
@@ -15,23 +16,12 @@ export default function UserManagementPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            此功能用于管理SAAS平台的系统管理员账号：
-          </p>
-          <ul className="list-disc list-inside space-y-1 text-muted-foreground mt-2">
-            <li>创建、编辑、删除SAAS平台管理员账户。</li>
-            <li>为平台管理员分配超级管理员或特定管理模块的权限。</li>
-            <li>管理平台管理员的登录凭证和安全设置（如两步验证）。</li>
-          </ul>
           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
-            <div className="flex justify-center items-center space-x-4 text-muted-foreground mb-2">
-                <UserPlus className="h-8 w-8" />
-                <Edit className="h-8 w-8" />
-                <Trash2 className="h-8 w-8" />
-            </div>
             <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">SAAS平台管理员账户管理功能正在建设中。</p>
-            <p className="text-xs text-muted-foreground mt-1">将包含管理员列表、添加/编辑表单、权限分配等。</p>
+            <p className="text-lg font-semibold text-muted-foreground">SAAS用户管理功能正在开发中</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              此功能将用于管理SAAS平台的系统管理员账号。
+            </p>
           </div>
         </CardContent>
       </Card>

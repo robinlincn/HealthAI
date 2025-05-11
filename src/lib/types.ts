@@ -148,3 +148,91 @@ export interface Appointment {
   reason?: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
+
+// SAAS Admin Types
+export interface SaasEnterprise {
+  id: string;
+  name: string;
+  contactPerson: string;
+  contactEmail: string;
+  contactPhone: string;
+  address?: string;
+  status: 'active' | 'inactive' | 'pending_approval' | 'suspended';
+  creationDate: string; // ISO date string e.g. "2024-05-15T10:00:00Z"
+  assignedResources: {
+    maxUsers: number;
+    maxStorageGB: number;
+    maxPatients: number;
+  };
+  servicePackageId?: string; // ID of the subscribed service package
+  notes?: string;
+}
+
+export interface SaasDepartment {
+  id: string;
+  enterpriseId: string;
+  name: string;
+  parentDepartmentId?: string | null; // For hierarchical structure
+  headEmployeeId?: string; // Employee ID of the department head
+  description?: string;
+}
+
+export interface SaasEmployee {
+  id: string;
+  enterpriseId: string;
+  departmentId?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  roleId: string; // ID of SaasRole
+  status: 'active' | 'invited' | 'disabled';
+  joinDate: string; // ISO date string
+  employeeNumber?: string;
+}
+
+export interface SaasRole {
+  id: string;
+  name: string; // e.g., "企业管理员", "医生", "护士"
+  permissions: string[]; // Array of permission keys
+  description?: string;
+}
+
+export interface SaasPatient { // Client of an Enterprise
+  id: string;
+  enterpriseId: string; // Which enterprise this patient belongs to
+  // ... other patient fields mirroring UserProfile/MedicalHistory but managed by enterprise
+  name: string;
+  gender: Gender;
+  dob?: string;
+  contactPhone?: string;
+  primaryDisease?: string; // Main diagnosed condition
+  lastInteractionDate?: string; // Last contact or service date
+}
+
+export interface SaasServicePackage {
+  id: string;
+  name: string;
+  type: 'basic' | 'standard' | 'premium' | 'custom';
+  priceMonthly: number;
+  priceAnnually?: number;
+  features: string[]; // List of feature descriptions or keys
+  highlights?: string;
+  maxUsers: number;
+  maxStorageGB: number;
+  maxPatients: number;
+  isEnabled: boolean;
+}
+
+export interface SaasOrder {
+  id: string;
+  enterpriseId: string;
+  servicePackageId: string;
+  orderDate: string; // ISO date string
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  amount: number;
+  currency: string; // e.g., "CNY"
+  transactionId?: string;
+  renewalDate?: string; // If subscription based
+}
+
+// Add more SAAS specific types as needed for SOP, Outbound Call, etc.

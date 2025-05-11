@@ -1,5 +1,6 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { Users, Activity } from "lucide-react";
+import { Users } from "lucide-react";
 
 export default function OnlineUsersPage() {
   return (
@@ -15,20 +16,12 @@ export default function OnlineUsersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            此模块提供平台当前活动用户的实时概览：
-          </p>
-          <ul className="list-disc list-inside space-y-1 text-muted-foreground mt-2">
-            <li>显示当前在线的总用户数。</li>
-            <li>区分不同类型的在线用户（如SAAS管理员、企业员工、客户/病人）。</li>
-            <li>展示在线用户列表，包含用户名、所属企业（如适用）、登录时间、最近活动时间等信息。</li>
-            <li>支持按用户类型或企业筛选在线用户。</li>
-            <li>（可选）强制用户下线功能。</li>
-          </ul>
-          <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
-            <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">在线用户实时监控和列表展示功能正在建设中。</p>
-            <p className="text-xs text-muted-foreground mt-1">将包含实时在线用户数、用户列表表格、筛选器等。</p>
+           <div className="mt-6 p-6 border border-dashed border-border rounded-md text-center">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+            <p className="text-lg font-semibold text-muted-foreground">在线用户监控功能正在开发中</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              此模块将提供平台当前活动用户的实时概览。
+            </p>
           </div>
         </CardContent>
       </Card>
