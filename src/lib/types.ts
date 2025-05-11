@@ -186,6 +186,7 @@ export interface SaasEmployee {
   roleTitle?: string; // e.g., "主任医师", "护士长" - This is a descriptive title within the enterprise
   status: 'active' | 'invited' | 'disabled';
   joinDate: string; 
+  creationDate?: string; // Added for consistency, can default to joinDate if specific creation is not tracked
 }
 
 export interface SaasPatient { 
@@ -217,12 +218,18 @@ export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
-  orderDate: string; 
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  orderDate: string; // ISO date string
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
-  currency: string; 
+  currency: string; // e.g., "CNY"
   transactionId?: string;
-  renewalDate?: string; 
+  billingCycle: 'monthly' | 'annually' | 'one-time';
+  renewalDate?: string; // ISO date string, if applicable for subscriptions
+  invoiceNumber?: string;
+  notes?: string;
+  // Denormalized fields for easier display in tables
+  enterpriseName?: string; 
+  servicePackageName?: string;
 }
 
 
