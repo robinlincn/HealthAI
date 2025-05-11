@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -30,17 +31,15 @@ export default function SaasAdminLoginPage() {
     setIsLoading(true);
 
     // Mock login logic
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     // In a real app, you would validate credentials and set auth state
-    // For now, always succeed and redirect to SAAS admin dashboard
     toast({
       title: "登录成功 (SAAS Admin)",
       description: "欢迎管理员！即将跳转到SAAS管理仪表盘。",
     });
-    router.push("/saas-admin"); // Corrected redirect path
-    
-    // setIsLoading(false); // This was commented out, ensure it's correctly handled or removed if not needed after push
+    router.push("/saas-admin"); // Redirect to SAAS admin dashboard
+    // No need to setIsLoaDing(false) as page will redirect
   };
 
   return (
@@ -108,3 +107,5 @@ export default function SaasAdminLoginPage() {
     </div>
   );
 }
+
+```

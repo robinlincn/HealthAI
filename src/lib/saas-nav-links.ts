@@ -1,3 +1,4 @@
+
 import type { LucideIcon } from 'lucide-react';
 import {
   Briefcase,
@@ -17,23 +18,33 @@ import {
   Power,
   LayoutDashboard,
   Shield,
-  Network
+  Network,
+  ListChecks, // Added for SOP/Community
+  ListOrdered, // Added for Order Management
+  Settings2, // Added for System Settings
+  FileText, // Re-added for general reports/API if needed, or could use Network
+  ListTodo, // Added for Outbound tasks
+  Activity, // For monitoring
+  KeyRound, // For API/Permissions
+  Palette, // For System Settings (theme)
+  BellRing, // For System Settings (notifications)
+  ServerCog // For System Settings (maintenance)
 } from 'lucide-react';
 
 export interface SaasNavItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  label?: string; // For grouping in the sidebar
+  label?: string; 
   children?: SaasNavItem[];
 }
 
-const baseSaasPath = '/saas-admin'; // Corrected base path
+const baseSaasPath = '/saas-admin'; 
 
 export const saasNavLinks: SaasNavItem[] = [
   {
     title: '仪表盘',
-    href: `${baseSaasPath}`, // Root dashboard for /saas-admin
+    href: `${baseSaasPath}`,
     icon: LayoutDashboard,
   },
   {
@@ -62,7 +73,7 @@ export const saasNavLinks: SaasNavItem[] = [
   },
   {
     title: '服务中心',
-    href: `${baseSaasPath}/service-center`, // Parent route
+    href: `${baseSaasPath}/service-center`, 
     icon: Package,
     label: '运营管理',
     children: [
@@ -74,31 +85,31 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '订单管理',
         href: `${baseSaasPath}/service-center/order-management`,
-        icon: ShoppingCart,
+        icon: ListOrdered, // Using ListOrdered for orders
       },
     ],
   },
   {
     title: '社群管理',
     href: `${baseSaasPath}/community-management`,
-    icon: MessageSquare,
+    icon: MessageSquare, // Keeping MessageSquare, ListChecks could be an alternative for "logs"
     label: '运营管理',
   },
   {
     title: 'SOP服务管理',
     href: `${baseSaasPath}/sop-service-management`,
-    icon: SlidersHorizontal,
+    icon: SlidersHorizontal, 
     label: '运营管理',
   },
   {
     title: '外呼任务',
     href: `${baseSaasPath}/outbound-call-tasks`,
-    icon: Send,
+    icon: Send, // Send or ListTodo could work
     label: '运营管理',
   },
   {
     title: '系统管理',
-    href: `${baseSaasPath}/system-management`, // Parent route
+    href: `${baseSaasPath}/system-management`, 
     icon: Settings,
     label: '系统配置',
     children: [
@@ -120,13 +131,13 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '系统设置',
         href: `${baseSaasPath}/system-management/system-settings`,
-        icon: Cog,
+        icon: Settings2, // Using Settings2 for general system settings
       },
     ],
   },
   {
     title: '系统监控',
-    href: `${baseSaasPath}/system-monitoring`, // Parent route
+    href: `${baseSaasPath}/system-monitoring`, 
     icon: MonitorPlay,
     label: '系统配置',
     children: [
@@ -148,3 +159,9 @@ export const saasNavLinks: SaasNavItem[] = [
     ],
   },
 ];
+
+// Helper icons that might be used on pages but not in nav:
+// KeyRound, ListChecks, ListTodo, Activity, Palette, BellRing, ServerCog
+// FileText - general purpose
+
+```
