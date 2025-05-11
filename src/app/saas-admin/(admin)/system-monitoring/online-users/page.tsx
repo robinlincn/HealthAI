@@ -10,6 +10,8 @@ import { Users, Search, Briefcase, LogOut, Filter } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
 import type { SaasEnterprise } from '@/lib/types'; // Assuming SaasEnterprise type
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface OnlineUser {
   id: string;
