@@ -22,7 +22,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     // For development, proxy /vue-patient-app to the Vue dev server
     // The Vue dev server should be running (e.g., via `npm run dev:vue`)
-    let vueDevServerUrl = process.env.VUE_DEV_SERVER_URL || 'http://127.0.0.1:9003';
+    // Ensure VUE_DEV_SERVER_URL if set, does not have a trailing slash for consistent URL construction.
+    let vueDevServerUrl = (process.env.VUE_DEV_SERVER_URL || 'http://localhost:9003').replace(/\/$/, "");
+
 
     try {
       // Validate if vueDevServerUrl is a proper URL structure.
@@ -32,17 +34,16 @@ const nextConfig: NextConfig = {
       console.error(
         `[Next.js Config] Invalid VUE_DEV_SERVER_URL: "${process.env.VUE_DEV_SERVER_URL}". ` +
         `Error: ${(e as Error).message}. ` +
-        `Defaulting to 'http://127.0.0.1:9003'. ` +
+        `Defaulting to 'http://localhost:9003'. ` +
         `Please ensure VUE_DEV_SERVER_URL is a complete and valid URL (e.g., http://localhost:9003).`
       );
-      vueDevServerUrl = 'http://127.0.0.1:9003';
+      vueDevServerUrl = 'http://localhost:9003'; // Default without trailing slash
     }
     
     return [
       {
         source: '/vue-patient-app/:path*',
-        // The destination must also include the base path if the Vue app is configured with one.
-        // e.g., if Vue's base is '/vue-patient-app/', then Next.js needs to proxy to 'http://localhost:9003/vue-patient-app/:path*'
+        // The destination path combines the sanitized vueDevServerUrl with the expected base path of the Vue app.
         destination: `${vueDevServerUrl}/vue-patient-app/:path*`,
       },
     ];
@@ -50,3 +51,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
