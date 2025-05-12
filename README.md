@@ -99,7 +99,7 @@
 ## 技术栈
 
 - **主 Next.js 前端 (病人端 + 医生端)**: Next.js (App Router), React, TypeScript
-- **SAAS 管理后台**: Next.js (App Router), React, TypeScript (位于 `saas-admin/` 目录)
+- **SAAS 管理后台**: Next.js (App Router), React, TypeScript (位于 `src/app/saas-admin/` 目录)
 - **Vue.js 前端 (病人端 - 新增)**: Vue 3, Vite, TypeScript, Vue Router, Pinia (位于 `vue-patient-app/` 目录)
 - **UI**: Tailwind CSS, ShadCN UI (Next.js), Lucide React/Lucide-vue-next (图标), Recharts (图表 - Next.js)
 - **状态管理 & 表单**: React Hook Form (Next.js), Zod (数据校验 - Next.js), Pinia (Vue.js)
@@ -109,25 +109,22 @@
 
 ## 项目结构 (概览)
 
-- `src/`: 主 Next.js 应用 (病人端 React 版 + 医生端)。
+- `src/`: 主 Next.js 应用 (病人端 React 版 + 医生端 + SAAS管理后台)。
   - `app/`: Next.js 主应用页面和布局。
     - `(auth)/`: 主应用认证相关页面 (病人端登录、注册)。
     - `dashboard/`: 病人端主要功能页面。
     - `doctor/`: 医生端主要功能页面。
-  - `components/`: Next.js 主应用可复用UI组件 (病人端、医生端共享或特定)。
+    - `saas-admin/`: SAAS管理后台页面。
+  - `components/`: Next.js 主应用可复用UI组件 (病人端、医生端、SAAS后台共享或特定)。
   - `lib/`: Next.js 主应用工具函数、类型定义等。
   - `ai/`: Genkit AI 相关代码。
   - `hooks/`: Next.js 主应用自定义React Hooks。
+  - `contexts/`: React Context API 相关代码。
 - `public/`: Next.js 主应用静态资源。
 - `vue-patient-app/`: Vue.js 病人端应用 (独立项目结构)。
   - `public/`: Vue app 静态资源。
   - `src/`: Vue app 源代码。
   - `vite.config.ts`, `tailwind.config.js`, 等 Vue 项目配置文件。
-- `saas-admin/`: Next.js SAAS管理后台应用 (独立项目结构)。
-  - `app/`: SAAS后台页面和布局。
-  - `components/`: SAAS后台可复用UI组件。
-  - `lib/`: SAAS后台工具函数、类型定义等。
-  - `next.config.mjs`, `tailwind.config.ts`, 等 SAAS 后台 Next.js 项目配置文件。
 - `package.json`: 项目根目录的 `package.json`，管理主应用和工作区脚本。
 
 ## 风格指南
@@ -152,13 +149,9 @@
 ```bash
 npm install
 ```
-这将同时安装主 Next.js 应用的依赖。Vue 应用和 SAAS 后台应用有其各自的 `package.json` 文件，如果需要单独管理它们的依赖，可以进入相应目录操作：
+这将同时安装主 Next.js 应用的依赖。Vue 应用有其各自的 `package.json` 文件，如果需要单独管理它的依赖，可以进入相应目录操作：
 ```bash
 cd vue-patient-app
-npm install
-cd ..
-
-cd saas-admin
 npm install
 cd ..
 ```
@@ -180,15 +173,15 @@ cd ..
    **注意**: 将 `YOUR_...` 替换为您的实际配置值。
    - 主 Next.js 应用会直接使用这些环境变量。
    - Vue.js 应用可能需要通过 Vite 的环境变量机制 (例如，使用 `VITE_` 前缀) 来访问这些值。
-   - SAAS 后台 Next.js 应用也会使用这些环境变量，确保其 `.env` 文件（如果单独配置）或根 `.env` 文件包含所需变量。
 
 ### 运行开发服务器
 
-**主 Next.js 应用 (病人端React版 + 医生端):**
+**主 Next.js 应用 (病人端React版 + 医生端 + SAAS管理后台):**
 ```bash
 npm run dev
 ```
 主 Next.js 应用默认运行在 `http://localhost:9002`。
+SAAS 管理后台将通过 `http://localhost:9002/saas-admin/` 路径访问。
 
 **Vue.js 病人端应用:**
 ```bash
@@ -196,13 +189,7 @@ npm run dev:vue
 ```
 Vue.js 应用通常运行在 `http://localhost:9003`。通过主应用访问时，路径为 `http://localhost:9002/vue-patient-app/`。
 
-**SAAS 管理后台 Next.js 应用:**
-```bash
-npm run dev:saas
-```
-SAAS 管理后台应用默认运行在 `http://localhost:3000`。通过主应用访问时，路径为 `http://localhost:9002/saas-admin/`。
-
-**确保所有开发服务器都已启动，以便通过主应用 (`http://localhost:9002`) 的代理访问 Vue 病人端和 SAAS 后台。**
+**确保所有开发服务器都已启动，以便通过主应用 (`http://localhost:9002`) 的代理访问 Vue 病人端。**
 
 ### 运行 Genkit 开发服务器 (AI功能)
 
@@ -216,7 +203,7 @@ Genkit 服务通常运行在 `http://localhost:3100` (Genkit UI 在 `http://loca
 
 ### 构建生产版本
 
-**主 Next.js 应用 (病人端React版 + 医生端):**
+**主 Next.js 应用 (病人端React版 + 医生端 + SAAS管理后台):**
 ```bash
 npm run build
 ```
@@ -224,11 +211,6 @@ npm run build
 **Vue.js 病人端应用:**
 ```bash
 npm run build:vue
-```
-
-**SAAS 管理后台 Next.js 应用:**
-```bash
-npm run build:saas
 ```
 
 ### 启动生产服务器
@@ -242,13 +224,6 @@ npm run start
 **Vue.js 病人端应用:**
 Vue.js 应用的生产部署通常涉及将 `vue-patient-app/dist` 目录的内容部署到静态文件服务器，或集成到主 Next.js 应用的 `public` 目录并通过重写规则提供服务。
 
-**SAAS 管理后台 Next.js 应用:**
-```bash
-npm run start:saas
-# 或进入 saas-admin 目录运行:
-# cd saas-admin && npm run start
-```
-SAAS 后台应用会以其自身配置的生产端口启动 (通常是 `3000`，除非在 `saas-admin/package.json` 中指定)。
 **生产环境部署时，需要配置反向代理 (如 Nginx) 来处理主应用 (`/`)、Vue病人端 (`/vue-patient-app/`) 和 SAAS后台 (`/saas-admin/`) 的路由，将它们指向各自运行的生产服务。**
 
 ## 代码质量与检查
@@ -256,51 +231,50 @@ SAAS 后台应用会以其自身配置的生产端口启动 (通常是 `3000`，
 - **主 Next.js 应用 Linting**: `npm run lint`
 - **主 Next.js 应用 Type Checking**: `npm run typecheck`
 - **Vue.js 应用**: 进入 `vue-patient-app` 目录运行其 `package.json` 中的 lint 和 type check 脚本。
-- **SAAS 后台应用**: 进入 `saas-admin` 目录运行其 `package.json` 中的 lint 和 type check 脚本。
 
-## Pushing to GitHub
+## 推送到 GitHub
 
-To push your local project to the GitHub repository at `https://github.com/robinlincn/AIHealth.git`, please follow these steps in your project's root directory using your terminal or command prompt:
+要将您的本地项目推送到 GitHub 仓库 `https://github.com/robinlincn/AIHealth.git`，请在您项目的根目录中使用终端或命令提示符执行以下步骤：
 
-1.  **Initialize Git (if you haven't already):**
+1.  **初始化 Git (如果尚未初始化):**
     ```bash
     git init
     ```
 
-2.  **Add all files to staging:**
+2.  **将所有文件添加到暂存区:**
     ```bash
     git add .
     ```
 
-3.  **Commit your changes:**
+3.  **提交您的更改:**
     ```bash
-    git commit -m "Update project files" 
-    # Or a more descriptive message if you've made specific changes
+    git commit -m "Initial commit" 
+    # 如果您正在更新现有仓库，请使用更具描述性的消息
     ```
 
-4.  **Set the main branch name (optional, but good practice for new repos):**
+4.  **设置主分支名称 (可选，但对于新仓库是好习惯):**
     ```bash
     git branch -M main
     ```
 
-5.  **Add the remote repository:**
-    *(If you've already added this remote, you might get an error saying "remote origin already exists". You can skip this step or use `git remote set-url origin https://github.com/robinlincn/AIHealth.git` to update it.)*
+5.  **添加远程仓库:**
+    *(如果您已经添加了此远程仓库，可能会收到 "remote origin already exists" 的错误。您可以跳过此步骤，或使用 `git remote set-url origin https://github.com/robinlincn/AIHealth.git` 来更新它。)*
     ```bash
     git remote add origin https://github.com/robinlincn/AIHealth.git
     ```
 
-6.  **Push your changes to GitHub:**
+6.  **将您的更改推送到 GitHub:**
     ```bash
     git push -u origin main
     ```
 
-    If you encounter an error like "src refspec main does not match any" after adding the remote and trying to push, ensure you have committed changes and your local branch is indeed named `main`. If your local branch is `master`, use `git push -u origin master`.
+    如果在添加远程仓库并尝试推送后遇到类似 "src refspec main does not match any" 的错误，请确保您已提交更改并且您的本地分支确实名为 `main`。如果您的本地分支是 `master`，请使用 `git push -u origin master`。
 
-**Important Notes:**
-*   Ensure you have Git installed on your system.
-*   You might need to authenticate with GitHub (e.g., using a Personal Access Token or SSH key) the first time you push.
-*   Replace `"Update project files"` with a relevant commit message if you are updating an existing repository.
-*   The `.gitignore` file in your project root should be configured to exclude files and folders that should not be committed (like `node_modules`, `.env` files containing sensitive keys, build outputs, etc.). Please review your `.gitignore` file.
+**重要提示:**
+*   确保您的系统上已安装 Git。
+*   首次推送时，您可能需要向 GitHub 进行身份验证 (例如，使用个人访问令牌或 SSH 密钥)。
+*   如果您要更新现有仓库，请将 `"Initial commit"` 替换为相关的提交消息。
+*   您项目根目录中的 `.gitignore` 文件应配置为排除不应提交的文件和文件夹 (如 `node_modules`、包含敏感密钥的 `.env` 文件、构建输出等)。请检查您的 `.gitignore` 文件。
 
 ---
 
