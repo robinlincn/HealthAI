@@ -85,9 +85,9 @@
 - **SOP服务管理**: 管理中台扣子（Coze）、Dify等工作流的API相关内容，优化调用流程。
 - **外呼任务 (平台级)**: 设置和管理平台级别的自动或人工外呼任务，用于客户回访、业务推广、通知提醒等。
 - **系统管理 (SAAS平台)**:
-    - **API管理**: 管理系统对外提供的API接口。
     - **用户管理**: 管理SAAS平台自身的管理员用户账户。
     - **权限管理**: 定义系统中的角色及其对应的操作权限。
+    - **API管理**: 管理系统对外提供的API接口。
     - **数据备份与恢复**: 管理SAAS平台核心数据的备份与恢复。
     - **集成与扩展**: 管理与外部服务（如AI模型、分析工具）的集成。
     - **系统设置**: 配置SAAS平台的全局设置。
@@ -124,9 +124,9 @@
   - `src/`: Vue app 源代码。
   - `vite.config.ts`, `tailwind.config.js`, 等 Vue 项目配置文件。
 - `saas-admin/`: Next.js SAAS管理后台应用 (独立项目结构)。
-  - `src/app/`: SAAS后台页面和布局。
-  - `src/components/`: SAAS后台可复用UI组件。
-  - `src/lib/`: SAAS后台工具函数、类型定义等。
+  - `app/`: SAAS后台页面和布局。
+  - `components/`: SAAS后台可复用UI组件。
+  - `lib/`: SAAS后台工具函数、类型定义等。
   - `next.config.mjs`, `tailwind.config.ts`, 等 SAAS 后台 Next.js 项目配置文件。
 - `package.json`: 项目根目录的 `package.json`，管理主应用和工作区脚本。
 
@@ -257,6 +257,50 @@ SAAS 后台应用会以其自身配置的生产端口启动 (通常是 `3000`，
 - **主 Next.js 应用 Type Checking**: `npm run typecheck`
 - **Vue.js 应用**: 进入 `vue-patient-app` 目录运行其 `package.json` 中的 lint 和 type check 脚本。
 - **SAAS 后台应用**: 进入 `saas-admin` 目录运行其 `package.json` 中的 lint 和 type check 脚本。
+
+## Pushing to GitHub
+
+To push your local project to the GitHub repository at `https://github.com/robinlincn/AIHealth.git`, please follow these steps in your project's root directory using your terminal or command prompt:
+
+1.  **Initialize Git (if you haven't already):**
+    ```bash
+    git init
+    ```
+
+2.  **Add all files to staging:**
+    ```bash
+    git add .
+    ```
+
+3.  **Commit your changes:**
+    ```bash
+    git commit -m "Update project files" 
+    # Or a more descriptive message if you've made specific changes
+    ```
+
+4.  **Set the main branch name (optional, but good practice for new repos):**
+    ```bash
+    git branch -M main
+    ```
+
+5.  **Add the remote repository:**
+    *(If you've already added this remote, you might get an error saying "remote origin already exists". You can skip this step or use `git remote set-url origin https://github.com/robinlincn/AIHealth.git` to update it.)*
+    ```bash
+    git remote add origin https://github.com/robinlincn/AIHealth.git
+    ```
+
+6.  **Push your changes to GitHub:**
+    ```bash
+    git push -u origin main
+    ```
+
+    If you encounter an error like "src refspec main does not match any" after adding the remote and trying to push, ensure you have committed changes and your local branch is indeed named `main`. If your local branch is `master`, use `git push -u origin master`.
+
+**Important Notes:**
+*   Ensure you have Git installed on your system.
+*   You might need to authenticate with GitHub (e.g., using a Personal Access Token or SSH key) the first time you push.
+*   Replace `"Update project files"` with a relevant commit message if you are updating an existing repository.
+*   The `.gitignore` file in your project root should be configured to exclude files and folders that should not be committed (like `node_modules`, `.env` files containing sensitive keys, build outputs, etc.). Please review your `.gitignore` file.
 
 ---
 
