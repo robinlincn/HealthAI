@@ -3,7 +3,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, Users, BarChart3, Activity, FileDown, AlertTriangle, ShieldCheck, Bot } from "lucide-react"; // Added Bot for AI
+import { TrendingUp, Users, BarChart3, Activity, FileDown, AlertTriangle, ShieldCheck, Bot, Eye } from "lucide-react"; // Added Eye
+import Link from "next/link"; // Added Link
 import {
   ChartContainer,
   ChartTooltip,
@@ -11,9 +12,9 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, BarChart, Area, ComposedChart, Line, Bar } from "recharts" 
-import { Badge } from "@/components/ui/badge"; // Added Badge
-import { format } from "date-fns"; // Added format
+import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, ComposedChart, Line, Bar } from "recharts" 
+import { Badge } from "@/components/ui/badge";
+import { format, parseISO } from "date-fns";
 
 const mockGroupTrendData = [
   { month: "一月", avgBloodSugar: 7.5, bpControlRate: 65 },
@@ -31,11 +32,11 @@ const chartConfigTrend = {
 interface AiPrediction {
   patientId: string;
   patientName: string;
-  predictionDate: string; // ISO Date string
+  predictionDate: string; 
   riskLevel: '高' | '中' | '低';
   predictedEvents: string[];
-  confidence?: number; // 0-1
-  primaryConcern?: string; // e.g., "未来3个月血糖失控风险"
+  confidence?: number; 
+  primaryConcern?: string; 
 }
 
 const mockAiPredictions: AiPrediction[] = [
@@ -71,7 +72,7 @@ const mockAiPredictions: AiPrediction[] = [
 export default function DoctorStatisticsTrendsPage() {
   const getRiskBadgeVariant = (riskLevel: AiPrediction['riskLevel']) => {
     if (riskLevel === '高') return 'destructive';
-    if (riskLevel === '中') return 'default'; // Using 'default' which is primary color based on theme
+    if (riskLevel === '中') return 'default'; 
     return 'secondary';
   };
   
@@ -150,7 +151,7 @@ export default function DoctorStatisticsTrendsPage() {
                         <CardTitle className="text-base">{pred.patientName} ({pred.patientId})</CardTitle>
                         <Badge variant={getRiskBadgeVariant(pred.riskLevel)}>{pred.riskLevel}风险</Badge>
                       </div>
-                      <CardDescription className="text-xs">预测日期: {format(new Date(pred.predictionDate), "yyyy-MM-dd")}</CardDescription>
+                      <CardDescription className="text-xs">预测日期: {format(parseISO(pred.predictionDate), "yyyy-MM-dd")}</CardDescription>
                     </CardHeader>
                     <CardContent className="text-sm space-y-1">
                       {pred.primaryConcern && <p><strong>主要关注:</strong> {pred.primaryConcern}</p>}
@@ -161,7 +162,11 @@ export default function DoctorStatisticsTrendsPage() {
                       {pred.confidence && <p className="text-xs mt-1">置信度: {(pred.confidence * 100).toFixed(0)}%</p>}
                     </CardContent>
                     <CardContent className="pt-0 pb-3">
-                       <Button variant="link" size="sm" className="p-0 h-auto text-xs" disabled>查看完整AI报告</Button>
+                       <Button asChild variant="link" size="sm" className="p-0 h-auto text-xs">
+                          <Link href={`/doctor/analytics/ai-report/${pred.patientId}`}>
+                            <Eye className="mr-1 h-3 w-3" /> 查看完整AI报告
+                          </Link>
+                       </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -180,4 +185,3 @@ export default function DoctorStatisticsTrendsPage() {
     </div>
   );
 }
-
