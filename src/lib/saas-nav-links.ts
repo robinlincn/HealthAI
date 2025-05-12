@@ -1,16 +1,16 @@
+
 import type { LucideIcon } from 'lucide-react';
 import {
   Briefcase,
   Building2,
-  Users, // Keep for Employee Management and Online Users
-  // HeartHandshake, // Removed, using Users for Customer Center now
+  Users, 
   Package,
-  ShoppingCart, // Using ShoppingCart for Order Management
+  ShoppingCart, 
   MessageSquare,
   Settings,
   Send,
   SlidersHorizontal,
-  Cog,
+  Cog, // General settings icon
   MonitorPlay,
   UsersRound,
   Clock,
@@ -18,15 +18,18 @@ import {
   LayoutDashboard,
   Shield,
   Network,
-  ListChecks, 
-  // ListOrdered, // Removed, using ShoppingCart now
-  Settings2, 
-  ListTodo, 
-  Activity, 
-  KeyRound, 
-  Palette, 
-  BellRing, 
-  ServerCog 
+  DatabaseBackup, // Added for Backup
+  PlugZap,      // Added for Integrations
+  Settings2,    // Kept for general System Settings
+  // Removed unused icons to keep imports clean
+  // ListChecks, 
+  // ListOrdered, 
+  // ListTodo, 
+  // Activity, 
+  // KeyRound, 
+  // Palette, 
+  // BellRing, 
+  // ServerCog 
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -42,7 +45,7 @@ const baseSaasPath = '/saas-admin';
 export const saasNavLinks: SaasNavItem[] = [
   {
     title: '仪表盘',
-    href: `${baseSaasPath}`,
+    href: `${baseSaasPath}`, // Root of SAAS admin
     icon: LayoutDashboard,
   },
   {
@@ -60,13 +63,13 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '员工管理',
     href: `${baseSaasPath}/employee-management`,
-    icon: UsersRound, // Changed to UsersRound for staff
+    icon: UsersRound, 
     label: '客户与服务',
   },
   {
-    title: '客户中心', // (Hospital Patient Management)
+    title: '客户中心', 
     href: `${baseSaasPath}/customer-center`,
-    icon: Users, // Changed from HeartHandshake to generic Users
+    icon: Users, 
     label: '客户与服务',
   },
   {
@@ -83,7 +86,7 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '订单管理',
         href: `${baseSaasPath}/service-center/order-management`,
-        icon: ShoppingCart, // Changed from ListOrdered to ShoppingCart
+        icon: ShoppingCart, 
       },
     ],
   },
@@ -112,11 +115,6 @@ export const saasNavLinks: SaasNavItem[] = [
     label: '系统配置',
     children: [
       {
-        title: 'API管理',
-        href: `${baseSaasPath}/system-management/api-management`,
-        icon: Network, 
-      },
-      {
         title: '用户管理', 
         href: `${baseSaasPath}/system-management/user-management`,
         icon: UsersRound, 
@@ -125,6 +123,21 @@ export const saasNavLinks: SaasNavItem[] = [
         title: '权限管理',
         href: `${baseSaasPath}/system-management/permission-management`,
         icon: Shield,
+      },
+      {
+        title: 'API管理',
+        href: `${baseSaasPath}/system-management/api-management`,
+        icon: Network, 
+      },
+      {
+        title: '数据备份与恢复', // New
+        href: `${baseSaasPath}/system-management/backup`,
+        icon: DatabaseBackup,
+      },
+      {
+        title: '集成与扩展', // New
+        href: `${baseSaasPath}/system-management/integrations`,
+        icon: PlugZap,
       },
       {
         title: '系统设置',
@@ -157,7 +170,3 @@ export const saasNavLinks: SaasNavItem[] = [
     ],
   },
 ];
-
-// Helper icons that might be used on pages but not in nav:
-// KeyRound, ListChecks, ListTodo, Activity, Palette, BellRing, ServerCog
-// FileText - general purpose

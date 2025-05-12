@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -8,8 +7,8 @@ export default function SystemManagementRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to the first relevant sub-page, e.g., API management
-    router.replace('/saas-admin/system-management/api-management');
+    // Redirect to the first relevant sub-page, e.g., user management
+    router.replace('/saas-admin/system-management/user-management');
   }, [router]);
 
   return (
@@ -19,5 +18,3 @@ export default function SystemManagementRedirectPage() {
     </div>
   );
 }
-
-```
