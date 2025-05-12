@@ -164,6 +164,21 @@ export interface DoctorPatient {
   reports?: ExaminationReport[];
 }
 
+export interface DoctorProfileDetails {
+  id: string;
+  name: string;
+  email: string; 
+  phone?: string;
+  specialty?: string;
+  hospitalAffiliation?: string;
+  yearsOfExperience?: number;
+  bio?: string;
+  avatarUrl?: string; 
+  licenseNumber?: string; // Added for doctor specific details
+  department?: string; // Added for doctor specific details
+}
+
+
 // Outbound Call Plan Types
 export type CallTaskStatus = 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
 export type CallTaskRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
@@ -189,6 +204,7 @@ export interface OutboundCallGroup {
   name: string;
   description?: string;
   patientIds: string[];
+  memberCount: number;
   creationDate: string; // ISO string
 }
 
