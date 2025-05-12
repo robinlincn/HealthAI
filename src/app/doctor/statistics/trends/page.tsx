@@ -1,10 +1,9 @@
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, Users, BarChart3, Activity, FileDown } from "lucide-react"; // Using BarChart for charts
+import { TrendingUp, Users, BarChart3, Activity, FileDown, AlertTriangle, ShieldCheck, Bot } from "lucide-react"; // Added Bot for AI
 import {
   ChartContainer,
   ChartTooltip,
@@ -12,7 +11,9 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, BarChart, Area, ComposedChart, Line, Bar } from "recharts" // Added Area and ComposedChart
+import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, BarChart, Area, ComposedChart, Line, Bar } from "recharts" 
+import { Badge } from "@/components/ui/badge"; // Added Badge
+import { format } from "date-fns"; // Added format
 
 const mockGroupTrendData = [
   { month: "一月", avgBloodSugar: 7.5, bpControlRate: 65 },
@@ -27,7 +28,53 @@ const chartConfigTrend = {
   bpControlRate: { label: "血压控制率 (%)", color: "hsl(var(--chart-2))" },
 };
 
+interface AiPrediction {
+  patientId: string;
+  patientName: string;
+  predictionDate: string; // ISO Date string
+  riskLevel: '高' | '中' | '低';
+  predictedEvents: string[];
+  confidence?: number; // 0-1
+  primaryConcern?: string; // e.g., "未来3个月血糖失控风险"
+}
+
+const mockAiPredictions: AiPrediction[] = [
+  {
+    patientId: "pat001",
+    patientName: "张三",
+    predictionDate: new Date().toISOString(),
+    riskLevel: '高',
+    predictedEvents: ["未来1月内血糖大幅波动", "未来3月内血压升高"],
+    confidence: 0.75,
+    primaryConcern: "血糖控制恶化"
+  },
+  {
+    patientId: "pat002",
+    patientName: "李四",
+    predictionDate: new Date().toISOString(),
+    riskLevel: '中',
+    predictedEvents: ["心血管事件风险轻度增加"],
+    confidence: 0.60,
+    primaryConcern: "心血管健康"
+  },
+  {
+    patientId: "pat004",
+    patientName: "赵六",
+    predictionDate: new Date().toISOString(),
+    riskLevel: '低',
+    predictedEvents: ["病情相对稳定"],
+    confidence: 0.85,
+    primaryConcern: "维持当前状态"
+  },
+];
+
 export default function DoctorStatisticsTrendsPage() {
+  const getRiskBadgeVariant = (riskLevel: AiPrediction['riskLevel']) => {
+    if (riskLevel === '高') return 'destructive';
+    if (riskLevel === '中') return 'default'; // Using 'default' which is primary color based on theme
+    return 'secondary';
+  };
+  
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -90,19 +137,47 @@ export default function DoctorStatisticsTrendsPage() {
       
       <Card>
         <CardHeader>
-            <CardTitle className="flex items-center"><Activity className="mr-2 h-5 w-5 text-muted-foreground"/>病情发展趋势预测 (AI)</CardTitle>
+            <CardTitle className="flex items-center"><Bot className="mr-2 h-5 w-5 text-muted-foreground"/>病情发展趋势预测 (AI)</CardTitle>
             <CardDescription>基于历史数据和AI模型，预测高危病人病情发展趋势。</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="mt-8 flex flex-col items-center text-center">
-                <BarChart3 className="w-24 h-24 text-primary/30 mb-4" />
-                <h3 className="text-xl font-semibold text-foreground/70">预测模型建设中</h3>
-                <p className="text-foreground/50 max-w-md">
-                此功能将利用AI分析历史数据，为高风险患者提供病情发展趋势预测，帮助医生提前制定干预措施。敬请期待。
-                </p>
-            </div>
+            {mockAiPredictions.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {mockAiPredictions.map(pred => (
+                  <Card key={pred.patientId} className="shadow-sm">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-base">{pred.patientName} ({pred.patientId})</CardTitle>
+                        <Badge variant={getRiskBadgeVariant(pred.riskLevel)}>{pred.riskLevel}风险</Badge>
+                      </div>
+                      <CardDescription className="text-xs">预测日期: {format(new Date(pred.predictionDate), "yyyy-MM-dd")}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-1">
+                      {pred.primaryConcern && <p><strong>主要关注:</strong> {pred.primaryConcern}</p>}
+                      <p><strong>预测事件:</strong></p>
+                      <ul className="list-disc list-inside pl-2 text-xs text-muted-foreground">
+                        {pred.predictedEvents.map((event, i) => <li key={i}>{event}</li>)}
+                      </ul>
+                      {pred.confidence && <p className="text-xs mt-1">置信度: {(pred.confidence * 100).toFixed(0)}%</p>}
+                    </CardContent>
+                    <CardContent className="pt-0 pb-3">
+                       <Button variant="link" size="sm" className="p-0 h-auto text-xs" disabled>查看完整AI报告</Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 flex flex-col items-center text-center">
+                  <BarChart3 className="w-24 h-24 text-primary/30 mb-4" />
+                  <h3 className="text-xl font-semibold text-foreground/70">暂无AI预测数据</h3>
+                  <p className="text-foreground/50 max-w-md">
+                  AI预测模型正在努力工作中，请稍后再来查看。
+                  </p>
+              </div>
+            )}
         </CardContent>
       </Card>
     </div>
   );
 }
+
