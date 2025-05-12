@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/chart"
 import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts"
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge"; // Added import for Badge
 
 // Mock data for demonstration
 const mockEvaluationData = [
@@ -168,3 +170,4 @@ export default function DoctorStatisticsEvaluationPage() {
     </div>
   );
 }
+
