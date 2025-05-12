@@ -146,6 +146,69 @@ export interface Appointment {
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
 
+// Doctor specific types
+export interface DoctorPatient {
+  id: string;
+  name: string;
+  age: number;
+  gender: Gender;
+  diagnosis: string;
+  lastVisit: string; // ISO Date string
+  avatarUrl?: string; // Optional avatar URL
+  contact?: string;
+  emergencyContact?: { name: string; phone: string; relationship?: string };
+  pastHistory?: string;
+  familyHistory?: string;
+  allergies?: string;
+  healthDataSummary?: string;
+  reports?: ExaminationReport[];
+}
+
+// Outbound Call Plan Types
+export type CallTaskStatus = 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+export type CallTaskRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
+
+export interface SingleOutboundCallTask {
+  id: string;
+  patientId: string;
+  patientName: string;
+  content: string;
+  scheduledTime: string; // ISO string for datetime-local
+  callAttempts: number;
+  maxCallAttempts: number; // Max attempts for this task
+  recurrence: CallTaskRecurrence;
+  wechatInfo: string; // WeChat name or group name for notification
+  status: CallTaskStatus;
+  creationDate: string; // ISO string
+  lastAttemptTime?: string; // ISO string
+  notes?: string;
+}
+
+export interface OutboundCallGroup {
+  id: string;
+  name: string;
+  description?: string;
+  patientIds: string[];
+  creationDate: string; // ISO string
+}
+
+export interface GroupOutboundCallTask {
+  id: string;
+  groupId: string;
+  groupName: string; // Denormalized for display
+  content: string;
+  scheduledTime: string; // ISO string for datetime-local
+  callAttempts: number; // Overall attempts for the group task trigger
+  maxCallAttempts: number; // Max attempts for this group task trigger
+  recurrence: CallTaskRecurrence;
+  wechatInfo: string; // General WeChat info for the group notification
+  status: CallTaskStatus; // Status of this specific group task trigger
+  creationDate: string; // ISO string
+  lastExecutionTime?: string; // ISO string for the last time this group task was triggered
+  notes?: string;
+}
+
+
 // SAAS Admin Types
 export interface SaasEnterprise {
   id: string;
@@ -276,3 +339,4 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
+

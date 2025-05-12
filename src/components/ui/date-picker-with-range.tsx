@@ -18,12 +18,14 @@ import {
 interface DatePickerWithRangeProps extends React.HTMLAttributes<HTMLDivElement> {
   date: DateRange | undefined;
   onDateChange: (date: DateRange | undefined) => void;
+  disabled?: boolean;
 }
 
 export function DatePickerWithRange({
   className,
   date,
   onDateChange,
+  disabled = false,
 }: DatePickerWithRangeProps) {
   return (
     <div className={cn("grid gap-2", className)}>
@@ -32,8 +34,9 @@ export function DatePickerWithRange({
           <Button
             id="date"
             variant={"outline"}
+            disabled={disabled}
             className={cn(
-              "w-[300px] justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal h-9", // Ensure consistent height with other inputs
               !date && "text-muted-foreground"
             )}
           >
@@ -41,11 +44,11 @@ export function DatePickerWithRange({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
+                  {format(date.from, "yyyy-MM-dd")} -{" "}
+                  {format(date.to, "yyyy-MM-dd")}
                 </>
               ) : (
-                format(date.from, "LLL dd, y")
+                format(date.from, "yyyy-MM-dd")
               )
             ) : (
               <span>选择日期范围</span>
@@ -60,9 +63,11 @@ export function DatePickerWithRange({
             selected={date}
             onSelect={onDateChange}
             numberOfMonths={2}
+            disabled={disabled}
           />
         </PopoverContent>
       </Popover>
     </div>
   )
 }
+
