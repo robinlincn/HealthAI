@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/chart"
 import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts"
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge"; // Added import for Badge
+import { Badge } from "@/components/ui/badge";
 
 // Mock data for demonstration
 const mockEvaluationData = [
@@ -112,7 +111,7 @@ export default function DoctorStatisticsEvaluationPage() {
         </CardHeader>
         <CardContent className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold">评估报告摘要 - {mockReportDetails.patientName}</h3>
+              <h3 className="text-lg font-semibold">{mockReportDetails.patientName} - 评估报告摘要</h3>
               <p className="text-xs text-muted-foreground">治疗方案: {mockReportDetails.treatmentPlan} | 评估周期: {mockReportDetails.period}</p>
               <p className="mt-2 text-sm bg-muted/30 p-3 rounded-md">{mockReportDetails.summary}</p>
             </div>
@@ -154,7 +153,11 @@ export default function DoctorStatisticsEvaluationPage() {
                 <ul className="space-y-2">
                   {mockReportDetails.effectTracking.map((track, index) => (
                     <li key={index} className="p-2 border rounded-md text-sm bg-muted/20">
-                      <p><strong>{track.date}:</strong> {track.note} <Badge variant="outline" className="ml-2 text-xs">{track.status}</Badge></p>
+                      <div className="flex items-center"> {/* Changed p to div */}
+                        <strong>{track.date}:</strong> 
+                        <span className="ml-1">{track.note}</span> 
+                        <Badge variant="outline" className="ml-2 text-xs">{track.status}</Badge>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -170,4 +173,3 @@ export default function DoctorStatisticsEvaluationPage() {
     </div>
   );
 }
-
