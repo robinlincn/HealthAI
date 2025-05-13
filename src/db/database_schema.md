@@ -582,3 +582,4 @@ SAAS管理员用户 (user_type='saas_admin') 与其角色的多对多关联。
 | `context_json`| JSON                                             | NULLABLE (额外上下文信息)         | 上下文信息   |
 | `ip_address`  | VARCHAR(45)                                      | NULLABLE                          | IP地址       |
 
+
