@@ -4,10 +4,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Info, Pill, Bed, CheckSquare } from "lucide-react"; // Added CheckSquare, Bed
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Bed, Info, Pill, CheckSquare } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, DietaryIntakeOption } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, MedicationEntry, YesNoOption, FrequencyOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, DietaryIntakeOption } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -106,6 +106,7 @@ const mockPatientsList: DoctorPatient[] = [
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
         adherence_doctorAdviceCompliance: "执行一部分",
         adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+        adherence_otherHealthPromotion: "定期复查",
         sleep_adequacy: "一般",
         otherInfo_medicationsUsed: "拜阿司匹林 100mg qd, 胰岛素 10U qn",
         otherInfo_contactPreference_method: "微信",
@@ -200,7 +201,7 @@ export default function DoctorPatientDetailPage() {
 
   const renderInfoList = (items?: string[], emptyText: string = "无记录") => {
     if (!items || items.length === 0) {
-      return <p className="text-muted-foreground text-sm">{emptyText}</p>;
+      return <span className="text-muted-foreground text-sm">{emptyText}</span>;
     }
     return (
       <div className="flex flex-wrap gap-1">
@@ -218,14 +219,29 @@ export default function DoctorPatientDetailPage() {
     return <span className="text-muted-foreground text-sm ml-1">{value || '未记录'}</span>;
   };
   
-  const renderGridItem = (label: string, value?: string | React.ReactNode | null, colSpan?: number, className?: string) => (
-    <div className={cn(colSpan ? `md:col-span-${colSpan}` : "", className || "")}>
-      <strong className="text-sm">{label}:</strong> <span className="text-sm text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span>
-    </div>
-  );
+  const renderGridItem = (label: string, value?: string | string[] | React.ReactNode | null, colSpan?: number, className?: string) => {
+    let displayValue: React.ReactNode;
+    if (Array.isArray(value)) {
+      displayValue = renderInfoList(value);
+    } else if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+      displayValue = <span className="text-muted-foreground text-xs">未记录</span>;
+    } else {
+      // If it's a ReactNode (like the output of renderYesNo), render directly. Otherwise, wrap in span.
+      displayValue = (React.isValidElement(value) && typeof value.type !== 'string') 
+        ? value 
+        : <span className="text-sm text-foreground/80">{String(value)}</span>;
+    }
+
+    return (
+      <div className={cn("py-1", colSpan ? `md:col-span-${colSpan}` : "", className || "")}>
+        <strong className="text-sm mr-1">{label}:</strong>
+        {displayValue}
+      </div>
+    );
+  };
   
   const renderSASQuestion = (label: string, value?: SASOption) => (
-     <div className="text-sm"><strong>{label}:</strong> <span className="text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span></div>
+     <div className="text-sm py-0.5"><strong>{label}:</strong> <span className="text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span></div>
   );
 
 
@@ -265,6 +281,13 @@ export default function DoctorPatientDetailPage() {
 
   const dp = patient.detailedProfile; 
 
+  const adherenceHealthPromotionDisplay = (
+    <>
+      {renderInfoList(dp?.adherence_healthPromotionMethods)}
+      {dp?.adherence_otherHealthPromotion && (<span className="ml-1 text-xs text-muted-foreground">(其他: {dp.adherence_otherHealthPromotion})</span>)}
+    </>
+  );
+
   return (
     <div className="space-y-4 p-1 md:p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
@@ -283,8 +306,8 @@ export default function DoctorPatientDetailPage() {
 
       <Tabs defaultValue="basicInfo" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-muted/60">
-          <TabsTrigger value="basicInfo"><UserCircle className="mr-2 h-4 w-4"/>基本与生活</TabsTrigger>
-          <TabsTrigger value="medicalRecords"><FileText className="mr-2 h-4 w-4"/>病历摘要</TabsTrigger>
+          <TabsTrigger value="basicInfo"><UserCircle className="mr-2 h-4 w-4"/>基本信息</TabsTrigger>
+          <TabsTrigger value="medicalHistory"><FileText className="mr-2 h-4 w-4"/>病历摘要</TabsTrigger>
           <TabsTrigger value="healthData"><LineChartIcon className="mr-2 h-4 w-4"/>健康数据</TabsTrigger>
           <TabsTrigger value="examReports"><ClipboardList className="mr-2 h-4 w-4"/>检查报告</TabsTrigger>
         </TabsList>
@@ -312,9 +335,9 @@ export default function DoctorPatientDetailPage() {
                 </div>
               </div>
               {patient.emergencyContact && (
-                <p className="pt-2 border-t mt-3">
+                <div className="pt-2 border-t mt-3"> {/* Changed from p to div */}
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
-                </p>
+                </div>
               )}
               
               <Separator className="my-3" />
@@ -351,19 +374,25 @@ export default function DoctorPatientDetailPage() {
               <Separator className="my-3" /> 
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-destructive"/>现有不适症状</h3>
-                {renderInfoList(dp?.currentSymptoms, "无不适症状记录")}
+                <div className="mt-1">
+                  {renderInfoList(dp?.currentSymptoms, "无不适症状记录")}
+                </div>
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><TestTube className="mr-2 h-4 w-4 text-red-500"/>过敏史</h3>
-                {renderInfoList(dp?.allergies, "无过敏史记录")}
+                <div className="mt-1">
+                  {renderInfoList(dp?.allergies, "无过敏史记录")}
+                </div>
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Stethoscope className="mr-2 h-4 w-4 text-blue-500"/>手术史</h3>
-                {renderInfoList(dp?.operationHistory, "无手术史记录")}
+                 <div className="mt-1">
+                    {renderInfoList(dp?.operationHistory, "无手术史记录")}
+                 </div>
                  {dp?.operationHistory_text && <p className="text-sm text-foreground/80 mt-1">详情: {dp.operationHistory_text}</p>}
               </div>
               
@@ -377,14 +406,20 @@ export default function DoctorPatientDetailPage() {
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Pill className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
-                {renderInfoList(dp?.medicationCategories, "无用药史记录")}
+                <div className="mt-1">
+                  {renderInfoList(dp?.medicationCategories, "无用药史记录")}
+                </div>
                  {dp?.otherInfo_medicationsUsed && <p className="text-sm text-foreground/80 mt-1">具体用药: {dp.otherInfo_medicationsUsed}</p>}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Wind className="mr-2 h-4 w-4 text-teal-500"/>接触史</h3>
-                {renderInfoList(dp?.contactHistory, "无特殊接触史记录")}
+                 <div className="mt-1">
+                    {renderInfoList(dp?.contactHistory, "无特殊接触史记录")}
+                 </div>
+                 {/* Detailed contact history if needed */}
+                 {/* {renderGridItem("油烟接触", renderYesNo(dp?.contactHistory_oy))} */}
               </div>
 
               <Separator className="my-3" />
@@ -393,12 +428,12 @@ export default function DoctorPatientDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
                     {renderGridItem("平均每周吃早餐", dp?.dietaryHabits_breakfastDays)}
                     {renderGridItem("平均每周吃夜宵", dp?.dietaryHabits_lateSnackDays)}
-                    <div className="md:col-span-2"><strong>不良饮食习惯:</strong> {renderInfoList(dp?.dietaryHabits_badHabits)}</div>
-                    <div className="md:col-span-2"><strong>饮食口味偏好:</strong> {renderInfoList(dp?.dietaryHabits_preferences)}</div>
-                    <div className="md:col-span-2"><strong>食物类型偏好:</strong> {renderInfoList(dp?.dietaryHabits_foodTypePreferences)}</div>
+                    {renderGridItem("不良饮食习惯", dp?.dietaryHabits_badHabits, 2)}
+                    {renderGridItem("饮食口味偏好", dp?.dietaryHabits_preferences, 2)}
+                    {renderGridItem("食物类型偏好", dp?.dietaryHabits_foodTypePreferences, 2)}
                 </div>
               </div>
-
+              
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-lime-600"/>膳食摄入 (个人)</h3>
@@ -452,23 +487,25 @@ export default function DoctorPatientDetailPage() {
                         {renderGridItem("最常饮酒类型", dp?.drinking_type)}
                         {renderGridItem("平均每天饮酒量", dp?.drinking_amountPerDay)}
                         {renderGridItem("总共饮酒年数", dp?.drinking_years)}
-                        <p className="text-xs text-muted-foreground md:col-span-2 mt-1">
-                            说明: 1瓶啤酒（约600ml）=1杯红酒（约3两）=1两低度白酒或0.5两高度白酒。
-                        </p>
                       </>
                     )}
                 </div>
+                 {(dp?.drinking_status === "饮酒" || dp?.drinking_status === "戒酒") && (
+                  <p className="text-xs text-muted-foreground md:col-span-2 mt-1">
+                      说明: 1瓶啤酒（约600ml）=1杯红酒（约3两）=1两低度白酒或0.5两高度白酒。
+                  </p>
+                )}
               </div>
               
               <Separator className="my-3" />
-              <div>
+               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Brain className="mr-2 h-4 w-4 text-purple-500"/>心理健康</h3>
                 <div className="space-y-2 text-sm">
                     {renderGridItem("正受一些重大意外困扰", renderYesNo(dp?.mentalHealth_majorEvents))}
                     {renderGridItem("情绪对工作或生活的影响", dp?.mentalHealth_impactOnLife)}
                     {renderGridItem("感觉到自己的精神压力", dp?.mentalHealth_stressLevel)}
                     <p className="text-xs text-muted-foreground pt-1">最近一周焦虑自评 (SAS):</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 pl-4 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0.5 pl-2 text-xs">
                         {renderSASQuestion("容易紧张和着急(焦虑)", dp?.mentalHealth_sas_anxiety)}
                         {renderSASQuestion("无故感到害怕(害怕)", dp?.mentalHealth_sas_fear)}
                         {renderSASQuestion("容易心里烦乱或惊恐(惊恐)", dp?.mentalHealth_sas_panic)}
@@ -499,13 +536,12 @@ export default function DoctorPatientDetailPage() {
                     <li>身体感觉: {dp?.adherence_selfAssessmentBody || "未记录"}</li>
                     <li>心理态度: {dp?.adherence_selfAssessmentMind || "未记录"}</li>
                   </ul>
-                  {dp?.adherence_priorityProblems && dp.adherence_priorityProblems.length > 0 && (
-                    <p><strong>最希望解决的问题:</strong> {renderInfoList(dp.adherence_priorityProblems)}</p>
-                  )}
+                  <div><strong>最希望解决的问题:</strong> {renderInfoList(dp?.adherence_priorityProblems)}</div>
                   {renderGridItem("医嘱依从度", dp?.adherence_doctorAdviceCompliance)}
-                  {dp?.adherence_healthPromotionMethods && dp.adherence_healthPromotionMethods.length > 0 && (
-                    <p><strong>希望促进健康方式:</strong> {renderInfoList(dp.adherence_healthPromotionMethods)} {dp.adherence_otherHealthPromotion && `(其他: ${dp.adherence_otherHealthPromotion})`}</p>
-                  )}
+                  <div>
+                    <strong>希望促进健康方式:</strong>
+                    {adherenceHealthPromotionDisplay}
+                  </div>
                 </div>
               </div>
 
@@ -520,7 +556,7 @@ export default function DoctorPatientDetailPage() {
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Info className="mr-2 h-4 w-4 text-gray-600"/>其他</h3>
                 <div className="space-y-1 text-sm">
                   {dp?.otherInfo_medicationsUsed && <p><strong>当前使用药物:</strong> {dp.otherInfo_medicationsUsed}</p>}
-                  <p><strong>希望联系方式:</strong></p>
+                  <p className="font-medium">希望联系方式:</p>
                   <ul className="list-disc list-inside ml-4 text-xs">
                     <li>方式: {dp?.otherInfo_contactPreference_method === '其他' ? dp.otherInfo_contactPreference_method_other : dp?.otherInfo_contactPreference_method || "未记录"}</li>
                     <li>频率: {dp?.otherInfo_contactPreference_frequency === '其他' ? dp.otherInfo_contactPreference_frequency_other : dp?.otherInfo_contactPreference_frequency || "未记录"}</li>
@@ -538,7 +574,7 @@ export default function DoctorPatientDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="medicalRecords">
+        <TabsContent value="medicalHistory">
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-xl">病历摘要</CardTitle>

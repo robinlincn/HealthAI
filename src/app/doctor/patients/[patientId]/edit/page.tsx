@@ -102,6 +102,7 @@ const mockPatientsList: DoctorPatient[] = [
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
         adherence_doctorAdviceCompliance: "执行一部分",
         adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+        adherence_otherHealthPromotion: "定期复查",
         sleep_adequacy: "一般",
         otherInfo_medicationsUsed: "拜阿司匹林 100mg qd, 胰岛素 10U qn",
         otherInfo_contactPreference_method: "微信",
@@ -156,7 +157,6 @@ export default function EditPatientProfilePage() {
     if (patient) {
       console.log("Saving updated profile for patient:", patient.id, updatedDetailedProfile);
       
-      // Update the mock data in this "session"
       const patientIndex = mockPatientsList.findIndex(p => p.id === patient.id);
       if (patientIndex !== -1) {
         mockPatientsList[patientIndex] = {
