@@ -25,7 +25,7 @@ import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, Bloo
 import { useEffect, useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info, Heart, AlertTriangle, TestTube, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Pill } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
@@ -314,7 +314,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       medicationCategories: initialDetailedProfile.medicationCategories || [],
       contactHistory: initialDetailedProfile.contactHistory || [],
       medicationHistory: initialDetailedProfile.medicationHistory || [],
-      adherence_priorityProblems: initialDetailedProfile.adherence_priorityProblems || Array(4).fill(''), // Initialize with 4 empty strings
+      adherence_priorityProblems: initialDetailedProfile.adherence_priorityProblems?.slice(0,4) || Array(4).fill(''), // Initialize with 4 empty strings
       adherence_healthPromotionMethods: initialDetailedProfile.adherence_healthPromotionMethods || [],
     },
   });
@@ -364,7 +364,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
         ...entry,
         conditions: entry.conditions.filter(c => c)
       })),
-      adherence_priorityProblems: (data.adherence_priorityProblems || []).filter(p => p.trim() !== '').slice(0, 4),
+      adherence_priorityProblems: (data.adherence_priorityProblems || []).filter(p => p && p.trim() !== '').slice(0, 4),
     };
     onSave(detailedData);
     toast({
@@ -389,56 +389,52 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
   };
   
   const renderCheckboxArrayField = (
-    name: keyof PatientProfileFormValues,
+    formFieldName: keyof PatientProfileFormValues, // Use keyof for type safety
     label: string,
-    options: readonly { id: string; label: string }[] | readonly string[],
-    otherOptionLabel?: string
+    options: readonly string[], // Changed to string[] for direct use
+    otherOptionLabel?: string // Keeping for potential future use, but not implemented for this case
   ) => (
     <FormField
       control={form.control}
-      name={name}
+      name={formFieldName}
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2 border rounded-md">
-            {options.map((option) => {
-              const optionValue = typeof option === 'string' ? option : option.id;
-              const optionLabel = typeof option === 'string' ? option : option.label;
-              return (
-                <FormItem key={optionValue} className="flex flex-row items-start space-x-2 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={(field.value || []).includes(optionValue)}
-                      disabled={!isEditing}
-                      onCheckedChange={(checked) => {
-                        const currentArrayValue = field.value || [];
-                        return checked
-                          ? field.onChange([...currentArrayValue, optionValue])
-                          : field.onChange(currentArrayValue.filter((value: string) => value !== optionValue));
-                      }}
-                    />
-                  </FormControl>
-                  <FormLabel className="text-xs font-normal leading-tight">{optionLabel}</FormLabel>
-                </FormItem>
-              );
-            })}
-            {otherOptionLabel && (
-              <FormItem className="flex flex-row items-start space-x-2 space-y-0">
-                 <FormControl>
+            {options.map((optionValue) => (
+              <FormItem key={optionValue} className="flex flex-row items-start space-x-2 space-y-0">
+                <FormControl>
                   <Checkbox
-                    checked={(field.value || []).includes("其他")}
+                    checked={(field.value as string[] || []).includes(optionValue)} // Cast field.value
                     disabled={!isEditing}
                     onCheckedChange={(checked) => {
-                        const currentArrayValue = field.value || [];
-                        return checked
-                        ? field.onChange([...currentArrayValue, "其他"])
-                        : field.onChange(currentArrayValue.filter((value: string) => value !== "其他"));
+                      const currentArrayValue = (field.value as string[] || []); // Cast field.value
+                      return checked
+                        ? field.onChange([...currentArrayValue, optionValue])
+                        : field.onChange(currentArrayValue.filter((value) => value !== optionValue));
                     }}
                   />
                 </FormControl>
-                <FormLabel className="text-xs font-normal leading-tight">{otherOptionLabel}</FormLabel>
-                {/* Add an input for "other" text if needed, perhaps conditionally rendered */}
+                <FormLabel className="text-xs font-normal leading-tight">{optionValue}</FormLabel>
               </FormItem>
+            ))}
+            {/* Basic "Other" option - can be enhanced to include an input field */}
+            {otherOptionLabel && (
+                 <FormItem key="other" className="flex flex-row items-start space-x-2 space-y-0">
+                    <FormControl>
+                        <Checkbox
+                             checked={(field.value as string[] || []).includes("其他")}
+                             disabled={!isEditing}
+                             onCheckedChange={(checked) => {
+                                 const currentArrayValue = (field.value as string[] || []);
+                                 return checked
+                                 ? field.onChange([...currentArrayValue, "其他"])
+                                 : field.onChange(currentArrayValue.filter((value) => value !== "其他"));
+                             }}
+                        />
+                    </FormControl>
+                    <FormLabel className="text-xs font-normal leading-tight">{otherOptionLabel}</FormLabel>
+                 </FormItem>
             )}
           </div>
           <FormMessage />
@@ -446,6 +442,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       )}
     />
   );
+
 
   const renderRadioGroupField = (
     name: keyof PatientProfileFormValues,
@@ -462,8 +459,8 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
                 <FormControl>
                     <RadioGroup
                         onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
+                        value={field.value as string} // Ensure value is string
+                        defaultValue={field.value as string} // Ensure value is string
                         className="flex flex-wrap gap-x-4 gap-y-2"
                         disabled={!isEditing}
                     >
@@ -507,10 +504,9 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {renderSection("基本资料", Info, (
           <>
-            {/* ... existing basic info fields ... */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>姓名</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>性别</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择性别" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">男</SelectItem><SelectItem value="female">女</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>性别</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value as Gender} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择性别" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">男</SelectItem><SelectItem value="female">女</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="dob" render={({ field }) => (<FormItem><FormLabel>生日</FormLabel><FormControl><Input type="date" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
@@ -525,8 +521,8 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
             <FormField control={form.control} name="contactEmail" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input type="email" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="bloodType" render={({ field }) => (<FormItem><FormLabel>血型</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择血型" /></SelectTrigger></FormControl><SelectContent><SelectItem value="A">A型</SelectItem><SelectItem value="B">B型</SelectItem><SelectItem value="O">O型</SelectItem><SelectItem value="AB">AB型</SelectItem><SelectItem value="unknown">未知</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>婚姻</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择婚姻状况" /></SelectTrigger></FormControl><SelectContent><SelectItem value="unmarried">未婚</SelectItem><SelectItem value="married">已婚</SelectItem><SelectItem value="divorced">离异</SelectItem><SelectItem value="widowed">丧偶</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="bloodType" render={({ field }) => (<FormItem><FormLabel>血型</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value as BloodType} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择血型" /></SelectTrigger></FormControl><SelectContent><SelectItem value="A">A型</SelectItem><SelectItem value="B">B型</SelectItem><SelectItem value="O">O型</SelectItem><SelectItem value="AB">AB型</SelectItem><SelectItem value="unknown">未知</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>婚姻</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value as MaritalStatus} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择婚姻状况" /></SelectTrigger></FormControl><SelectContent><SelectItem value="unmarried">未婚</SelectItem><SelectItem value="married">已婚</SelectItem><SelectItem value="divorced">离异</SelectItem><SelectItem value="widowed">丧偶</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="occupation" render={({ field }) => (<FormItem><FormLabel>职业</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -539,12 +535,12 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="informant" render={({ field }) => (<FormItem><FormLabel>病史陈述者</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="reliability" render={({ field }) => (<FormItem><FormLabel>可靠程度</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择可靠程度" /></SelectTrigger></FormControl><SelectContent><SelectItem value="reliable">可靠</SelectItem><SelectItem value="partially_reliable">部分可靠</SelectItem><SelectItem value="unreliable">不可靠</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="reliability" render={({ field }) => (<FormItem><FormLabel>可靠程度</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value as 'reliable' | 'unreliable' | 'partially_reliable'} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择可靠程度" /></SelectTrigger></FormControl><SelectContent><SelectItem value="reliable">可靠</SelectItem><SelectItem value="partially_reliable">部分可靠</SelectItem><SelectItem value="unreliable">不可靠</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
           </div>
           </>
         ))}
 
-        {renderSection("家族病史及患病情况", Heart, ( /* ... existing family history UI ... */ <FormField control={form.control} name="familyMedicalHistory" render={() => ( <FormItem><Tabs defaultValue="self" className="w-full"><TabsList className="grid w-full grid-cols-3 md:grid-cols-5 h-auto">{(form.getValues('familyMedicalHistory') || []).map((relativeEntry) => (<TabsTrigger key={relativeEntry.relative} value={relativeEntry.relative} className="text-xs px-1 py-1.5 h-full" disabled={!isEditing}>{relativesMap[relativeEntry.relative]}</TabsTrigger>))}</TabsList>{(form.getValues('familyMedicalHistory') || []).map((_relativeEntry, relativeIndex) => (<TabsContent key={form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)} value={form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)}><div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-2 p-2 border rounded-md mt-2">{allFamilyConditions.map((condition) => (<FormField key={`${form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)}-${condition}`} control={form.control} name={`familyMedicalHistory.${relativeIndex}.conditions`} render={({ field }) => (<FormItem className="flex flex-row items-center space-x-2 space-y-0"><FormControl><Checkbox checked={field.value?.includes(condition)} disabled={!isEditing} onCheckedChange={(checked) => { const currentConditions = field.value || []; return checked ? field.onChange([...currentConditions, condition]) : field.onChange(currentConditions.filter((value: string) => value !== condition));}}/></FormControl><FormLabel className="text-xs font-normal leading-tight">{condition}</FormLabel></FormItem>)}/>))}</div></TabsContent>))}</Tabs><FormMessage /></FormItem>)}/>))}
+        {renderSection("家族病史及患病情况", Heart, ( <FormField control={form.control} name="familyMedicalHistory" render={() => ( <FormItem><Tabs defaultValue="self" className="w-full"><TabsList className="grid w-full grid-cols-3 md:grid-cols-5 h-auto">{(form.getValues('familyMedicalHistory') || []).map((relativeEntry) => (<TabsTrigger key={relativeEntry.relative} value={relativeEntry.relative} className="text-xs px-1 py-1.5 h-full" disabled={!isEditing}>{relativesMap[relativeEntry.relative]}</TabsTrigger>))}</TabsList>{(form.getValues('familyMedicalHistory') || []).map((_relativeEntry, relativeIndex) => (<TabsContent key={form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)} value={form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)}><div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-2 p-2 border rounded-md mt-2">{allFamilyConditions.map((condition) => (<FormField key={`${form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)}-${condition}`} control={form.control} name={`familyMedicalHistory.${relativeIndex}.conditions`} render={({ field }) => (<FormItem className="flex flex-row items-center space-x-2 space-y-0"><FormControl><Checkbox checked={field.value?.includes(condition)} disabled={!isEditing} onCheckedChange={(checked) => { const currentConditions = field.value || []; return checked ? field.onChange([...currentConditions, condition]) : field.onChange(currentConditions.filter((value: string) => value !== condition));}}/></FormControl><FormLabel className="text-xs font-normal leading-tight">{condition}</FormLabel></FormItem>)}/>))}</div></TabsContent>))}</Tabs><FormMessage /></FormItem>)}/>))}
         {renderSection("现有不适症状", AlertTriangle, renderCheckboxArrayField("currentSymptoms", "选择症状", currentSymptomsOptions))}
         {renderSection("过敏史、手术史与输血史", TestTube, (
           <>
@@ -711,8 +707,8 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
             </>
         ))}
 
-
-        {renderSection("主诉、现病史、既往史等（旧版文本录入）", Activity, (
+        {/* This section is removed as per user request */}
+        {/* {renderSection("主诉、现病史、既往史等（旧版文本录入）", Activity, (
           <>
             <FormField control={form.control} name="chiefComplaint" render={({ field }) => (<FormItem><FormLabel>主诉</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="historyOfPresentIllness" render={({ field }) => (<FormItem><FormLabel>现病史</FormLabel><FormControl><Textarea rows={4} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -720,7 +716,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
             <FormField control={form.control} name="pastMedicalHistoryDetails" render={({ field }) => (<FormItem><FormLabel>其他既往史详情 (旧版)</FormLabel><FormControl><Textarea rows={3} placeholder="其他重要疾病、手术、外伤、输血史等" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
              <FormField control={form.control} name="vaccinationHistory" render={({ field }) => (<FormItem><FormLabel>预防接种史</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </>
-        ))}
+        ))} */}
         
         {renderSection("个人史与家族史（旧版文字描述，备用）", Activity, (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -766,4 +762,3 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     </Form>
   );
 }
-
