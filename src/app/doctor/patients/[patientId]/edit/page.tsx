@@ -47,14 +47,13 @@ const mockPatientsList: DoctorPatient[] = [
         bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
         contactHistory: ["油烟"],
-        contactHistory_oy: "是",
-        contactHistory_dust: "否",
-        contactHistory_toxic: "不详",
+        
         dietaryHabits_breakfastDays: '7天',
         dietaryHabits_lateSnackDays: '1-2天',
         dietaryHabits_badHabits: ['吃饭过快', '吃得过饱'],
         dietaryHabits_preferences: ['咸', '辣'],
         dietaryHabits_foodTypePreferences: ['油炸食品', '经常吃快餐'],
+
         dietaryIntake_staple: '2-4碗',
         dietaryIntake_meat: '1-2两',
         dietaryIntake_fish: '<1两',
@@ -64,19 +63,23 @@ const mockPatientsList: DoctorPatient[] = [
         dietaryIntake_vegetables: '6-10两',
         dietaryIntake_fruits: '1-4两',
         dietaryIntake_water: '6-9杯',
+
         exercise_workHours: '≥8小时',
         exercise_sedentaryHours: '5-8小时',
         exercise_weeklyFrequency: '偶尔（1-2次/周）',
         exercise_durationPerSession: '30-60分钟',
         exercise_intensity: '中度运动',
+
         smoking_status: '吸烟',
         smoking_cigarettesPerDay: '5-15支',
         smoking_years: '10-20年',
         smoking_passiveDays: '1-2天',
+
         drinking_status: '饮酒',
         drinking_type: '啤酒',
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
+        
         mentalHealth_majorEvents: '否',
         mentalHealth_impactOnLife: '有一点',
         mentalHealth_stressLevel: '较明显',
@@ -97,21 +100,22 @@ const mockPatientsList: DoctorPatient[] = [
         mentalHealth_sas_stomachPain: "小部分时间有",
         mentalHealth_sas_frequentUrination: "没有或很少有时间有",
         mentalHealth_sas_sweating: "小部分时间有",
+
         adherence_selfAssessmentBody: "满意",
         adherence_selfAssessmentMind: "还算关心",
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
         adherence_doctorAdviceCompliance: "执行一部分",
         adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
         adherence_otherHealthPromotion: "定期复查",
+
         sleep_adequacy: "一般",
+
         otherInfo_medicationsUsed: "拜阿司匹林 100mg qd, 胰岛素 10U qn",
         otherInfo_contactPreference_method: "微信",
         otherInfo_contactPreference_frequency: "每周一次",
         otherInfo_contactPreference_time: "下午",
         otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
         otherInfo_serviceSatisfaction: "较好",
-        operationHistory_text: "2010年阑尾炎切除术", 
-        bloodTransfusionHistory_details: "无",
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -230,4 +234,3 @@ export default function EditPatientProfilePage() {
     </div>
   );
 }
-

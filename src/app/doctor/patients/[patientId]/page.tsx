@@ -1,7 +1,7 @@
 
 "use client";
 
-import * as React from 'react'; // Added React import
+import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,14 +52,13 @@ const mockPatientsList: DoctorPatient[] = [
         bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
         contactHistory: ["油烟"],
-        contactHistory_oy: "是",
-        contactHistory_dust: "否",
-        contactHistory_toxic: "不详",
+        
         dietaryHabits_breakfastDays: '7天',
         dietaryHabits_lateSnackDays: '1-2天',
         dietaryHabits_badHabits: ['吃饭过快', '吃得过饱'],
         dietaryHabits_preferences: ['咸', '辣'],
         dietaryHabits_foodTypePreferences: ['油炸食品', '经常吃快餐'],
+
         dietaryIntake_staple: '2-4碗',
         dietaryIntake_meat: '1-2两',
         dietaryIntake_fish: '<1两',
@@ -69,19 +68,23 @@ const mockPatientsList: DoctorPatient[] = [
         dietaryIntake_vegetables: '6-10两',
         dietaryIntake_fruits: '1-4两',
         dietaryIntake_water: '6-9杯',
+
         exercise_workHours: '≥8小时',
         exercise_sedentaryHours: '5-8小时',
         exercise_weeklyFrequency: '偶尔（1-2次/周）',
         exercise_durationPerSession: '30-60分钟',
         exercise_intensity: '中度运动',
+
         smoking_status: '吸烟',
         smoking_cigarettesPerDay: '5-15支',
         smoking_years: '10-20年',
         smoking_passiveDays: '1-2天',
+
         drinking_status: '饮酒',
         drinking_type: '啤酒',
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
+        
         mentalHealth_majorEvents: '否',
         mentalHealth_impactOnLife: '有一点',
         mentalHealth_stressLevel: '较明显',
@@ -102,21 +105,22 @@ const mockPatientsList: DoctorPatient[] = [
         mentalHealth_sas_stomachPain: "小部分时间有",
         mentalHealth_sas_frequentUrination: "没有或很少有时间有",
         mentalHealth_sas_sweating: "小部分时间有",
+
         adherence_selfAssessmentBody: "满意",
         adherence_selfAssessmentMind: "还算关心",
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
         adherence_doctorAdviceCompliance: "执行一部分",
         adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
         adherence_otherHealthPromotion: "定期复查",
+
         sleep_adequacy: "一般",
+
         otherInfo_medicationsUsed: "拜阿司匹林 100mg qd, 胰岛素 10U qn",
         otherInfo_contactPreference_method: "微信",
         otherInfo_contactPreference_frequency: "每周一次",
         otherInfo_contactPreference_time: "下午",
         otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
         otherInfo_serviceSatisfaction: "较好",
-        operationHistory_text: "2010年阑尾炎切除术", 
-        bloodTransfusionHistory_details: "无",
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -150,7 +154,6 @@ const relativesMap: Record<FamilyMedicalHistoryEntry["relative"], string> = {
   maternal_grandparents: "外祖父母",
 };
 
-
 export default function DoctorPatientDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -161,7 +164,7 @@ export default function DoctorPatientDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    setTimeout(() => { // Simulate API call
+    setTimeout(() => { 
       const details = getPatientDetails(patientId);
       setPatient(details);
       setIsLoading(false);
@@ -211,33 +214,38 @@ export default function DoctorPatientDetailPage() {
     );
   };
 
-  const renderYesNo = (value?: YesNoOption | boolean) => {
+  const renderYesNo = (value?: YesNoOption | boolean, showText: boolean = false) => {
     let displayValue: React.ReactNode;
+    let textEquivalent: string | null = null;
     if (typeof value === 'boolean') {
+        textEquivalent = value ? "是" : "否";
         displayValue = value ? <Check className="h-5 w-5 text-green-600 inline-block ml-1" /> : <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
     } else if (value === '是') {
+        textEquivalent = "是";
         displayValue = <Check className="h-5 w-5 text-green-600 inline-block ml-1" />;
     } else if (value === '否') {
+        textEquivalent = "否";
         displayValue = <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
     } else {
+        textEquivalent = value || '未记录';
         displayValue = <span className="text-muted-foreground text-sm ml-1">{value || '未记录'}</span>;
     }
-    return displayValue;
+    return showText ? textEquivalent : displayValue;
   };
   
   const renderGridItem = (label: string, value?: string | React.ReactNode | null, colSpan?: number, customClassName?: string) => {
     let displayValue: React.ReactNode;
-    if (Array.isArray(value)) {
-      displayValue = renderInfoList(value);
-    } else if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+    if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
       displayValue = <span className="text-muted-foreground text-xs">未记录</span>;
-    } else {
-      // If it's a ReactNode (like the output of renderYesNo), render directly. Otherwise, wrap in span.
-      displayValue = (React.isValidElement(value) && typeof value.type !== 'string') 
-        ? value 
-        : <span className="text-sm text-foreground/80">{String(value)}</span>;
+    } else if (React.isValidElement(value) && typeof value.type !== 'string') { // Check if it's a React component (like an Icon or Badge)
+      displayValue = value;
+    } else if (Array.isArray(value)) { // If it's an array (likely from renderInfoList)
+      displayValue = renderInfoList(value);
     }
-
+     else {
+      displayValue = <span className="text-sm text-foreground/80">{String(value)}</span>;
+    }
+  
     return (
       <div className={cn("py-1 flex flex-wrap items-baseline", colSpan ? `md:col-span-${colSpan}` : "", customClassName || "")}>
         <strong className="text-sm mr-1 shrink-0">{label}:</strong>
@@ -249,7 +257,6 @@ export default function DoctorPatientDetailPage() {
   const renderSASQuestion = (label: string, value?: SASOption) => (
      <div className="text-sm py-0.5"><strong>{label}:</strong> <span className="text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span></div>
   );
-
 
   if (isLoading) {
     return (
@@ -287,13 +294,6 @@ export default function DoctorPatientDetailPage() {
 
   const dp = patient.detailedProfile; 
 
-  const adherenceHealthPromotionDisplay = (
-    <>
-      {renderInfoList(dp?.adherence_healthPromotionMethods)}
-      {dp?.adherence_otherHealthPromotion && (<span className="ml-1 text-xs text-muted-foreground">(其他: {dp.adherence_otherHealthPromotion})</span>)}
-    </>
-  );
-
   return (
     <div className="space-y-4 p-1 md:p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
@@ -313,7 +313,7 @@ export default function DoctorPatientDetailPage() {
       <Tabs defaultValue="basicInfo" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-muted/60">
           <TabsTrigger value="basicInfo"><UserCircle className="mr-2 h-4 w-4"/>基本信息</TabsTrigger>
-          <TabsTrigger value="medicalHistory"><FileText className="mr-2 h-4 w-4"/>病历摘要</TabsTrigger>
+          <TabsTrigger value="medicalHistoryTab"><FileText className="mr-2 h-4 w-4"/>病历摘要</TabsTrigger>
           <TabsTrigger value="healthData"><LineChartIcon className="mr-2 h-4 w-4"/>健康数据</TabsTrigger>
           <TabsTrigger value="examReports"><ClipboardList className="mr-2 h-4 w-4"/>检查报告</TabsTrigger>
         </TabsList>
@@ -335,10 +335,14 @@ export default function DoctorPatientDetailPage() {
                 {renderGridItem("婚姻", getMaritalStatusText(dp?.maritalStatus))}
                 {renderGridItem("职业", dp?.occupation || '未提供')}
                 {renderGridItem("文化程度", getEducationLevelText(dp?.educationLevel))}
-                <div className="flex items-center md:col-span-3 gap-4">
-                  <div><strong>以前在本机构体检过:</strong>{renderYesNo(dp?.hadPreviousCheckup)}</div>
-                  <div><strong>同意接受健康干预服务:</strong>{renderYesNo(dp?.agreesToIntervention)}</div>
-                </div>
+                {renderGridItem("病案号", dp?.recordNumber)}
+                {renderGridItem("入院日期", dp?.admissionDate && isValid(parseISO(dp.admissionDate)) ? format(parseISO(dp.admissionDate), 'yyyy-MM-dd') : '未记录')}
+                {renderGridItem("记录日期", dp?.recordDate && isValid(parseISO(dp.recordDate)) ? format(parseISO(dp.recordDate), 'yyyy-MM-dd') : '未记录')}
+                {renderGridItem("病史陈述者", dp?.informant)}
+                {renderGridItem("可靠程度", dp?.reliability === 'reliable' ? '可靠' : dp?.reliability === 'partially_reliable' ? '部分可靠' : dp?.reliability === 'unreliable' ? '不可靠' : '未记录')}
+
+                <div className="flex items-center gap-1 md:col-span-3"><strong>以前在本机构体检过:</strong>{renderYesNo(dp?.hadPreviousCheckup)}</div>
+                <div className="flex items-center gap-1 md:col-span-3"><strong>同意接受健康干预服务:</strong>{renderYesNo(dp?.agreesToIntervention)}</div>
               </div>
               {patient.emergencyContact && (
                 <div className="pt-2 border-t mt-3"> 
@@ -393,21 +397,18 @@ export default function DoctorPatientDetailPage() {
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Stethoscope className="mr-2 h-4 w-4 text-blue-500"/>手术史</h3>
                 {renderGridItem("",renderInfoList(dp?.operationHistory, "无手术史记录"), 3)}
-                {dp?.operationHistory_text && <p className="text-sm text-foreground/80 mt-1">详情: {dp.operationHistory_text}</p>}
               </div>
               
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Syringe className="mr-2 h-4 w-4 text-orange-500"/>输血史</h3>
                 {renderGridItem("",dp?.bloodTransfusionHistory || "无输血史记录", 3)}
-                {dp?.bloodTransfusionHistory_details && <p className="text-sm text-foreground/80 mt-1">详情: {dp.bloodTransfusionHistory_details}</p>}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Pill className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
                  {renderGridItem("",renderInfoList(dp?.medicationCategories, "无用药史记录"), 3)}
-                 {dp?.otherInfo_medicationsUsed && <p className="text-sm text-foreground/80 mt-1">具体用药: {dp.otherInfo_medicationsUsed}</p>}
               </div>
 
               <Separator className="my-3" />
@@ -495,7 +496,7 @@ export default function DoctorPatientDetailPage() {
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Brain className="mr-2 h-4 w-4 text-purple-500"/>心理健康</h3>
                 <div className="space-y-2 text-sm">
-                    {renderGridItem("正受一些重大意外困扰", renderYesNo(dp?.mentalHealth_majorEvents))}
+                    {renderGridItem("正受一些重大意外困扰", renderYesNo(dp?.mentalHealth_majorEvents, true))}
                     {renderGridItem("情绪对工作或生活的影响", dp?.mentalHealth_impactOnLife)}
                     {renderGridItem("感觉到自己的精神压力", dp?.mentalHealth_stressLevel)}
                     <p className="text-xs text-muted-foreground pt-1">最近一周焦虑自评 (SAS):</p>
@@ -530,11 +531,12 @@ export default function DoctorPatientDetailPage() {
                     <li>身体感觉: {dp?.adherence_selfAssessmentBody || "未记录"}</li>
                     <li>心理态度: {dp?.adherence_selfAssessmentMind || "未记录"}</li>
                   </ul>
-                  <div><strong>最希望解决的问题:</strong> {renderInfoList(dp?.adherence_priorityProblems)}</div>
+                  <div><strong>最希望解决的问题:</strong> {renderInfoList(dp?.adherence_priorityProblems, "未记录")}</div>
                   {renderGridItem("医嘱依从度", dp?.adherence_doctorAdviceCompliance)}
                   <div>
                     <strong>希望促进健康方式:</strong>
-                    {adherenceHealthPromotionDisplay}
+                    {renderInfoList(dp?.adherence_healthPromotionMethods, "未记录")}
+                    {dp?.adherence_otherHealthPromotion && (<span className="ml-1 text-xs text-muted-foreground">(其他: {dp.adherence_otherHealthPromotion})</span>)}
                   </div>
                 </div>
               </div>
@@ -568,7 +570,7 @@ export default function DoctorPatientDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="medicalHistory">
+        <TabsContent value="medicalHistoryTab">
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-xl">病历摘要</CardTitle>
@@ -581,8 +583,6 @@ export default function DoctorPatientDetailPage() {
               <Separator />
               <h4 className="font-semibold pt-2">既往史 (文本):</h4>
               {dp?.pastMedicalHistoryDetails && <p>{dp.pastMedicalHistoryDetails}</p>}
-              {dp?.operationHistory_text && <p><strong>手术史(文本):</strong> {dp.operationHistory_text}</p>}
-              {dp?.bloodTransfusionHistory_details && <p><strong>输血史(文本):</strong> {dp.bloodTransfusionHistory_details}</p>}
               
               {dp?.medicationHistory && dp.medicationHistory.length > 0 && (
                 <div>
@@ -651,4 +651,3 @@ export default function DoctorPatientDetailPage() {
   );
 }
     
-
