@@ -25,7 +25,7 @@ import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, Bloo
 import { useEffect, useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info, Heart, AlertTriangle, TestTube, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Pill } from "lucide-react";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
@@ -77,42 +77,8 @@ const patientProfileSchema = z.object({
   recordDate: z.string().optional().refine(val => !val || isValid(parseISO(val)), { message: "记录日期格式无效" }),
   informant: z.string().optional(),
   reliability: z.enum(['reliable', 'unreliable', 'partially_reliable']).optional(),
-  chiefComplaint: z.string().optional(),
-  historyOfPresentIllness: z.string().optional(),
-
-  pastMedicalHistoryDetails: z.string().optional(),
-  pastIllnesses: z.array(z.string()).optional(),
-  infectiousDiseases: z.array(z.string()).optional(),
-  vaccinationHistory: z.string().optional(),
-
-  traumaHistory: z.string().optional(),
-
-  personalHistory_birthPlaceAndResidence: z.string().optional(),
-  personalHistory_livingConditions: z.string().optional(),
-  personalHistory_smokingHistory: z.string().optional(),
-  personalHistory_drinkingHistory: z.string().optional(),
-  personalHistory_drugAbuseHistory: z.string().optional(),
-  personalHistory_menstrualAndObstetric: z.string().optional(),
-
+  
   familyMedicalHistory: z.array(familyMedicalHistoryEntrySchema).optional(),
-
-  physicalExam_temperature: z.string().optional(),
-  physicalExam_pulseRate: z.string().optional(),
-  physicalExam_respiratoryRate: z.string().optional(),
-  physicalExam_bloodPressure: z.string().optional(),
-  physicalExam_height: z.string().optional(),
-  physicalExam_weight: z.string().optional(),
-  physicalExam_generalAppearance: z.string().optional(),
-  physicalExam_skinAndMucosa: z.string().optional(),
-
-  labAuxiliaryExams: z.string().optional(),
-  initialDiagnosis: z.string().optional(),
-  treatmentPlanOpinion: z.string().optional(),
-
-  attendingPhysician: z.string().optional(),
-  chiefPhysician: z.string().optional(),
-  recordingPhysician: z.string().optional(),
-
   currentSymptoms: z.array(z.string()).optional(),
   allergies: z.array(z.string()).optional(),
   operationHistory: z.array(z.string()).optional(),
@@ -120,17 +86,8 @@ const patientProfileSchema = z.object({
   medicationCategories: z.array(z.string()).optional(),
   contactHistory: z.array(z.string()).optional(),
   medicationHistory: z.array(medicationEntrySchema).optional(),
-  otherMedicalInfo: z.string().optional(),
-  healthGoals: z.array(z.string()).optional(),
 
-  contactHistory_oy: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-  contactHistory_dust: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-  contactHistory_toxic: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-  contactHistory_highTemp: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-  contactHistory_lowTemp: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-  contactHistory_noise: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-  contactHistory_radiation: z.string().optional() as z.ZodType<YesNoOption | undefined>,
-
+  // Lifestyle
   dietaryHabits_breakfastDays: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
   dietaryHabits_lateSnackDays: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
   dietaryHabits_badHabits: z.array(z.string()).optional(),
@@ -163,6 +120,7 @@ const patientProfileSchema = z.object({
   drinking_amountPerDay: z.string().optional(),
   drinking_years: z.string().optional(),
 
+  // Mental Health, Adherence, Sleep, Other
   mentalHealth_majorEvents: z.string().optional() as z.ZodType<YesNoOption | undefined>,
   mentalHealth_impactOnLife: z.enum(['几乎没有', '有一点', '较明显', '很大']).optional(),
   mentalHealth_stressLevel: z.enum(['几乎没有', '有一点', '较明显', '很大']).optional(),
@@ -281,7 +239,7 @@ const serviceSatisfactionOptions: ServiceSatisfactionOption[] = ['满意', '较�
 
 export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfileFormProps) {
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(true);
+  const [isEditing, setIsEditing] = useState(true); // Always in editing mode in this dedicated form
 
   const initialDetailedProfile = patient.detailedProfile || {};
 
@@ -314,7 +272,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       medicationCategories: initialDetailedProfile.medicationCategories || [],
       contactHistory: initialDetailedProfile.contactHistory || [],
       medicationHistory: initialDetailedProfile.medicationHistory || [],
-      adherence_priorityProblems: initialDetailedProfile.adherence_priorityProblems?.slice(0,4) || Array(4).fill(''), // Initialize with 4 empty strings
+      adherence_priorityProblems: initialDetailedProfile.adherence_priorityProblems?.slice(0,4) || Array(4).fill(''),
       adherence_healthPromotionMethods: initialDetailedProfile.adherence_healthPromotionMethods || [],
     },
   });
@@ -389,26 +347,26 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
   };
   
   const renderCheckboxArrayField = (
-    formFieldName: keyof PatientProfileFormValues, // Use keyof for type safety
+    name: keyof PatientProfileFormValues,
     label: string,
-    options: readonly string[], // Changed to string[] for direct use
-    otherOptionLabel?: string // Keeping for potential future use, but not implemented for this case
+    options: readonly string[],
+    otherOptionLabel?: string
   ) => (
     <FormField
       control={form.control}
-      name={formFieldName}
+      name={name}
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2 border rounded-md">
             {options.map((optionValue) => (
-              <FormItem key={optionValue} className="flex flex-row items-start space-x-2 space-y-0">
+              <FormItem key={`${name}-${optionValue}`} className="flex flex-row items-start space-x-2 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={(field.value as string[] || []).includes(optionValue)} // Cast field.value
+                    checked={(field.value as string[] || []).includes(optionValue)}
                     disabled={!isEditing}
                     onCheckedChange={(checked) => {
-                      const currentArrayValue = (field.value as string[] || []); // Cast field.value
+                      const currentArrayValue = (field.value as string[] || []);
                       return checked
                         ? field.onChange([...currentArrayValue, optionValue])
                         : field.onChange(currentArrayValue.filter((value) => value !== optionValue));
@@ -418,9 +376,8 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
                 <FormLabel className="text-xs font-normal leading-tight">{optionValue}</FormLabel>
               </FormItem>
             ))}
-            {/* Basic "Other" option - can be enhanced to include an input field */}
             {otherOptionLabel && (
-                 <FormItem key="other" className="flex flex-row items-start space-x-2 space-y-0">
+                 <FormItem key={`${name}-other`} className="flex flex-row items-start space-x-2 space-y-0">
                     <FormControl>
                         <Checkbox
                              checked={(field.value as string[] || []).includes("其他")}
@@ -459,8 +416,8 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
                 <FormControl>
                     <RadioGroup
                         onValueChange={field.onChange}
-                        value={field.value as string} // Ensure value is string
-                        defaultValue={field.value as string} // Ensure value is string
+                        value={field.value as string} 
+                        defaultValue={field.value as string} 
                         className="flex flex-wrap gap-x-4 gap-y-2"
                         disabled={!isEditing}
                     >
@@ -468,7 +425,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
                             const value = typeof option === 'string' ? option : option.value;
                             const labelText = typeof option === 'string' ? option : option.label;
                             return (
-                                <FormItem key={value} className="flex items-center space-x-1.5">
+                                <FormItem key={`${name}-${value}`} className="flex items-center space-x-1.5">
                                     <FormControl><RadioGroupItem value={value} /></FormControl>
                                     <FormLabel className="font-normal text-xs leading-tight">{labelText}</FormLabel>
                                 </FormItem>
@@ -657,7 +614,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
                      <FormField
                         key={index}
                         control={form.control}
-                        name={`adherence_priorityProblems.${index}` as any} // Type assertion for indexed access
+                        name={`adherence_priorityProblems.${index}` as any} 
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs">{priority}：</FormLabel>
@@ -706,52 +663,6 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
                 {renderRadioGroupField("otherInfo_serviceSatisfaction", "您对我中心的服务：", serviceSatisfactionOptions)}
             </>
         ))}
-
-        {/* This section is removed as per user request */}
-        {/* {renderSection("主诉、现病史、既往史等（旧版文本录入）", Activity, (
-          <>
-            <FormField control={form.control} name="chiefComplaint" render={({ field }) => (<FormItem><FormLabel>主诉</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="historyOfPresentIllness" render={({ field }) => (<FormItem><FormLabel>现病史</FormLabel><FormControl><Textarea rows={4} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            {renderCheckboxArrayField("pastIllnesses", "主要既往疾病 (旧版)", pastIllnessOptions.map(o => o.label))}
-            <FormField control={form.control} name="pastMedicalHistoryDetails" render={({ field }) => (<FormItem><FormLabel>其他既往史详情 (旧版)</FormLabel><FormControl><Textarea rows={3} placeholder="其他重要疾病、手术、外伤、输血史等" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="vaccinationHistory" render={({ field }) => (<FormItem><FormLabel>预防接种史</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-          </>
-        ))} */}
-        
-        {renderSection("个人史与家族史（旧版文字描述，备用）", Activity, (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="personalHistory_smokingHistory" render={({ field }) => (<FormItem><FormLabel>吸烟史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="personalHistory_drinkingHistory" render={({ field }) => (<FormItem><FormLabel>饮酒史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-          </div>
-        ))}
-
-        {renderSection("体格检查 (简要)", Activity, (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <FormField control={form.control} name="physicalExam_temperature" render={({ field }) => (<FormItem><FormLabel>体温 (T)</FormLabel><FormControl><Input placeholder="℃" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="physicalExam_pulseRate" render={({ field }) => (<FormItem><FormLabel>脉搏 (P)</FormLabel><FormControl><Input placeholder="次/分" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="physicalExam_respiratoryRate" render={({ field }) => (<FormItem><FormLabel>呼吸 (R)</FormLabel><FormControl><Input placeholder="次/分" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="physicalExam_bloodPressure" render={({ field }) => (<FormItem><FormLabel>血压 (BP)</FormLabel><FormControl><Input placeholder="mmHg" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="physicalExam_height" render={({ field }) => (<FormItem><FormLabel>身高</FormLabel><FormControl><Input placeholder="cm" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="physicalExam_weight" render={({ field }) => (<FormItem><FormLabel>体重</FormLabel><FormControl><Input placeholder="kg" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="physicalExam_generalAppearance" className="col-span-2 md:col-span-3 lg:col-span-4" render={({ field }) => (<FormItem><FormLabel>一般状况及皮肤黏膜等</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-          </div>
-        ))}
-        
-        {renderSection("辅助检查、诊断与治疗", Stethoscope, (
-          <>
-            <FormField control={form.control} name="labAuxiliaryExams" render={({ field }) => (<FormItem><FormLabel>实验室及辅助检查</FormLabel><FormControl><Textarea rows={3} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="initialDiagnosis" render={({ field }) => (<FormItem><FormLabel>初步诊断</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="treatmentPlanOpinion" render={({ field }) => (<FormItem><FormLabel>治疗意见</FormLabel><FormControl><Textarea rows={3} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-          </>
-        ))}
-
-        {renderSection("医师签名", Info, (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField control={form.control} name="attendingPhysician" render={({ field }) => (<FormItem><FormLabel>住院医师</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="chiefPhysician" render={({ field }) => (<FormItem><FormLabel>主治医师</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="recordingPhysician" render={({ field }) => (<FormItem><FormLabel>记录/进修医师</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-          </div>
-        ))}
         
         {isEditing && (
           <div className="flex justify-end mt-8">
@@ -762,3 +673,4 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     </Form>
   );
 }
+    
