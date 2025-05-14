@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -44,7 +43,6 @@ const educationLevelOptions = [
   { value: 'other', label: '其他' },
 ];
 
-// Schema for patient-editable fields
 const profileFormSchema = z.object({
   name: z.string().min(1, "姓名不能为空。").max(50, "姓名不能超过50个字符。"),
   gender: z.enum(["male", "female", "other"], { required_error: "请选择性别。" }) as z.ZodType<Gender>,
@@ -62,7 +60,6 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// Mock data for patient-editable fields - institutional fields are removed for form defaults
 const defaultEditableValues: ProfileFormValues = {
   name: "王小宝",
   gender: "male",
@@ -84,25 +81,21 @@ export function BasicInfoForm() {
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: defaultEditableValues, // Use editable defaults
+    defaultValues: defaultEditableValues,
     mode: "onChange",
   });
 
   useEffect(() => {
     setIsClient(true);
-    // Simulate fetching user data and resetting the form for editable fields
-    const fetchedEditableData = defaultEditableValues; // Replace with actual fetch if needed
+    const fetchedEditableData = defaultEditableValues;
     form.reset({
       ...fetchedEditableData,
       dob: fetchedEditableData.dob ? (typeof fetchedEditableData.dob === 'string' ? parseISO(fetchedEditableData.dob) : fetchedEditableData.dob) : undefined,
     });
   }, [form]);
 
-
   function onSubmit(data: ProfileFormValues) {
     console.log("Patient-editable profile data submitted:", data);
-    // Here, you would typically send only 'data' to the backend
-    // The full UserProfile might be constructed server-side or by merging
     toast({
       title: "信息已更新",
       description: "您的基本信息已成功保存。",
@@ -111,15 +104,11 @@ export function BasicInfoForm() {
 
   if (!isClient) {
     return (
-      <div className="space-y-6 animate-pulse">
-        {[...Array(6)].map((_, i) => ( // Reduced skeleton rows to match fewer fields
-          <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div className="h-10 bg-muted rounded w-full"></div>
-            <div className="h-10 bg-muted rounded w-full md:col-span-1"></div>
-            <div className="h-10 bg-muted rounded w-full md:col-span-1"></div>
-          </div>
+      <div className="space-y-4 animate-pulse">
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="h-10 bg-muted rounded w-full"></div>
         ))}
-         <div className="h-10 bg-primary/50 rounded w-24 ml-auto mt-8"></div>
+        <div className="h-10 bg-primary/50 rounded w-24 ml-auto mt-8"></div>
       </div>
     );
   }
@@ -127,259 +116,241 @@ export function BasicInfoForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Row 1: Name, Gender, DOB */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-start">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>姓名</FormLabel>
-                <FormControl>
-                  <Input placeholder="请输入您的姓名" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="gender"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>性别</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="请选择您的性别" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="male">男</SelectItem>
-                    <SelectItem value="female">女</SelectItem>
-                    <SelectItem value="other">其他</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="dob"
-              render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>生日</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "yyyy-MM-dd")
-                        ) : (
-                          <span>选择日期</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                      captionLayout="dropdown-buttons"
-                      fromYear={1900}
-                      toYear={new Date().getFullYear()}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Row 2: Address (full width) */}
         <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>家庭地址</FormLabel>
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>姓名</FormLabel>
+              <FormControl>
+                <Input placeholder="请输入您的姓名" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>性别</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                 <FormControl>
-                  <Input placeholder="请输入您的家庭住址" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="请选择您的性别" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        
-        {/* Row 3: Checkboxes (side-by-side) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-2">
-            <FormField
-              control={form.control}
-              name="hadPreviousCheckup"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <SelectContent>
+                  <SelectItem value="male">男</SelectItem>
+                  <SelectItem value="female">女</SelectItem>
+                  <SelectItem value="other">其他</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="dob"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>生日</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "yyyy-MM-dd")
+                      ) : (
+                        <span>选择日期</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
                   </FormControl>
-                  <FormLabel className="font-normal leading-none text-sm">以前在本机构体检过</FormLabel>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="agreesToIntervention"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormLabel className="font-normal leading-none text-sm">同意接受健康干预服务</FormLabel>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        </div>
-
-        {/* Row 4: Phone, Email */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="contactPhone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>手机</FormLabel>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={1900}
+                    toYear={new Date().getFullYear()}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>家庭地址</FormLabel>
+              <FormControl>
+                <Input placeholder="请输入您的家庭住址" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="hadPreviousCheckup"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="font-normal">以前在本机构体检过</FormLabel>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="agreesToIntervention"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="font-normal">同意接受健康干预服务</FormLabel>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="contactPhone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>手机</FormLabel>
+              <FormControl>
+                <Input type="tel" placeholder="请输入您的手机号码" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="contactEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>E-mail (可选)</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="请输入您的邮箱地址" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="bloodType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>血型</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  defaultValue={field.value}
+                  className="flex flex-wrap gap-x-3 gap-y-1"
+                >
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="A" /></FormControl><FormLabel className="font-normal text-sm">A型</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="B" /></FormControl><FormLabel className="font-normal text-sm">B型</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="O" /></FormControl><FormLabel className="font-normal text-sm">O型</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="AB" /></FormControl><FormLabel className="font-normal text-sm">AB型</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unknown" /></FormControl><FormLabel className="font-normal text-sm">未知</FormLabel></FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="maritalStatus"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>婚姻</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  defaultValue={field.value}
+                  className="flex flex-wrap gap-x-3 gap-y-1"
+                >
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal text-sm">未婚</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal text-sm">已婚</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="divorced" /></FormControl><FormLabel className="font-normal text-sm">离婚</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="widowed" /></FormControl><FormLabel className="font-normal text-sm">丧偶</FormLabel></FormItem>
+                  <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="other" /></FormControl><FormLabel className="font-normal text-sm">其他</FormLabel></FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="occupation"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>职业</FormLabel>
+              <FormControl>
+                <Input placeholder="请输入您的职业" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="educationLevel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>文化程度</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                 <FormControl>
-                  <Input type="tel" placeholder="请输入您的手机号码" {...field} />
+                    <SelectTrigger>
+                        <SelectValue placeholder="请选择文化程度" />
+                    </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contactEmail"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>E-mail (可选)</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="请输入您的邮箱地址" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Row 5: Blood Type, Marital Status (side-by-side RadioGroups) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
-          <FormField
-            control={form.control}
-            name="bloodType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>血型</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                    className="flex flex-wrap gap-x-3 gap-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="A" /></FormControl><FormLabel className="font-normal text-sm">A型</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="B" /></FormControl><FormLabel className="font-normal text-sm">B型</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="O" /></FormControl><FormLabel className="font-normal text-sm">O型</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="AB" /></FormControl><FormLabel className="font-normal text-sm">AB型</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unknown" /></FormControl><FormLabel className="font-normal text-sm">未知</FormLabel></FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="maritalStatus"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>婚姻</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                    className="flex flex-wrap gap-x-3 gap-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal text-sm">未婚</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal text-sm">已婚</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="divorced" /></FormControl><FormLabel className="font-normal text-sm">离婚</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="widowed" /></FormControl><FormLabel className="font-normal text-sm">丧偶</FormLabel></FormItem>
-                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="other" /></FormControl><FormLabel className="font-normal text-sm">其他</FormLabel></FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Row 6: Occupation, Education Level */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="occupation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>职业</FormLabel>
-                <FormControl>
-                  <Input placeholder="请输入您的职业" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="educationLevel"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>文化程度</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                  <FormControl>
-                      <SelectTrigger>
-                          <SelectValue placeholder="请选择文化程度" />
-                      </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                      {educationLevelOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
+                <SelectContent>
+                    {educationLevelOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Button type="submit" className="mt-8">保存更新</Button>
       </form>
     </Form>
