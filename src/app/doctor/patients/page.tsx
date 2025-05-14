@@ -8,28 +8,110 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, UserPlus, Search, Filter, FileUp, FileDown, Eye, BriefcaseMedical, CalendarDays } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types";
+import { AddNewPatientDialog, type NewPatientFormValues } from "@/components/doctor/patient-profile/AddNewPatientDialog";
+import { format, differenceInYears, parseISO } from "date-fns";
 
 // Mock patient data
-const mockPatients = [
-  { id: "pat001", name: "张三", age: 45, gender: "男", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01" },
-  { id: "pat002", name: "李四", age: 62, gender: "女", diagnosis: "冠心病", lastVisit: "2024-05-10" },
-  { id: "pat003", name: "王五", age: 50, gender: "男", diagnosis: "高血脂", lastVisit: "2024-04-22" },
-  { id: "pat004", name: "赵六", age: 71, gender: "男", diagnosis: "慢性阻塞性肺疾病", lastVisit: "2024-05-15" },
-  { id: "pat005", name: "孙七", age: 58, gender: "女", diagnosis: "骨质疏松", lastVisit: "2024-03-30" },
-  { id: "pat006", name: "周八", age: 33, gender: "女", diagnosis: "哮喘", lastVisit: "2024-05-18" },
-  { id: "pat007", name: "吴九", age: 67, gender: "男", diagnosis: "痛风", lastVisit: "2024-05-05" },
+const initialMockPatients: DoctorPatient[] = [
+  { 
+    id: "pat001", name: "张三", age: 45, gender: "male", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01",
+    contact: "13800138001",
+    emergencyContact: { name: "李四", phone: "13900139002", relationship: "配偶" },
+    detailedProfile: {
+      name: "张三", gender: "male", age: 45, dob: "1979-05-15", contactPhone: "13800138001",
+      // Add other fields for detailedProfile with defaults or example values
+      recordNumber: "MRN001", maritalStatus: 'married', occupation: '工程师',
+      address: '示例省示例市示例路1号', contactEmail: 'zhangsan@example.com',
+      bloodType: 'A', educationLevel: 'bachelor', hadPreviousCheckup: true, agreesToIntervention: true,
+      // ... other detailedProfile fields initialized as needed
+      familyMedicalHistory: [],
+      currentSymptoms: ["头晕"],
+      allergies: [],
+      operationHistory: [],
+      medicationCategories: [],
+      contactHistory: [],
+      medicationHistory: [],
+      adherence_priorityProblems: [],
+      adherence_healthPromotionMethods: [],
+    },
+    healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
+    reports: [
+      { id: "rep001", name: "2024-04-15 血液检查.pdf", type: "pdf", url: "#", uploadDate: "2024-04-15"},
+    ]
+  },
+  { id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002", detailedProfile: { name: "李四", gender: "female", age: 62, dob: "1962-10-20"} },
+  { id: "pat003", name: "王五", age: 50, gender: "male", diagnosis: "高血脂", lastVisit: "2024-04-22", contact: "13700137003", detailedProfile: { name: "王五", gender: "male", age: 50, dob: "1974-01-01"} },
+  { id: "pat004", name: "赵六", age: 71, gender: "male", diagnosis: "慢性阻塞性肺疾病", lastVisit: "2024-05-15", detailedProfile: { name: "赵六", gender: "male", age: 71, dob: "1953-03-10"} },
+  { id: "pat005", name: "孙七", age: 58, gender: "女", diagnosis: "骨质疏松", lastVisit: "2024-03-30", detailedProfile: { name: "孙七", gender: "female", age: 58, dob: "1966-07-20"} },
+  { id: "pat006", name: "周八", age: 33, gender: "女", diagnosis: "哮喘", lastVisit: "2024-05-18", detailedProfile: { name: "周八", gender: "female", age: 33, dob: "1991-01-15"} },
+  { id: "pat007", name: "吴九", age: 67, gender: "男", diagnosis: "痛风", lastVisit: "2024-05-05", detailedProfile: { name: "吴九", gender: "male", age: 67, dob: "1957-11-25"} },
 ];
 
 export default function DoctorPatientsPage() {
+  const [mockPatients, setMockPatients] = useState<DoctorPatient[]>(initialMockPatients);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDisease, setFilterDisease] = useState("all");
   const [filterAge, setFilterAge] = useState("all");
+  const { toast } = useToast();
+  const [isAddPatientDialogOpen, setIsAddPatientDialogOpen] = useState(false);
+
+  const handleSaveNewPatient = (data: NewPatientFormValues) => {
+    const newPatientId = `pat${Date.now().toString().slice(-3)}${Math.floor(Math.random()*100)}`;
+    const age = differenceInYears(new Date(), data.dob);
+    const newPatient: DoctorPatient = {
+      id: newPatientId,
+      name: data.name,
+      age: age,
+      gender: data.gender,
+      diagnosis: data.primaryDiagnosis || "暂未填写",
+      lastVisit: format(new Date(), "yyyy-MM-dd"),
+      contact: data.contactPhone,
+      detailedProfile: {
+        name: data.name,
+        gender: data.gender,
+        age: age,
+        dob: format(data.dob, "yyyy-MM-dd"),
+        contactPhone: data.contactPhone,
+        // Initialize other detailedProfile fields with defaults or empty values
+        recordNumber: `MRN-${newPatientId.slice(-4)}`,
+        maritalStatus: undefined,
+        occupation: undefined,
+        address: undefined,
+        contactEmail: undefined,
+        bloodType: undefined,
+        educationLevel: undefined,
+        hadPreviousCheckup: false,
+        agreesToIntervention: false,
+        familyMedicalHistory: [],
+        currentSymptoms: [],
+        allergies: [],
+        operationHistory: [],
+        medicationCategories: [],
+        contactHistory: [],
+        medicationHistory: [],
+        adherence_priorityProblems: [],
+        adherence_healthPromotionMethods: [],
+      },
+      healthDataSummary: "新病人，暂无数据摘要。",
+    };
+
+    setMockPatients(prev => [newPatient, ...prev]);
+    setIsAddPatientDialogOpen(false);
+    toast({
+      title: "病人添加成功",
+      description: `病人 ${newPatient.name} 已成功添加到列表。`,
+    });
+    // Optionally, navigate to the new patient's detail or edit page
+    // router.push(`/doctor/patients/${newPatientId}/edit`);
+  };
+
 
   const filteredPatients = mockPatients.filter(patient => {
     const nameMatch = patient.name.toLowerCase().includes(searchTerm.toLowerCase());
     const diseaseMatch = filterDisease === "all" || patient.diagnosis.toLowerCase().includes(filterDisease.toLowerCase());
-    // Basic age filter example
     const ageMatch = filterAge === "all" || 
                      (filterAge === "under50" && patient.age < 50) ||
                      (filterAge === "50to70" && patient.age >= 50 && patient.age <= 70) ||
@@ -93,14 +175,14 @@ export default function DoctorPatientsPage() {
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
               <div className="flex gap-2">
-                <Button variant="outline" disabled>
+                <Button variant="outline" onClick={() => toast({ title: "提示", description: "批量导入功能开发中。"})} >
                   <FileUp className="mr-2 h-4 w-4" /> 批量导入
                 </Button>
-                <Button variant="outline" disabled>
+                <Button variant="outline" onClick={() => toast({ title: "提示", description: "批量导出功能开发中。"})} >
                   <FileDown className="mr-2 h-4 w-4" /> 批量导出
                 </Button>
               </div>
-              <Button disabled>
+              <Button onClick={() => setIsAddPatientDialogOpen(true)}>
                 <UserPlus className="mr-2 h-4 w-4" /> 添加新病人
               </Button>
             </div>
@@ -110,7 +192,7 @@ export default function DoctorPatientsPage() {
 
       {filteredPatients.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredPatients.map((patient, index) => (
+          {filteredPatients.map((patient) => (
             <Card key={patient.id} className="flex flex-col hover:shadow-lg transition-shadow duration-200 ease-in-out rounded-xl overflow-hidden">
               <CardHeader className="items-center text-center p-4 bg-muted/30">
                 <Avatar className="w-24 h-24 mb-3 border-2 border-primary/20 shadow-sm">
@@ -153,8 +235,11 @@ export default function DoctorPatientsPage() {
             </CardContent>
         </Card>
       )}
+       <AddNewPatientDialog 
+        isOpen={isAddPatientDialogOpen}
+        onClose={() => setIsAddPatientDialogOpen(false)}
+        onSave={handleSaveNewPatient}
+      />
     </div>
   );
 }
-
-    
