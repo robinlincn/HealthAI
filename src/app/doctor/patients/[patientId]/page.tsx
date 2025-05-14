@@ -1,17 +1,18 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { format, parseISO } from "date-fns";
-import { Separator } from "@/components/ui/separator"; 
+import { format, parseISO, isValid } from "date-fns";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
 // Mock data fetching function (replace with actual data fetching)
@@ -43,13 +44,58 @@ const mockPatientsList: DoctorPatient[] = [
             { relative: "paternal_grandparents", conditions: [] },
             { relative: "maternal_grandparents", conditions: ["高血脂"] },
         ],
+        currentSymptoms: ["心慌", "胸闷", "头晕"], // Added for display
         allergies: ["青霉素"],
-        currentSymptoms: ["心慌", "胸闷", "头晕"],
         medicationHistory: [
             { id: "med1", drugName: "代文", dosage: "80mg*2", frequency: "一粒/次/天 (早晨空腹)", notes: "2016年开始服药" },
         ],
         otherMedicalInfo: "长期服用降压药。",
         healthGoals: ["控制血糖, 防止并发症"],
+        operationHistory: "2010年阑尾炎切除术",
+        bloodTransfusionHistory: "无",
+        contactHistory_oy: "是", 
+        dietaryHabits_breakfastDays: "7",
+        dietaryHabits_lateSnackDays: "1-2",
+        dietaryHabits_badHabits: ["吃饭过快", "吃得过饱"],
+        dietaryHabits_preferences: ["咸", "辣"],
+        dietaryHabits_foodTypePreferences: ["油炸食品"],
+        dietaryIntake_staple: "2-4碗",
+        dietaryIntake_meat: "1-2两",
+        dietaryIntake_fish: "<1两",
+        dietaryIntake_eggs: "1-2个",
+        dietaryIntake_dairy: "1-2杯",
+        dietaryIntake_soy: "0.5-1两",
+        dietaryIntake_vegetables: "6-10两",
+        dietaryIntake_fruits: "1-4两",
+        dietaryIntake_water: "6-9杯",
+        exercise_workHours: "≥8小时",
+        exercise_sedentaryHours: "5-8小时",
+        exercise_weeklyFrequency: "偶尔（1-2次/周）",
+        exercise_durationPerSession: "30-60分钟",
+        exercise_intensity: "中度运动",
+        smoking_status: "吸烟",
+        smoking_cigarettesPerDay: "5-15支",
+        smoking_years: "10-20年",
+        smoking_passiveDays: "1-2天",
+        drinking_status: "偶尔",
+        drinking_type: "啤酒",
+        drinking_amountPerDay: "<2两",
+        drinking_years: "5-15年",
+        mentalHealth_majorEvents: "否",
+        mentalHealth_impactOnLife: "有一点",
+        mentalHealth_stressLevel: "较明显",
+        adherence_selfAssessmentBody: "满意",
+        adherence_selfAssessmentMind: "还算关心",
+        adherence_priorityProblems: ["控制血糖", "减轻头晕"],
+        adherence_doctorAdviceCompliance: "执行一部分",
+        adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+        sleep_adequacy: "一般",
+        otherInfo_medicationsUsed: "拜阿司匹林 100mg qd",
+        otherInfo_contactPreference_method: "微信",
+        otherInfo_contactPreference_frequency: "每周一次",
+        otherInfo_contactPreference_time: "下午",
+        otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
+        otherInfo_serviceSatisfaction: "较好",
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -68,7 +114,7 @@ const mockPatientsList: DoctorPatient[] = [
       detailedProfile: { name: "王五", gender: "male", age: 50, dob: "1974-01-01", chiefComplaint: "体检发现血脂异常", bloodType: "B", educationLevel: "college" },
       healthDataSummary: "血脂水平持续较高。",
     },
-  ];
+];
 
 const getPatientDetails = (patientId: string): DoctorPatient | null => {
   return mockPatientsList.find(p => p.id === patientId) || null;
@@ -94,12 +140,46 @@ export default function DoctorPatientDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
+    // Simulate API delay
     setTimeout(() => {
       const details = getPatientDetails(patientId);
       setPatient(details);
       setIsLoading(false);
     }, 500);
   }, [patientId]);
+
+  const getGenderText = (gender?: Gender) => {
+    if (!gender) return '未知';
+    const map = { male: '男', female: '女', other: '其他' };
+    return map[gender] || '未知';
+  };
+
+  const getMaritalStatusText = (status?: MaritalStatus) => {
+    if (!status) return '未知';
+    const map = { unmarried: '未婚', married: '已婚', divorced: '离异', widowed: '丧偶', other: '其他' };
+    return map[status] || '未知';
+  };
+  
+  const getBloodTypeText = (type?: BloodType) => {
+    if (!type || type === 'unknown') return '未知';
+    return `${type.toUpperCase()}型`;
+  };
+
+  const getEducationLevelText = (level?: string) => {
+    if (!level) return '未知';
+    const map: { [key: string]: string } = {
+      primary_school: '小学',
+      junior_high_school: '初中',
+      senior_high_school: '高中/中专',
+      college: '大专',
+      bachelor: '本科',
+      master: '硕士',
+      doctorate: '博士',
+      other: '其他',
+    };
+    return map[level] || level;
+  };
+
 
   if (isLoading) {
     return (
@@ -135,39 +215,6 @@ export default function DoctorPatientDetailPage() {
     );
   }
 
-  const getGenderText = (gender?: Gender) => {
-    if (!gender) return '未知';
-    const map = { male: '男', female: '女', other: '其他' };
-    return map[gender] || '未知';
-  };
-
-  const getMaritalStatusText = (status?: MaritalStatus) => {
-    if (!status) return '未知';
-    const map = { unmarried: '未婚', married: '已婚', divorced: '离异', widowed: '丧偶', other: '其他' };
-    return map[status] || '未知';
-  };
-
-  const getBloodTypeText = (type?: BloodType) => {
-    if (!type || type === 'unknown') return '未知';
-    return `${type.toUpperCase()}型`;
-  };
-
-  const getEducationLevelText = (level?: string) => {
-    if (!level) return '未知';
-    const map: { [key: string]: string } = {
-      primary_school: '小学',
-      junior_high_school: '初中',
-      senior_high_school: '高中/中专',
-      college: '大专',
-      bachelor: '本科',
-      master: '硕士',
-      doctorate: '博士',
-      other: '其他',
-    };
-    return map[level] || level;
-  };
-
-
   return (
     <div className="space-y-4 p-1 md:p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
@@ -201,7 +248,9 @@ export default function DoctorPatientDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
                 <div><strong>姓名:</strong> {patient.detailedProfile?.name || patient.name}</div>
                 <div><strong>性别:</strong> {getGenderText(patient.detailedProfile?.gender || patient.gender)}</div>
-                <div><strong>生日:</strong> {patient.detailedProfile?.dob ? format(parseISO(patient.detailedProfile.dob), 'yyyy-MM-dd') : (patient.age ? `${patient.age}岁` : '未知')}</div>
+                <div>
+                  <strong>生日:</strong> {patient.detailedProfile?.dob && isValid(parseISO(patient.detailedProfile.dob)) ? format(parseISO(patient.detailedProfile.dob), 'yyyy-MM-dd') : (patient.age ? `${patient.age}岁 (推算)` : '未知')}
+                </div>
                 
                 <div className="md:col-span-3"><strong>家庭地址:</strong> {patient.detailedProfile?.address || '未提供'}</div>
 
@@ -231,17 +280,7 @@ export default function DoctorPatientDetailPage() {
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
                 </p>
               )}
-              <Separator className="my-4" />
-              <div>
-                <h3 className="text-md font-semibold mb-2 flex items-center"><Heart className="mr-2 h-4 w-4 text-primary"/>现有不适症状</h3>
-                {patient.detailedProfile?.currentSymptoms && patient.detailedProfile.currentSymptoms.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {patient.detailedProfile.currentSymptoms.map(symptom => (
-                      <Badge key={symptom} variant="secondary">{symptom}</Badge>
-                    ))}
-                  </div>
-                ) : <p className="text-muted-foreground">无记录</p>}
-              </div>
+              
               <Separator className="my-4" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Heart className="mr-2 h-4 w-4 text-primary"/>家族病史及患病情况</h3>
@@ -273,6 +312,19 @@ export default function DoctorPatientDetailPage() {
                 ) : <p className="text-muted-foreground">暂无家族病史记录。</p>}
               </div>
 
+              <Separator className="my-4" /> 
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-destructive"/>现有不适症状</h3>
+                {patient.detailedProfile?.currentSymptoms && patient.detailedProfile.currentSymptoms.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {patient.detailedProfile.currentSymptoms.map(symptom => (
+                      <Badge key={symptom} variant="secondary">{symptom}</Badge>
+                    ))}
+                  </div>
+                ) : <p className="text-muted-foreground">无记录</p>}
+              </div>
+
+
               <p className="text-xs text-muted-foreground pt-4">
                 更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
               </p>
@@ -289,7 +341,12 @@ export default function DoctorPatientDetailPage() {
               <p><strong>主要诊断:</strong> {patient.diagnosis}</p>
               {patient.detailedProfile?.chiefComplaint && <p><strong>主诉:</strong> {patient.detailedProfile.chiefComplaint}</p>}
               {patient.detailedProfile?.historyOfPresentIllness && <p><strong>现病史:</strong> {patient.detailedProfile.historyOfPresentIllness}</p>}
-              {patient.detailedProfile?.pastMedicalHistoryDetails && <p><strong>既往史:</strong> {patient.detailedProfile.pastMedicalHistoryDetails}</p>}
+              
+              <Separator />
+              <h4 className="font-semibold pt-2">既往史:</h4>
+              {patient.detailedProfile?.pastMedicalHistoryDetails && <p>{patient.detailedProfile.pastMedicalHistoryDetails}</p>}
+              {patient.detailedProfile?.operationHistory && <p><strong>手术史:</strong> {patient.detailedProfile.operationHistory}</p>}
+              {patient.detailedProfile?.bloodTransfusionHistory && <p><strong>输血史:</strong> {patient.detailedProfile.bloodTransfusionHistory}</p>}
               {patient.detailedProfile?.allergies && patient.detailedProfile.allergies.length > 0 && (
                 <p><strong>过敏史:</strong> {patient.detailedProfile.allergies.join(', ')}</p>
               )}
@@ -303,6 +360,24 @@ export default function DoctorPatientDetailPage() {
                   </ul>
                 </div>
               )}
+              
+              <Separator />
+              <h4 className="font-semibold pt-2">个人史与生活习惯:</h4>
+              {patient.detailedProfile?.contactHistory_oy && <p><strong>油烟接触:</strong> {patient.detailedProfile.contactHistory_oy}</p>}
+              {patient.detailedProfile?.dietaryHabits_breakfastDays && <p><strong>每周早餐天数:</strong> {patient.detailedProfile.dietaryHabits_breakfastDays}天</p>}
+              {patient.detailedProfile?.smoking_status && <p><strong>吸烟情况:</strong> {patient.detailedProfile.smoking_status}</p>}
+              {patient.detailedProfile?.drinking_status && <p><strong>饮酒情况:</strong> {patient.detailedProfile.drinking_status}</p>}
+
+              <Separator />
+              <h4 className="font-semibold pt-2">其他信息:</h4>
+              {patient.detailedProfile?.otherMedicalInfo && <p><strong>其他医疗信息:</strong> {patient.detailedProfile.otherMedicalInfo}</p>}
+              {patient.detailedProfile?.healthGoals && patient.detailedProfile.healthGoals.length > 0 && (
+                <p><strong>健康目标:</strong> {patient.detailedProfile.healthGoals.join(', ')}</p>
+              )}
+               {patient.detailedProfile?.sleep_adequacy && <p><strong>睡眠情况:</strong> {patient.detailedProfile.sleep_adequacy}</p>}
+              {patient.detailedProfile?.otherInfo_suggestions && <p><strong>对中心建议:</strong> {patient.detailedProfile.otherInfo_suggestions}</p>}
+
+
               <p className="text-xs text-muted-foreground pt-4">详细病历信息请点击 "编辑病人信息" 查看或修改。</p>
             </CardContent>
           </Card>
@@ -333,7 +408,7 @@ export default function DoctorPatientDetailPage() {
                   {patient.reports.map(report => (
                     <li key={report.id} className="text-sm p-2 border rounded-md hover:bg-muted/50 flex justify-between items-center">
                       <span>{report.name} ({report.uploadDate})</span>
-                      <Button variant="ghost" size="sm" onClick={() => alert(`查看报告 ${report.name} (功能待实现)`)}>查看</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toast({title: "提示", description: `查看报告 ${report.name} (功能待实现)`})}>查看</Button>
                     </li>
                   ))}
                 </ul>
