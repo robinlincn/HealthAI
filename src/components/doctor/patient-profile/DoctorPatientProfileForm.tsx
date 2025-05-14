@@ -27,7 +27,7 @@ import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, Bloo
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid, parse } from "date-fns";
-import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info, Heart, AlertTriangle, TestTube, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed } from "lucide-react";
+import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info, Heart, AlertTriangle, TestTube, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Pill } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -271,7 +271,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       operationHistory: initialDetailedProfile.operationHistory || [],
       bloodTransfusionHistory: initialDetailedProfile.bloodTransfusionHistory || "",
       medicationCategories: initialDetailedProfile.medicationCategories || [],
-      contactHistory: initialDetailedProfile.contactHistory || [], // Corrected from array of strings
+      contactHistory: initialDetailedProfile.contactHistory || [], 
       medicationHistory: initialDetailedProfile.medicationHistory || [],
     },
   });
@@ -303,7 +303,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       operationHistory: currentDetailedProfile.operationHistory || [],
       bloodTransfusionHistory: currentDetailedProfile.bloodTransfusionHistory || "",
       medicationCategories: currentDetailedProfile.medicationCategories || [],
-      contactHistory: currentDetailedProfile.contactHistory || [], // Corrected from array of strings
+      contactHistory: currentDetailedProfile.contactHistory || [], 
       medicationHistory: currentDetailedProfile.medicationHistory || [],
     });
   }, [patient, form]);
@@ -343,8 +343,11 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     );
   };
   
-  
- const renderCheckboxArrayField = (formFieldName: keyof PatientProfileFormValues, label: string, optionsArray: readonly string[], otherOptionLabel?: string) => (
+  const renderCheckboxArrayField = (
+    formFieldName: keyof PatientProfileFormValues,
+    label: string,
+    options: readonly string[]
+  ) => (
     <FormField
       control={form.control}
       name={formFieldName as any}
@@ -352,9 +355,9 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2 border rounded-md">
-            {optionsArray.map((optionValue) => (
+            {options.map((optionValue) => (
               <FormItem
-                key={optionValue} // Key is now the string optionValue, ensure these are unique within optionsArray
+                key={optionValue}
                 className="flex flex-row items-center space-x-2 space-y-0"
               >
                 <FormControl>
@@ -381,8 +384,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
               </FormItem>
             ))}
           </div>
-          {/* TODO: Add "Other" text input if otherOptionLabel is provided */}
-          <FormMessage /> {/* This FormMessage is for the array field itself */}
+          <FormMessage />
         </FormItem>
       )}
     />
@@ -495,12 +497,12 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
         ))}
 
         {renderSection("现有不适症状", AlertTriangle, renderCheckboxArrayField("currentSymptoms", "选择症状", currentSymptomsOptions))}
-        {renderSection("过敏史", TestTube, renderCheckboxArrayField("allergies", "选择过敏原", allergyOptions, "其他过敏源"))}
-        {renderSection("手术史", Stethoscope, renderCheckboxArrayField("operationHistory", "选择手术史", operationOptions, "其他手术"))}
+        {renderSection("过敏史", TestTube, renderCheckboxArrayField("allergies", "选择过敏原", allergyOptions))}
+        {renderSection("手术史", Stethoscope, renderCheckboxArrayField("operationHistory", "选择手术史", operationOptions))}
         {renderSection("输血史", Syringe, (
             <FormField control={form.control} name="bloodTransfusionHistory" render={({ field }) => (<FormItem><FormLabel>输血史详情</FormLabel><FormControl><Textarea rows={2} placeholder="请描述输血时间及输血原因" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
         ))}
-        {renderSection("用药史（类别）", Pill, renderCheckboxArrayField("medicationCategories", "选择用药类别", medicationCategoryOptions, "其他药物类别"))}
+        {renderSection("用药史（类别）", Pill, renderCheckboxArrayField("medicationCategories", "选择用药类别", medicationCategoryOptions))}
         {renderSection("接触史", Wind, renderCheckboxArrayField("contactHistory", "选择接触史", contactHistoryOptions as string[]))}
 
 
