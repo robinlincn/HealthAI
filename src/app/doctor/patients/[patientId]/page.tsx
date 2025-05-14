@@ -1,10 +1,11 @@
 
 "use client";
 
+import * as React from 'react'; // Added React import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Bed, Info, Pill, CheckSquare } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, Pill } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, MedicationEntry, YesNoOption, FrequencyOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, DietaryIntakeOption } from "@/lib/types";
@@ -211,15 +212,20 @@ export default function DoctorPatientDetailPage() {
   };
 
   const renderYesNo = (value?: YesNoOption | boolean) => {
+    let displayValue: React.ReactNode;
     if (typeof value === 'boolean') {
-        return value ? <Check className="h-5 w-5 text-green-600 inline-block ml-1" /> : <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
+        displayValue = value ? <Check className="h-5 w-5 text-green-600 inline-block ml-1" /> : <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
+    } else if (value === '是') {
+        displayValue = <Check className="h-5 w-5 text-green-600 inline-block ml-1" />;
+    } else if (value === '否') {
+        displayValue = <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
+    } else {
+        displayValue = <span className="text-muted-foreground text-sm ml-1">{value || '未记录'}</span>;
     }
-    if (value === '是') return <Check className="h-5 w-5 text-green-600 inline-block ml-1" />;
-    if (value === '否') return <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
-    return <span className="text-muted-foreground text-sm ml-1">{value || '未记录'}</span>;
+    return displayValue;
   };
   
-  const renderGridItem = (label: string, value?: string | string[] | React.ReactNode | null, colSpan?: number, className?: string) => {
+  const renderGridItem = (label: string, value?: string | React.ReactNode | null, colSpan?: number, customClassName?: string) => {
     let displayValue: React.ReactNode;
     if (Array.isArray(value)) {
       displayValue = renderInfoList(value);
@@ -233,8 +239,8 @@ export default function DoctorPatientDetailPage() {
     }
 
     return (
-      <div className={cn("py-1", colSpan ? `md:col-span-${colSpan}` : "", className || "")}>
-        <strong className="text-sm mr-1">{label}:</strong>
+      <div className={cn("py-1 flex flex-wrap items-baseline", colSpan ? `md:col-span-${colSpan}` : "", customClassName || "")}>
+        <strong className="text-sm mr-1 shrink-0">{label}:</strong>
         {displayValue}
       </div>
     );
@@ -335,7 +341,7 @@ export default function DoctorPatientDetailPage() {
                 </div>
               </div>
               {patient.emergencyContact && (
-                <div className="pt-2 border-t mt-3"> {/* Changed from p to div */}
+                <div className="pt-2 border-t mt-3"> 
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
                 </div>
               )}
@@ -374,63 +380,51 @@ export default function DoctorPatientDetailPage() {
               <Separator className="my-3" /> 
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-destructive"/>现有不适症状</h3>
-                <div className="mt-1">
-                  {renderInfoList(dp?.currentSymptoms, "无不适症状记录")}
-                </div>
+                 {renderGridItem("", renderInfoList(dp?.currentSymptoms, "无不适症状记录"), 3)}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><TestTube className="mr-2 h-4 w-4 text-red-500"/>过敏史</h3>
-                <div className="mt-1">
-                  {renderInfoList(dp?.allergies, "无过敏史记录")}
-                </div>
+                {renderGridItem("",renderInfoList(dp?.allergies, "无过敏史记录"), 3)}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Stethoscope className="mr-2 h-4 w-4 text-blue-500"/>手术史</h3>
-                 <div className="mt-1">
-                    {renderInfoList(dp?.operationHistory, "无手术史记录")}
-                 </div>
-                 {dp?.operationHistory_text && <p className="text-sm text-foreground/80 mt-1">详情: {dp.operationHistory_text}</p>}
+                {renderGridItem("",renderInfoList(dp?.operationHistory, "无手术史记录"), 3)}
+                {dp?.operationHistory_text && <p className="text-sm text-foreground/80 mt-1">详情: {dp.operationHistory_text}</p>}
               </div>
               
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Syringe className="mr-2 h-4 w-4 text-orange-500"/>输血史</h3>
-                <p className="text-muted-foreground text-sm">{dp?.bloodTransfusionHistory || "无输血史记录"}</p>
+                {renderGridItem("",dp?.bloodTransfusionHistory || "无输血史记录", 3)}
                 {dp?.bloodTransfusionHistory_details && <p className="text-sm text-foreground/80 mt-1">详情: {dp.bloodTransfusionHistory_details}</p>}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Pill className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
-                <div className="mt-1">
-                  {renderInfoList(dp?.medicationCategories, "无用药史记录")}
-                </div>
+                 {renderGridItem("",renderInfoList(dp?.medicationCategories, "无用药史记录"), 3)}
                  {dp?.otherInfo_medicationsUsed && <p className="text-sm text-foreground/80 mt-1">具体用药: {dp.otherInfo_medicationsUsed}</p>}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Wind className="mr-2 h-4 w-4 text-teal-500"/>接触史</h3>
-                 <div className="mt-1">
-                    {renderInfoList(dp?.contactHistory, "无特殊接触史记录")}
-                 </div>
-                 {/* Detailed contact history if needed */}
-                 {/* {renderGridItem("油烟接触", renderYesNo(dp?.contactHistory_oy))} */}
+                 {renderGridItem("",renderInfoList(dp?.contactHistory, "无特殊接触史记录"), 3)}
               </div>
-
+              
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
                     {renderGridItem("平均每周吃早餐", dp?.dietaryHabits_breakfastDays)}
                     {renderGridItem("平均每周吃夜宵", dp?.dietaryHabits_lateSnackDays)}
-                    {renderGridItem("不良饮食习惯", dp?.dietaryHabits_badHabits, 2)}
-                    {renderGridItem("饮食口味偏好", dp?.dietaryHabits_preferences, 2)}
-                    {renderGridItem("食物类型偏好", dp?.dietaryHabits_foodTypePreferences, 2)}
+                    {renderGridItem("不良饮食习惯", renderInfoList(dp?.dietaryHabits_badHabits), 2)}
+                    {renderGridItem("饮食口味偏好", renderInfoList(dp?.dietaryHabits_preferences), 2)}
+                    {renderGridItem("食物类型偏好", renderInfoList(dp?.dietaryHabits_foodTypePreferences), 2)}
                 </div>
               </div>
               
@@ -496,9 +490,9 @@ export default function DoctorPatientDetailPage() {
                   </p>
                 )}
               </div>
-              
+
               <Separator className="my-3" />
-               <div>
+              <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Brain className="mr-2 h-4 w-4 text-purple-500"/>心理健康</h3>
                 <div className="space-y-2 text-sm">
                     {renderGridItem("正受一些重大意外困扰", renderYesNo(dp?.mentalHealth_majorEvents))}
@@ -657,3 +651,4 @@ export default function DoctorPatientDetailPage() {
   );
 }
     
+
