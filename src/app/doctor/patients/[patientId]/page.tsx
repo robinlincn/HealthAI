@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind } from "lucide-react"; // Added more icons
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry } from "@/lib/types";
@@ -44,15 +44,19 @@ const mockPatientsList: DoctorPatient[] = [
             { relative: "paternal_grandparents", conditions: [] },
             { relative: "maternal_grandparents", conditions: ["高血脂"] },
         ],
-        currentSymptoms: ["心慌", "胸闷", "头晕"], // Added for display
-        allergies: ["青霉素"],
+        currentSymptoms: ["心慌", "胸闷", "头晕"], 
+        allergies: ["青霉素", "海鲜"],
+        operationHistory: ["心脏（含心脏介入）"],
+        bloodTransfusionHistory: "2005年因外伤输血200ml",
+        medicationCategories: ["降压药", "降糖药"],
+        contactHistory: ["油烟"],
         medicationHistory: [
             { id: "med1", drugName: "代文", dosage: "80mg*2", frequency: "一粒/次/天 (早晨空腹)", notes: "2016年开始服药" },
         ],
         otherMedicalInfo: "长期服用降压药。",
         healthGoals: ["控制血糖, 防止并发症"],
-        operationHistory: "2010年阑尾炎切除术",
-        bloodTransfusionHistory: "无",
+        operationHistory_text: "2010年阑尾炎切除术", // Example if there's an "other" field
+        bloodTransfusionHistory_details: "无",
         contactHistory_oy: "是", 
         dietaryHabits_breakfastDays: "7",
         dietaryHabits_lateSnackDays: "1-2",
@@ -140,7 +144,6 @@ export default function DoctorPatientDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate API delay
     setTimeout(() => {
       const details = getPatientDetails(patientId);
       setPatient(details);
@@ -178,6 +181,17 @@ export default function DoctorPatientDetailPage() {
       other: '其他',
     };
     return map[level] || level;
+  };
+
+  const renderInfoList = (items?: string[], emptyText: string = "无记录") => {
+    if (!items || items.length === 0) {
+      return <p className="text-muted-foreground">{emptyText}</p>;
+    }
+    return (
+      <div className="flex flex-wrap gap-2">
+        {items.map(item => <Badge key={item} variant="secondary">{item}</Badge>)}
+      </div>
+    );
   };
 
 
@@ -315,15 +329,38 @@ export default function DoctorPatientDetailPage() {
               <Separator className="my-4" /> 
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-destructive"/>现有不适症状</h3>
-                {patient.detailedProfile?.currentSymptoms && patient.detailedProfile.currentSymptoms.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {patient.detailedProfile.currentSymptoms.map(symptom => (
-                      <Badge key={symptom} variant="secondary">{symptom}</Badge>
-                    ))}
-                  </div>
-                ) : <p className="text-muted-foreground">无记录</p>}
+                {renderInfoList(patient.detailedProfile?.currentSymptoms, "无记录")}
               </div>
 
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><TestTube className="mr-2 h-4 w-4 text-red-500"/>过敏史</h3>
+                {renderInfoList(patient.detailedProfile?.allergies, "无过敏史记录")}
+              </div>
+
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Stethoscope className="mr-2 h-4 w-4 text-blue-500"/>手术史</h3>
+                {renderInfoList(patient.detailedProfile?.operationHistory, "无手术史记录")}
+              </div>
+              
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Syringe className="mr-2 h-4 w-4 text-orange-500"/>输血史</h3>
+                <p className="text-muted-foreground">{patient.detailedProfile?.bloodTransfusionHistory || "无输血史记录"}</p>
+              </div>
+
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><ClipboardList className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
+                {renderInfoList(patient.detailedProfile?.medicationCategories, "无用药史记录")}
+              </div>
+
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Wind className="mr-2 h-4 w-4 text-teal-500"/>接触史</h3>
+                {renderInfoList(patient.detailedProfile?.contactHistory, "无特殊接触史记录")}
+              </div>
 
               <p className="text-xs text-muted-foreground pt-4">
                 更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
@@ -345,14 +382,12 @@ export default function DoctorPatientDetailPage() {
               <Separator />
               <h4 className="font-semibold pt-2">既往史:</h4>
               {patient.detailedProfile?.pastMedicalHistoryDetails && <p>{patient.detailedProfile.pastMedicalHistoryDetails}</p>}
-              {patient.detailedProfile?.operationHistory && <p><strong>手术史:</strong> {patient.detailedProfile.operationHistory}</p>}
-              {patient.detailedProfile?.bloodTransfusionHistory && <p><strong>输血史:</strong> {patient.detailedProfile.bloodTransfusionHistory}</p>}
-              {patient.detailedProfile?.allergies && patient.detailedProfile.allergies.length > 0 && (
-                <p><strong>过敏史:</strong> {patient.detailedProfile.allergies.join(', ')}</p>
-              )}
+              {patient.detailedProfile?.operationHistory_text && <p><strong>手术史(文本):</strong> {patient.detailedProfile.operationHistory_text}</p>}
+              {patient.detailedProfile?.bloodTransfusionHistory_details && <p><strong>输血史(文本):</strong> {patient.detailedProfile.bloodTransfusionHistory_details}</p>}
+              
               {patient.detailedProfile?.medicationHistory && patient.detailedProfile.medicationHistory.length > 0 && (
                 <div>
-                  <strong>主要用药史:</strong>
+                  <strong>主要用药史(详细):</strong>
                   <ul className="list-disc list-inside ml-4">
                     {patient.detailedProfile.medicationHistory.map(med => (
                       <li key={med.id}>{med.drugName} ({med.dosage}, {med.frequency}) {med.notes && `- ${med.notes}`}</li>
@@ -423,3 +458,4 @@ export default function DoctorPatientDetailPage() {
     </div>
   );
 }
+

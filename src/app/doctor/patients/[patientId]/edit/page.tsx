@@ -3,7 +3,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, FamilyMedicalHistoryEntry } from "@/lib/types"; // Added FamilyMedicalHistoryEntry
+import type { DoctorPatient, DetailedPatientProfile, FamilyMedicalHistoryEntry, MedicationEntry } from "@/lib/types"; 
 import { DoctorPatientProfileForm } from "@/components/doctor/patient-profile/DoctorPatientProfileForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, UserCog } from "lucide-react";
@@ -34,13 +34,20 @@ const mockPatientsList: DoctorPatient[] = [
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
         pastIllnesses: ["hypertension", "diabetes"],
-        familyMedicalHistory: [ // Added mock family history
+        familyMedicalHistory: [ 
             { relative: "self", conditions: ["高血压", "糖尿病"] },
             { relative: "father", conditions: ["高血压"] },
             { relative: "mother", conditions: ["糖尿病"] },
             { relative: "paternal_grandparents", conditions: [] },
             { relative: "maternal_grandparents", conditions: ["高血脂"] },
         ],
+        currentSymptoms: ["心慌", "胸闷"],
+        allergies: ["青霉素"],
+        operationHistory: ["心脏（含心脏介入）"],
+        bloodTransfusionHistory: "2010年因外伤输血约400ml",
+        medicationCategories: ["降压药", "降糖药"],
+        contactHistory: ["油烟", "粉烟尘"],
+        medicationHistory: [{ id: "med1", drugName: "拜糖平", dosage: "50mg", frequency: "TID", notes: "餐时口服" }],
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [

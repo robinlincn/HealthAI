@@ -27,7 +27,7 @@ import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, Bloo
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid, parse } from "date-fns";
-import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
+import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -79,10 +79,9 @@ const patientProfileSchema = z.object({
   pastIllnesses: z.array(z.string()).optional(), 
   infectiousDiseases: z.array(z.string()).optional(),
   vaccinationHistory: z.string().optional(),
-  operationHistory: z.string().optional(),
+  
   traumaHistory: z.string().optional(),
-  bloodTransfusionHistory: z.string().optional(),
-
+  
   personalHistory_birthPlaceAndResidence: z.string().optional(),
   personalHistory_livingConditions: z.string().optional(),
   personalHistory_smokingHistory: z.string().optional(),
@@ -90,7 +89,7 @@ const patientProfileSchema = z.object({
   personalHistory_drugAbuseHistory: z.string().optional(),
   personalHistory_menstrualAndObstetric: z.string().optional(),
 
-  familyMedicalHistory: z.array(familyMedicalHistoryEntrySchema).optional(), // Added this
+  familyMedicalHistory: z.array(familyMedicalHistoryEntrySchema).optional(), 
 
   physicalExam_temperature: z.string().optional(),
   physicalExam_pulseRate: z.string().optional(),
@@ -100,7 +99,7 @@ const patientProfileSchema = z.object({
   physicalExam_weight: z.string().optional(),
   physicalExam_generalAppearance: z.string().optional(),
   physicalExam_skinAndMucosa: z.string().optional(),
-
+  
   labAuxiliaryExams: z.string().optional(),
   initialDiagnosis: z.string().optional(),
   treatmentPlanOpinion: z.string().optional(),
@@ -108,6 +107,22 @@ const patientProfileSchema = z.object({
   attendingPhysician: z.string().optional(),
   chiefPhysician: z.string().optional(),
   recordingPhysician: z.string().optional(),
+
+  // New fields from user request
+  currentSymptoms: z.array(z.string()).optional(),
+  allergies: z.array(z.string()).optional(),
+  operationHistory: z.array(z.string()).optional(),
+  bloodTransfusionHistory: z.string().optional(),
+  medicationCategories: z.array(z.string()).optional(),
+  contactHistory: z.array(z.string()).optional(),
+  // Fields for existing medicationHistory (detailed entries)
+  medicationHistory: z.array(z.object({
+    id: z.string(),
+    drugName: z.string().min(1, "药物名称不能为空。"),
+    dosage: z.string().min(1, "剂量不能为空。"),
+    frequency: z.string().min(1, "使用频次不能为空。"),
+    notes: z.string().optional(),
+  })).optional(),
 });
 
 type PatientProfileFormValues = z.infer<typeof patientProfileSchema>;
@@ -132,6 +147,13 @@ const defaultFamilyHistory: FamilyMedicalHistoryEntry[] = [
   { relative: "paternal_grandparents", conditions: [] },
   { relative: "maternal_grandparents", conditions: [] },
 ];
+
+// Options for new sections
+const currentSymptomsOptions = ["心情烦躁", "情绪低落", "体重下降", "严重失眠", "健忘", "经常头痛", "头晕", "皮肤瘙痒", "视力下降", "耳鸣", "经常鼻出血", "鼻涕带血", "声音嘶哑", "气喘", "经常干咳", "咳痰带血", "心慌", "胸闷", "胸痛", "吞咽不适或梗塞感", "食欲减退", "反酸", "嗳气", "腹胀", "腹痛", "腹部包块", "便秘", "腹泻", "便血", "大便变细", "尿频", "血尿", "肢体麻痛", "无力", "腰背痛", "女性血性白带", "接触性出血"];
+const allergyOptions = ["青霉素", "头孢类", "海鲜", "牛奶", "花粉或尘螨", "洗洁剂", "化妆品", "磺胺类", "链黄素", "鸡蛋", "粉尘"]; // "其他" will be a text field or handled differently if needed
+const operationOptions = ["头颅（含脑）", "眼耳鼻咽喉", "颌面部及口腔", "颈部或甲状腺胸部（含肺部）", "心脏（含心脏介入）", "外周血管", "胃肠", "肝胆", "肾脏", "脊柱", "四肢及关节", "膀胱", "妇科", "乳腺", "前列腺"]; // "其它" implies a text field
+const medicationCategoryOptions = ["降压药", "降糖药", "降脂药", "降尿酸药", "抗心律失常药", "缓解哮喘药物", "强的松类药物", "解热镇痛药（如布洛芬等）", "雌激素类药物", "利尿剂", "镇静剂或安眠药", "中草药", "避孕药", "抗抑郁药物"]; // "其他" implies text
+const contactHistoryOptions = ["油烟", "粉烟尘", "毒、致癌物", "高温", "低温", "噪音", "辐射"];
 
 
 export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfileFormProps) {
@@ -162,6 +184,13 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       familyMedicalHistory: initialDetailedProfile.familyMedicalHistory && initialDetailedProfile.familyMedicalHistory.length > 0 
         ? initialDetailedProfile.familyMedicalHistory 
         : defaultFamilyHistory,
+      currentSymptoms: initialDetailedProfile.currentSymptoms || [],
+      allergies: initialDetailedProfile.allergies || [],
+      operationHistory: initialDetailedProfile.operationHistory || [],
+      bloodTransfusionHistory: initialDetailedProfile.bloodTransfusionHistory || "",
+      medicationCategories: initialDetailedProfile.medicationCategories || [],
+      contactHistory: initialDetailedProfile.contactHistory || [],
+      medicationHistory: initialDetailedProfile.medicationHistory || [],
     },
   });
   
@@ -187,6 +216,13 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       familyMedicalHistory: currentDetailedProfile.familyMedicalHistory && currentDetailedProfile.familyMedicalHistory.length > 0
         ? currentDetailedProfile.familyMedicalHistory
         : defaultFamilyHistory,
+      currentSymptoms: currentDetailedProfile.currentSymptoms || [],
+      allergies: currentDetailedProfile.allergies || [],
+      operationHistory: currentDetailedProfile.operationHistory || [],
+      bloodTransfusionHistory: currentDetailedProfile.bloodTransfusionHistory || "",
+      medicationCategories: currentDetailedProfile.medicationCategories || [],
+      contactHistory: currentDetailedProfile.contactHistory || [],
+      medicationHistory: currentDetailedProfile.medicationHistory || [],
     });
   }, [patient, form]);
 
@@ -200,7 +236,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
         recordDate: data.recordDate ? parseISO(data.recordDate).toISOString() : undefined,
         familyMedicalHistory: data.familyMedicalHistory?.map(entry => ({
           ...entry,
-          conditions: entry.conditions.filter(c => c) // Ensure no empty strings
+          conditions: entry.conditions.filter(c => c) 
         }))
     };
     onSave(detailedData);
@@ -210,46 +246,56 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     });
   }
 
-  const renderSection = (title: string, children: React.ReactNode) => (
-    <Card className="shadow-sm">
-      <CardHeader><CardTitle className="text-lg">{title}</CardTitle></CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
-  );
+  const renderSection = (title: string, icon?: React.ElementType, children: React.ReactNode) => {
+    const IconComponent = icon;
+    return (
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center">
+            {IconComponent && <IconComponent className="mr-2 h-5 w-5 text-primary" />}
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">{children}</CardContent>
+      </Card>
+    );
+  };
   
-  const renderCheckboxArrayField = (name: keyof PatientProfileFormValues, label: string, options: { id: string; label: string }[]) => (
+  
+  const renderCheckboxArrayField = (name: keyof PatientProfileFormValues, label: string, options: string[], otherOptionLabel?: string) => (
     <FormField
       control={form.control}
       name={name as any}
       render={() => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 border rounded-md">
-            {options.map((option) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2 border rounded-md">
+            {options.map((optionValue) => (
               <FormField
-                key={option.id}
+                key={optionValue}
                 control={form.control}
                 name={name as any}
                 render={({ field }) => {
+                  const isChecked = field.value?.includes(optionValue);
                   return (
-                    <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                       <FormControl>
                         <Checkbox
-                          checked={field.value?.includes(option.id)}
+                          checked={isChecked}
                           disabled={!isEditing}
                           onCheckedChange={(checked) => {
                             return checked
-                              ? field.onChange([...(field.value || []), option.id])
+                              ? field.onChange([...(field.value || []), optionValue])
                               : field.onChange(
                                   (field.value || []).filter(
-                                    (value: string) => value !== option.id
+                                    (value: string) => value !== optionValue
                                   )
                                 );
                           }}
                         />
                       </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        {option.label}
+                      <FormLabel className="text-sm font-normal leading-tight">
+                        {optionValue}
                       </FormLabel>
                     </FormItem>
                   );
@@ -257,6 +303,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
               />
             ))}
           </div>
+          {/* TODO: Add "Other" text input if otherOptionLabel is provided */}
           <FormMessage />
         </FormItem>
       )}
@@ -277,7 +324,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {renderSection("基本资料", (
+        {renderSection("基本资料", Info, (
           <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>姓名</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -311,11 +358,11 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </>
         ))}
         
-        {renderSection("家族病史及患病情况", (
+        {renderSection("家族病史及患病情况", Activity, (
           <FormField
             control={form.control}
             name="familyMedicalHistory"
-            render={() => ( /* No field needed here directly, children will handle individual fields */
+            render={() => ( 
               <FormItem>
                 <Tabs defaultValue="self" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 h-auto">
@@ -369,15 +416,24 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           />
         ))}
 
+        {renderSection("现有不适症状", Stethoscope, renderCheckboxArrayField("currentSymptoms", "选择症状", currentSymptomsOptions))}
+        {renderSection("过敏史", Stethoscope, renderCheckboxArrayField("allergies", "选择过敏原", allergyOptions, "其他过敏源"))}
+        {renderSection("手术史", Stethoscope, renderCheckboxArrayField("operationHistory", "选择手术史", operationOptions, "其他手术"))}
+        {renderSection("输血史", Stethoscope, (
+            <FormField control={form.control} name="bloodTransfusionHistory" render={({ field }) => (<FormItem><FormLabel>输血史详情</FormLabel><FormControl><Textarea rows={2} placeholder="请描述输血时间及原因" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+        ))}
+        {renderSection("用药史（类别）", Stethoscope, renderCheckboxArrayField("medicationCategories", "选择用药类别", medicationCategoryOptions, "其他药物类别"))}
+        {renderSection("接触史", Stethoscope, renderCheckboxArrayField("contactHistory", "选择接触史", contactHistoryOptions))}
 
-        {renderSection("主诉、现病史", (
+
+        {renderSection("主诉、现病史", Stethoscope, (
           <>
             <FormField control={form.control} name="chiefComplaint" render={({ field }) => (<FormItem><FormLabel>主诉</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="historyOfPresentIllness" render={({ field }) => (<FormItem><FormLabel>现病史</FormLabel><FormControl><Textarea rows={4} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </>
         ))}
 
-        {renderSection("既往史", (
+        {renderSection("既往史", Stethoscope, (
           <>
             {renderCheckboxArrayField("pastIllnesses", "主要既往疾病", pastIllnessOptions)}
             <FormField control={form.control} name="pastMedicalHistoryDetails" render={({ field }) => (<FormItem><FormLabel>其他既往史详情</FormLabel><FormControl><Textarea rows={3} placeholder="其他重要疾病、手术、外伤、输血史等" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -385,15 +441,15 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </>
         ))}
         
-        {renderSection("个人史与家族史（文字描述，备用）", (
+        {renderSection("个人史与家族史（文字描述，备用）", Activity, (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="personalHistory_smokingHistory" render={({ field }) => (<FormItem><FormLabel>吸烟史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="personalHistory_drinkingHistory" render={({ field }) => (<FormItem><FormLabel>饮酒史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="familyHistory_father" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>家族史文字描述（父母、兄弟姐妹、子女健康状况）</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+            {/* Removed familyHistory_father, etc. as we have the structured version now */}
           </div>
         ))}
 
-        {renderSection("体格检查 (简要)", (
+        {renderSection("体格检查 (简要)", Activity, (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <FormField control={form.control} name="physicalExam_temperature" render={({ field }) => (<FormItem><FormLabel>体温 (T)</FormLabel><FormControl><Input placeholder="℃" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="physicalExam_pulseRate" render={({ field }) => (<FormItem><FormLabel>脉搏 (P)</FormLabel><FormControl><Input placeholder="次/分" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -405,7 +461,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </div>
         ))}
         
-        {renderSection("辅助检查、诊断与治疗", (
+        {renderSection("辅助检查、诊断与治疗", Stethoscope, (
           <>
             <FormField control={form.control} name="labAuxiliaryExams" render={({ field }) => (<FormItem><FormLabel>实验室及辅助检查</FormLabel><FormControl><Textarea rows={3} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="initialDiagnosis" render={({ field }) => (<FormItem><FormLabel>初步诊断</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -413,7 +469,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </>
         ))}
 
-        {renderSection("医师签名", (
+        {renderSection("医师签名", Info, (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField control={form.control} name="attendingPhysician" render={({ field }) => (<FormItem><FormLabel>住院医师</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="chiefPhysician" render={({ field }) => (<FormItem><FormLabel>主治医师</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
@@ -430,3 +486,4 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     </Form>
   );
 }
+
