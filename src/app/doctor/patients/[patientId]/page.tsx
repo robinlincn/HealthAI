@@ -3,54 +3,112 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, ClipboardList, FileText, BarChart3, Edit3, Upload } from "lucide-react";
+import { ArrowLeft, Edit3, UserCircle } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation"; // useRouter for back button
+import { useState, useEffect } from "react"; // For managing patient data state
+import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types"; // Import types
+import { DoctorPatientProfileForm } from "@/components/doctor/patient-profile/DoctorPatientProfileForm"; // Import the new form
+import { Skeleton } from "@/components/ui/skeleton"; // For loading state
 
 // Mock data fetching function (replace with actual data fetching)
-const getPatientDetails = (patientId: string) => {
+const getPatientDetails = (patientId: string): DoctorPatient | null => {
   // In a real app, fetch patient data from a DB or API
-  if (patientId === "pat001") {
-    return {
-      id: "pat001",
-      name: "张三",
-      age: 45,
-      gender: "男",
+  const mockPatientsList: DoctorPatient[] = [
+    { 
+      id: "pat001", name: "张三", age: 45, gender: "male", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01",
       contact: "13800138001",
-      emergencyContact: { name: "李四 (配偶)", phone: "13900139002" },
-      diagnosis: "高血压, 2型糖尿病",
-      pastHistory: "2010年阑尾炎手术, 2005年肺炎",
-      familyHistory: "父亲患有高血压, 母亲患有糖尿病",
-      allergies: "青霉素, 花生",
-      healthDataSummary: "血糖近期偏高 (空腹7.0-8.5 mmol/L, 餐后9.0-11.5 mmol/L)。血压控制尚可 (130-140/80-90 mmHg)。体重75kg, BMI 26。血脂：总胆固醇 5.8 mmol/L, 甘油三酯 2.0 mmol/L。",
-      reports: [
-        { id: "rep001", name: "2024-04-15 血液检查报告.pdf", type: "pdf", description: "包含血常规、生化全项、糖化血红蛋白等。" },
-        { id: "rep002", name: "2024-03-10 胸部CT扫描.jpg", type: "image", description: "CT影像，初步诊断意见。" },
-        { id: "rep003", name: "2024-02-20 脊柱X光片.png", type: "image", description: "腰椎正侧位X光片。" },
-      ],
-    };
-  }
-  return null; // Or a default patient structure
+      detailedProfile: {
+        recordNumber: "MR00123",
+        maritalStatus: "married",
+        occupation: "工程师",
+        nationality: "汉族",
+        birthplace: "北京",
+        admissionDate: "2024-04-20T00:00:00.000Z",
+        recordDate: "2024-04-20T00:00:00.000Z",
+        informant: "患者本人",
+        reliability: 'reliable',
+        chiefComplaint: "头晕、乏力一周",
+        historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
+        pastMedicalHistoryDetails: "2010年阑尾炎手术。否认肝炎、结核等传染病史。",
+        pastIllnesses: ["hypertension", "diabetes"],
+        vaccinationHistory: "已按计划完成免疫接种。",
+        familyHistory_father: "高血压病史",
+        physicalExam_temperature: "36.8℃",
+        physicalExam_pulseRate: "78次/分",
+        physicalExam_respiratoryRate: "18次/分",
+        physicalExam_bloodPressure: "155/95mmHg",
+        initialDiagnosis: "1. 原发性高血压 2级 (很高危)\n2. 2型糖尿病",
+        treatmentPlanOpinion: "1. 继续口服降压药物，监测血压变化。\n2. 调整降糖药物，控制饮食，加强运动。\n3. 完善相关检查。",
+        attendingPhysician: "李医生",
+        chiefPhysician: "王主任",
+      }
+    },
+    { id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002", detailedProfile: { chiefComplaint: "胸闷、气短一月" } },
+    { id: "pat003", name: "王五", age: 50, gender: "male", diagnosis: "高血脂", lastVisit: "2024-04-22", contact: "13700137003", detailedProfile: { chiefComplaint: "体检发现血脂异常" } },
+  ];
+  return mockPatientsList.find(p => p.id === patientId) || null;
 };
 
 
 export default function DoctorPatientDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const patientId = params.patientId as string;
-  const patient = getPatientDetails(patientId);
+  const [patient, setPatient] = useState<DoctorPatient | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      const details = getPatientDetails(patientId);
+      setPatient(details);
+      setIsLoading(false);
+    }, 500);
+  }, [patientId]);
+
+  const handleSaveProfile = (updatedProfileData: DetailedPatientProfile) => {
+    if (patient) {
+      const updatedPatient = {
+        ...patient,
+        // Update main patient fields if they are part of the form and can change
+        name: updatedProfileData.name || patient.name, 
+        gender: updatedProfileData.gender || patient.gender,
+        age: updatedProfileData.age || patient.age,
+        contact: updatedProfileData.address || patient.contact, // Assuming address in form maps to contact
+        detailedProfile: updatedProfileData,
+      };
+      setPatient(updatedPatient);
+      // Here you would also send the data to your backend API
+      console.log("Updated patient data:", updatedPatient);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-4 md:p-6">
+        <div className="flex justify-between items-center mb-4">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Card><CardHeader><Skeleton className="h-8 w-1/2" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
+      </div>
+    );
+  }
 
   if (!patient) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-6">
         <Card>
           <CardHeader>
             <CardTitle>病人信息未找到</CardTitle>
           </CardHeader>
           <CardContent>
             <p>无法加载ID为 {patientId} 的病人信息。</p>
-            <Button asChild variant="link" className="mt-4">
-              <Link href="/doctor/patients"><ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表</Link>
+            <Button asChild variant="link" className="mt-4" onClick={() => router.back()}>
+              <span><ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表</span>
             </Button>
           </CardContent>
         </Card>
@@ -59,112 +117,20 @@ export default function DoctorPatientDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Button asChild variant="outline">
-          <Link href="/doctor/patients"><ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表</Link>
+    <div className="space-y-6 p-1 md:p-4 lg:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <Button variant="outline" onClick={() => router.back()} className="self-start sm:self-center">
+          <ArrowLeft className="mr-2 h-4 w-4" /> 返回病人列表
         </Button>
-        <h1 className="text-2xl font-semibold">病人档案: {patient.name}</h1>
-        <Button variant="default" disabled> {/* Edit functionality not implemented */}
-          <Edit3 className="mr-2 h-4 w-4" /> 编辑病人信息
-        </Button>
+        <h1 className="text-xl md:text-2xl font-semibold flex items-center text-center sm:text-left flex-grow justify-center sm:justify-start">
+          <UserCircle className="mr-2 h-6 w-6 md:h-7 md:w-7 text-primary flex-shrink-0" />
+          病人档案: {patient.name}
+        </h1>
+        {/* Edit button is now part of the DoctorPatientProfileForm */}
       </div>
 
-      <Tabs defaultValue="basicInfo" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="basicInfo"><UserCircle className="mr-2 h-4 w-4" />基本信息</TabsTrigger>
-          <TabsTrigger value="medicalHistory"><ClipboardList className="mr-2 h-4 w-4" />病历信息</TabsTrigger>
-          <TabsTrigger value="healthData"><BarChart3 className="mr-2 h-4 w-4" />健康数据</TabsTrigger>
-          <TabsTrigger value="reports"><FileText className="mr-2 h-4 w-4" />检查报告</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="basicInfo">
-          <Card>
-            <CardHeader>
-              <CardTitle>基本信息</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
-                <p><strong>姓名:</strong> {patient.name}</p>
-                <p><strong>年龄:</strong> {patient.age}岁</p>
-                <p><strong>性别:</strong> {patient.gender}</p>
-                <p><strong>联系电话:</strong> {patient.contact}</p>
-                <p className="md:col-span-2"><strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || '未指定关系'}) - {patient.emergencyContact.phone}</p>
-              </div>
-              <p className="text-muted-foreground pt-4 text-xs">详细信息编辑功能正在建设中。如需修改，请联系管理员或使用未来的编辑功能。</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="medicalHistory">
-          <Card>
-            <CardHeader>
-              <CardTitle>病历信息</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <p><strong>主要诊断:</strong> {patient.diagnosis}</p>
-              <p><strong>既往病史:</strong> {patient.pastHistory}</p>
-              <p><strong>家族病史:</strong> {patient.familyHistory}</p>
-              <p><strong>过敏史:</strong> {patient.allergies}</p>
-              <p className="text-muted-foreground pt-4 text-xs">详细病历记录编辑与添加功能正在建设中。</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="healthData">
-          <Card>
-            <CardHeader>
-              <CardTitle>健康数据总览</CardTitle>
-              <CardDescription className="text-sm">{patient.healthDataSummary}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mt-4 flex flex-col items-center text-center">
-                <BarChart3 className="w-24 h-24 text-primary/30 mb-4" />
-                <h3 className="text-xl font-semibold text-foreground/70">详细图表即将推出</h3>
-                <p className="text-foreground/50 max-w-md text-sm">
-                  血糖、血压、体重、血脂等历史记录的详细趋势图表将在此处展示，支持按时间范围查看和数据标注。
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <Card>
-            <CardHeader className="flex flex-row justify-between items-center">
-              <div>
-                <CardTitle>检查报告列表</CardTitle>
-                <CardDescription>查看和管理病人已上传的各类检查报告。</CardDescription>
-              </div>
-              <Button variant="outline" disabled> {/* Upload functionality not implemented */}
-                <Upload className="mr-2 h-4 w-4"/> 上传新报告
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {patient.reports.length > 0 ? (
-                <ul className="space-y-3">
-                  {patient.reports.map(report => (
-                    <li key={report.id} className="flex justify-between items-center p-3 border rounded-md hover:bg-muted/50">
-                      <div className="flex items-center space-x-3">
-                        {report.type === "pdf" ? <FileText className="mr-2 h-6 w-6 text-destructive flex-shrink-0" /> : <FileText className="mr-2 h-6 w-6 text-blue-500 flex-shrink-0" /> } {/* Using FileText for image too for simplicity, better to use ImageIcon from lucide if available and desired */}
-                        <div>
-                            <span className="font-medium text-sm">{report.name}</span>
-                            {report.description && <p className="text-xs text-muted-foreground">{report.description}</p>}
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm" disabled>查看</Button> {/* View functionality not implemented */}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground text-center py-4">暂无检查报告。</p>
-              )}
-               <p className="text-muted-foreground pt-4 text-xs text-center">报告上传、预览和管理功能正在建设中。</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <DoctorPatientProfileForm patient={patient} onSave={handleSaveProfile} />
+      
     </div>
   );
 }
-
