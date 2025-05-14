@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
-import { Separator } from "@/components/ui/separator"; // Added Separator
+import { Separator } from "@/components/ui/separator"; 
+import { Badge } from "@/components/ui/badge";
 
 // Mock data fetching function (replace with actual data fetching)
 const mockPatientsList: DoctorPatient[] = [
@@ -43,6 +43,13 @@ const mockPatientsList: DoctorPatient[] = [
             { relative: "paternal_grandparents", conditions: [] },
             { relative: "maternal_grandparents", conditions: ["高血脂"] },
         ],
+        allergies: ["青霉素"],
+        currentSymptoms: ["心慌", "胸闷", "头晕"],
+        medicationHistory: [
+            { id: "med1", drugName: "代文", dosage: "80mg*2", frequency: "一粒/次/天 (早晨空腹)", notes: "2016年开始服药" },
+        ],
+        otherMedicalInfo: "长期服用降压药。",
+        healthGoals: ["控制血糖, 防止并发症"],
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -190,7 +197,7 @@ export default function DoctorPatientDetailPage() {
             <CardHeader>
               <CardTitle className="text-xl">基本信息</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-4 text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
                 <div><strong>姓名:</strong> {patient.detailedProfile?.name || patient.name}</div>
                 <div><strong>性别:</strong> {getGenderText(patient.detailedProfile?.gender || patient.gender)}</div>
@@ -199,13 +206,13 @@ export default function DoctorPatientDetailPage() {
                 <div className="md:col-span-3"><strong>家庭地址:</strong> {patient.detailedProfile?.address || '未提供'}</div>
 
                 <div className="flex items-center">
-                  <strong>以前在本机构体检过:</strong> 
-                  {patient.detailedProfile?.hadPreviousCheckup ? <Check className="ml-2 h-5 w-5 text-green-600" /> : <X className="ml-2 h-5 w-5 text-red-600" />}
+                  <strong className="mr-1">以前在本机构体检过:</strong> 
+                  {patient.detailedProfile?.hadPreviousCheckup ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />}
                   <span className="ml-1">{patient.detailedProfile?.hadPreviousCheckup ? '是' : '否'}</span>
                 </div>
                 <div className="flex items-center md:col-span-2">
-                  <strong>同意接受健康干预服务:</strong> 
-                  {patient.detailedProfile?.agreesToIntervention ? <Check className="ml-2 h-5 w-5 text-green-600" /> : <X className="ml-2 h-5 w-5 text-red-600" />}
+                  <strong className="mr-1">同意接受健康干预服务:</strong> 
+                  {patient.detailedProfile?.agreesToIntervention ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />}
                   <span className="ml-1">{patient.detailedProfile?.agreesToIntervention ? '是' : '否'}</span>
                 </div>
 
@@ -224,6 +231,17 @@ export default function DoctorPatientDetailPage() {
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
                 </p>
               )}
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Heart className="mr-2 h-4 w-4 text-primary"/>现有不适症状</h3>
+                {patient.detailedProfile?.currentSymptoms && patient.detailedProfile.currentSymptoms.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {patient.detailedProfile.currentSymptoms.map(symptom => (
+                      <Badge key={symptom} variant="secondary">{symptom}</Badge>
+                    ))}
+                  </div>
+                ) : <p className="text-muted-foreground">无记录</p>}
+              </div>
               <Separator className="my-4" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Heart className="mr-2 h-4 w-4 text-primary"/>家族病史及患病情况</h3>
@@ -272,6 +290,19 @@ export default function DoctorPatientDetailPage() {
               {patient.detailedProfile?.chiefComplaint && <p><strong>主诉:</strong> {patient.detailedProfile.chiefComplaint}</p>}
               {patient.detailedProfile?.historyOfPresentIllness && <p><strong>现病史:</strong> {patient.detailedProfile.historyOfPresentIllness}</p>}
               {patient.detailedProfile?.pastMedicalHistoryDetails && <p><strong>既往史:</strong> {patient.detailedProfile.pastMedicalHistoryDetails}</p>}
+              {patient.detailedProfile?.allergies && patient.detailedProfile.allergies.length > 0 && (
+                <p><strong>过敏史:</strong> {patient.detailedProfile.allergies.join(', ')}</p>
+              )}
+              {patient.detailedProfile?.medicationHistory && patient.detailedProfile.medicationHistory.length > 0 && (
+                <div>
+                  <strong>主要用药史:</strong>
+                  <ul className="list-disc list-inside ml-4">
+                    {patient.detailedProfile.medicationHistory.map(med => (
+                      <li key={med.id}>{med.drugName} ({med.dosage}, {med.frequency}) {med.notes && `- ${med.notes}`}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground pt-4">详细病历信息请点击 "编辑病人信息" 查看或修改。</p>
             </CardContent>
           </Card>
