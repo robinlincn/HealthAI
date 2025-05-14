@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Info, Pill, Bed } from "lucide-react"; // Added Info, Pill, Bed
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Info, Pill, Bed, CheckSquare } from "lucide-react"; // Added CheckSquare, Bed
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, DietaryIntakeOption } from "@/lib/types";
@@ -14,7 +14,7 @@ import Link from "next/link";
 import { format, parseISO, isValid } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils"; // Added missing import
+import { cn } from "@/lib/utils";
 
 // Mock data fetching function (replace with actual data fetching)
 const mockPatientsList: DoctorPatient[] = [
@@ -101,8 +101,18 @@ const mockPatientsList: DoctorPatient[] = [
         mentalHealth_sas_stomachPain: "小部分时间有",
         mentalHealth_sas_frequentUrination: "没有或很少有时间有",
         mentalHealth_sas_sweating: "小部分时间有",
-        otherMedicalInfo: "长期服用降压药。",
-        healthGoals: ["控制血糖, 防止并发症"],
+        adherence_selfAssessmentBody: "满意",
+        adherence_selfAssessmentMind: "还算关心",
+        adherence_priorityProblems: ["控制血糖", "减轻头晕"],
+        adherence_doctorAdviceCompliance: "执行一部分",
+        adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+        sleep_adequacy: "一般",
+        otherInfo_medicationsUsed: "拜阿司匹林 100mg qd, 胰岛素 10U qn",
+        otherInfo_contactPreference_method: "微信",
+        otherInfo_contactPreference_frequency: "每周一次",
+        otherInfo_contactPreference_time: "下午",
+        otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
+        otherInfo_serviceSatisfaction: "较好",
         operationHistory_text: "2010年阑尾炎切除术", 
         bloodTransfusionHistory_details: "无",
       },
@@ -354,18 +364,21 @@ export default function DoctorPatientDetailPage() {
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Stethoscope className="mr-2 h-4 w-4 text-blue-500"/>手术史</h3>
                 {renderInfoList(dp?.operationHistory, "无手术史记录")}
+                 {dp?.operationHistory_text && <p className="text-sm text-foreground/80 mt-1">详情: {dp.operationHistory_text}</p>}
               </div>
               
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Syringe className="mr-2 h-4 w-4 text-orange-500"/>输血史</h3>
                 <p className="text-muted-foreground text-sm">{dp?.bloodTransfusionHistory || "无输血史记录"}</p>
+                {dp?.bloodTransfusionHistory_details && <p className="text-sm text-foreground/80 mt-1">详情: {dp.bloodTransfusionHistory_details}</p>}
               </div>
 
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Pill className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
                 {renderInfoList(dp?.medicationCategories, "无用药史记录")}
+                 {dp?.otherInfo_medicationsUsed && <p className="text-sm text-foreground/80 mt-1">具体用药: {dp.otherInfo_medicationsUsed}</p>}
               </div>
 
               <Separator className="my-3" />
@@ -373,7 +386,7 @@ export default function DoctorPatientDetailPage() {
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Wind className="mr-2 h-4 w-4 text-teal-500"/>接触史</h3>
                 {renderInfoList(dp?.contactHistory, "无特殊接触史记录")}
               </div>
-              
+
               <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
@@ -477,6 +490,47 @@ export default function DoctorPatientDetailPage() {
                 </div>
               </div>
 
+              <Separator className="my-3" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><CheckSquare className="mr-2 h-4 w-4 text-blue-600"/>遵医行为</h3>
+                <div className="space-y-1 text-sm">
+                  <p><strong>自我健康评价:</strong></p>
+                  <ul className="list-disc list-inside ml-4 text-xs">
+                    <li>身体感觉: {dp?.adherence_selfAssessmentBody || "未记录"}</li>
+                    <li>心理态度: {dp?.adherence_selfAssessmentMind || "未记录"}</li>
+                  </ul>
+                  {dp?.adherence_priorityProblems && dp.adherence_priorityProblems.length > 0 && (
+                    <p><strong>最希望解决的问题:</strong> {renderInfoList(dp.adherence_priorityProblems)}</p>
+                  )}
+                  {renderGridItem("医嘱依从度", dp?.adherence_doctorAdviceCompliance)}
+                  {dp?.adherence_healthPromotionMethods && dp.adherence_healthPromotionMethods.length > 0 && (
+                    <p><strong>希望促进健康方式:</strong> {renderInfoList(dp.adherence_healthPromotionMethods)} {dp.adherence_otherHealthPromotion && `(其他: ${dp.adherence_otherHealthPromotion})`}</p>
+                  )}
+                </div>
+              </div>
+
+              <Separator className="my-3" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Bed className="mr-2 h-4 w-4 text-indigo-600"/>睡眠</h3>
+                {renderGridItem("睡眠充足情况", dp?.sleep_adequacy)}
+              </div>
+
+              <Separator className="my-3" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Info className="mr-2 h-4 w-4 text-gray-600"/>其他</h3>
+                <div className="space-y-1 text-sm">
+                  {dp?.otherInfo_medicationsUsed && <p><strong>当前使用药物:</strong> {dp.otherInfo_medicationsUsed}</p>}
+                  <p><strong>希望联系方式:</strong></p>
+                  <ul className="list-disc list-inside ml-4 text-xs">
+                    <li>方式: {dp?.otherInfo_contactPreference_method === '其他' ? dp.otherInfo_contactPreference_method_other : dp?.otherInfo_contactPreference_method || "未记录"}</li>
+                    <li>频率: {dp?.otherInfo_contactPreference_frequency === '其他' ? dp.otherInfo_contactPreference_frequency_other : dp?.otherInfo_contactPreference_frequency || "未记录"}</li>
+                    <li>时间: {dp?.otherInfo_contactPreference_time === '其他' ? dp.otherInfo_contactPreference_time_other : dp?.otherInfo_contactPreference_time || "未记录"}</li>
+                  </ul>
+                  {dp?.otherInfo_suggestions && <p><strong>对中心建议:</strong> {dp.otherInfo_suggestions}</p>}
+                  {renderGridItem("服务满意度", dp?.otherInfo_serviceSatisfaction)}
+                </div>
+              </div>
+              
               <p className="text-xs text-muted-foreground pt-4">
                 更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
               </p>
@@ -495,7 +549,7 @@ export default function DoctorPatientDetailPage() {
               {dp?.historyOfPresentIllness && <p><strong>现病史:</strong> {dp.historyOfPresentIllness}</p>}
               
               <Separator />
-              <h4 className="font-semibold pt-2">既往史:</h4>
+              <h4 className="font-semibold pt-2">既往史 (文本):</h4>
               {dp?.pastMedicalHistoryDetails && <p>{dp.pastMedicalHistoryDetails}</p>}
               {dp?.operationHistory_text && <p><strong>手术史(文本):</strong> {dp.operationHistory_text}</p>}
               {dp?.bloodTransfusionHistory_details && <p><strong>输血史(文本):</strong> {dp.bloodTransfusionHistory_details}</p>}
@@ -522,11 +576,6 @@ export default function DoctorPatientDetailPage() {
               {dp?.healthGoals && dp.healthGoals.length > 0 && (
                 <p><strong>健康目标:</strong> {dp.healthGoals.join(', ')}</p>
               )}
-              {dp?.sleep_adequacy && <p><strong>睡眠情况:</strong> {dp.sleep_adequacy}</p>}
-              {dp?.otherInfo_suggestions && <p><strong>对中心建议:</strong> {dp.otherInfo_suggestions}</p>}
-
-
-              <p className="text-xs text-muted-foreground pt-4">详细病历信息请点击 "编辑病人信息" 查看或修改。</p>
             </CardContent>
           </Card>
         </TabsContent>
