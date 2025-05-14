@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, Gender, BloodType, MaritalStatus, ReliabilityOption } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { format, parse, isValid, parseISO } from "date-fns";
+import { format, parse, isValid, parseISO, startOfDay } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 const educationLevelOptions = [
@@ -97,30 +96,28 @@ export function BasicInfoForm() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-    // In a real app, you would fetch existing user profile data and set it here
-    // For now, we'll use the defaultValues and imagine they could be updated
-    // if a `userProfile` prop was passed and its data was merged in.
-    // e.g., if (userProfile) form.reset(transformProfileToFormValues(userProfile));
-  }, []);
-
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
     mode: "onChange",
   });
 
+  useEffect(() => {
+    setIsClient(true);
+    // This simulates fetching user data and resetting the form
+    // In a real app, replace defaultValues with fetched data
+    const fetchedData = defaultValues; // Replace with actual fetch
+    form.reset({
+      ...fetchedData,
+      dob: fetchedData.dob ? (typeof fetchedData.dob === 'string' ? parseISO(fetchedData.dob) : fetchedData.dob) : undefined,
+      admissionDate: fetchedData.admissionDate ? (typeof fetchedData.admissionDate === 'string' ? parseISO(fetchedData.admissionDate) : fetchedData.admissionDate) : undefined,
+      recordDate: fetchedData.recordDate ? (typeof fetchedData.recordDate === 'string' ? parseISO(fetchedData.recordDate) : fetchedData.recordDate) : undefined,
+    });
+  }, [form]);
+
 
   function onSubmit(data: ProfileFormValues) {
     console.log("Profile data submitted:", data);
-    // Here you would transform data back if needed, e.g., format Dates to ISO strings
-    // const dataToSubmit = {
-    //   ...data,
-    //   dob: data.dob ? format(data.dob, "yyyy-MM-dd") : undefined,
-    //   admissionDate: data.admissionDate ? format(data.admissionDate, "yyyy-MM-dd") : undefined,
-    //   recordDate: data.recordDate ? format(data.recordDate, "yyyy-MM-dd") : undefined,
-    // };
     toast({
       title: "信息已更新",
       description: "您的基本信息已成功保存。",
@@ -128,7 +125,6 @@ export function BasicInfoForm() {
   }
 
   if (!isClient) {
-    // Simple loading state or skeleton for SSR consistency
     return (
       <div className="space-y-6 animate-pulse">
         {[...Array(7)].map((_, i) => (
@@ -148,7 +144,7 @@ export function BasicInfoForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Row 1: Name, Gender, DOB */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-start">
           <FormField
             control={form.control}
             name="name"
@@ -230,13 +226,12 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 2: Address, Checkboxes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-          <FormField
+        {/* Row 2: Address */}
+        <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem>
                 <FormLabel>家庭住址</FormLabel>
                 <FormControl>
                   <Input placeholder="请输入您的家庭住址" {...field} />
@@ -245,7 +240,9 @@ export function BasicInfoForm() {
               </FormItem>
             )}
           />
-          <div className="space-y-2 pt-1 md:pt-7">
+
+        {/* Row 3: Checkboxes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-2">
             <FormField
               control={form.control}
               name="hadPreviousCheckup"
@@ -278,11 +275,11 @@ export function BasicInfoForm() {
                 </FormItem>
               )}
             />
-          </div>
         </div>
 
-        {/* Row 3: Phone, Email */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {/* Row 4: Phone, Email */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="contactPhone"
@@ -311,8 +308,8 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 4: Blood Type, Marital Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Row 5: Blood Type, Marital Status */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start"> {/* Increased gap for radio groups */}
           <FormField
             control={form.control}
             name="bloodType"
@@ -324,7 +321,7 @@ export function BasicInfoForm() {
                     onValueChange={field.onChange}
                     value={field.value}
                     defaultValue={field.value}
-                    className="flex flex-wrap gap-x-3 gap-y-2"
+                    className="flex flex-wrap gap-x-3 gap-y-1" // Adjusted gap for radios
                   >
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="A" /></FormControl><FormLabel className="font-normal text-sm">A型</FormLabel></FormItem>
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="B" /></FormControl><FormLabel className="font-normal text-sm">B型</FormLabel></FormItem>
@@ -348,7 +345,7 @@ export function BasicInfoForm() {
                     onValueChange={field.onChange}
                     value={field.value}
                     defaultValue={field.value}
-                    className="flex flex-wrap gap-x-3 gap-y-2"
+                    className="flex flex-wrap gap-x-3 gap-y-1" // Adjusted gap for radios
                   >
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal text-sm">未婚</FormLabel></FormItem>
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal text-sm">已婚</FormLabel></FormItem>
@@ -363,8 +360,8 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 5: Occupation, Education Level */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Row 6: Occupation, Education Level */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="occupation"
@@ -400,8 +397,8 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 6: Record Number, Admission Date, Record Date (Read-only for patient) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Row 7: Record Number, Admission Date, Record Date (Read-only for patient) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="recordNumber"
@@ -454,8 +451,8 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 7: Informant, Reliability (Read-only for patient) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Row 8: Informant, Reliability (Read-only for patient) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
             control={form.control}
             name="informant"
