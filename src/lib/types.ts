@@ -20,23 +20,23 @@ export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable"
 export interface UserProfile { // Patient-side profile
   name: string;
   gender: Gender;
-  dob?: string; 
+  dob?: string; // ISO Date string
   address?: string;
   bloodType?: BloodType;
   maritalStatus?: MaritalStatus;
   occupation?: string;
-  educationLevel?: string; 
+  educationLevel?: string;
   contactPhone: string;
-  contactEmail?: string; // Made optional as per common practice for patient-input
-  hadPreviousCheckup?: boolean; 
-  agreesToIntervention?: boolean; 
-  
-  // Fields typically managed by institution, shown as read-only to patient
-  recordNumber?: string; 
-  admissionDate?: string; 
-  recordDate?: string; 
-  informant?: string; 
-  reliability?: ReliabilityOption; 
+  contactEmail?: string;
+  hadPreviousCheckup?: boolean;
+  agreesToIntervention?: boolean;
+
+  // Fields for consistency with doctor view, mostly read-only for patient
+  recordNumber?: string;
+  admissionDate?: string; // ISO Date string
+  recordDate?: string; // ISO Date string
+  informant?: string;
+  reliability?: ReliabilityOption;
 }
 
 export interface EmergencyContact {
@@ -48,11 +48,11 @@ export interface EmergencyContact {
 
 export interface FamilyMedicalHistoryEntry {
   relative: "self" | "father" | "mother" | "paternal_grandparents" | "maternal_grandparents";
-  conditions: string[]; 
+  conditions: string[];
 }
 
 export interface MedicationEntry {
-  id: string; 
+  id: string;
   drugName: string;
   dosage: string;
   frequency: string;
@@ -60,13 +60,13 @@ export interface MedicationEntry {
 }
 
 export interface MedicalHistory { // This is for patient-side form, might need to align with DetailedPatientProfile
-  pastMedicalHistoryText?: string; 
+  pastMedicalHistoryText?: string;
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
-  allergies?: string[]; 
+  allergies?: string[];
   currentSymptoms?: string[];
   medicationHistory?: MedicationEntry[];
   otherMedicalInfo?: string;
-  healthGoals?: string[]; 
+  healthGoals?: string[];
 }
 
 
@@ -74,7 +74,7 @@ export interface ExaminationReport {
   id: string;
   name: string;
   type: 'image' | 'pdf';
-  url: string; 
+  url: string;
   uploadDate: string;
   dataAiHint?: string;
 }
@@ -88,17 +88,17 @@ export interface MealEntry {
 }
 
 export interface Consultation {
-  id: string; 
+  id: string;
   patientId: string;
-  patientName: string; 
-  doctorName?: string; 
-  doctorId?: string; 
-  date: string; 
-  timestamp: Timestamp | Date; 
+  patientName: string;
+  doctorName?: string;
+  doctorId?: string;
+  date: string; // Formatted date string for display
+  timestamp: Timestamp | Date; // Firestore Timestamp or Date object
   question: string;
   status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
   reply?: string;
-  doctorReplyTimestamp?: Timestamp | Date; 
+  doctorReplyTimestamp?: Timestamp | Date; // Firestore Timestamp or Date object
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
 }
 
@@ -136,7 +136,7 @@ export interface HealthNotification {
 export interface ChartDataPoint {
   date: string;
   value: number;
-  [key: string]: any; 
+  [key: string]: any;
 }
 
 export interface AiAssistantMessage {
@@ -149,9 +149,9 @@ export interface AiAssistantMessage {
 export interface Appointment {
   id: string;
   patientName: string;
-  patientId?: string; 
-  date: Date;
-  time: string; 
+  patientId?: string;
+  date: Date; // Date object for calendar
+  time: string; // HH:mm format
   reason?: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
@@ -164,7 +164,7 @@ export interface DoctorPatient {
   gender: Gender;
   diagnosis: string;
   lastVisit: string; // ISO Date string
-  avatarUrl?: string; 
+  avatarUrl?: string;
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
   healthDataSummary?: string;
@@ -205,37 +205,37 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   recordDate?: string; // ISO Date string
   informant?: string;
   reliability?: ReliabilityOption;
-  
+
   chiefComplaint?: string;
   historyOfPresentIllness?: string;
-  
+
   pastMedicalHistoryDetails?: string;
-  pastIllnesses?: string[]; 
+  pastIllnesses?: string[];
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
-  operationHistory?: string[]; 
+  operationHistory?: string[];
   traumaHistory?: string;
-  bloodTransfusionHistory?: string; 
+  bloodTransfusionHistory?: string;
 
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
-  personalHistory_smokingHistory?: string; 
-  personalHistory_drinkingHistory?: string; 
+  personalHistory_smokingHistory?: string;
+  personalHistory_drinkingHistory?: string;
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string;
 
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
 
-  physicalExam_temperature?: string; 
-  physicalExam_pulseRate?: string; 
-  physicalExam_respiratoryRate?: string; 
-  physicalExam_bloodPressure?: string; 
-  physicalExam_height?: string; 
-  physicalExam_weight?: string; 
+  physicalExam_temperature?: string;
+  physicalExam_pulseRate?: string;
+  physicalExam_respiratoryRate?: string;
+  physicalExam_bloodPressure?: string;
+  physicalExam_height?: string;
+  physicalExam_weight?: string;
   physicalExam_generalAppearance?: string;
   physicalExam_skinAndMucosa?: string;
-  
-  labAuxiliaryExams?: string; 
+
+  labAuxiliaryExams?: string;
   initialDiagnosis?: string;
   treatmentPlanOpinion?: string;
 
@@ -244,33 +244,33 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   recordingPhysician?: string;
 
   // Fields that are common and patient can edit/view
-  contactPhone?: string; 
-  contactEmail?: string; 
+  contactPhone?: string;
+  contactEmail?: string;
   bloodType?: BloodType;
-  educationLevel?: string; 
+  educationLevel?: string;
   hadPreviousCheckup?: boolean;
   agreesToIntervention?: boolean;
-  
+
   currentSymptoms?: string[];
-  allergies?: string[]; 
+  allergies?: string[];
   medicationHistory?: MedicationEntry[]; // Detailed list of medications
   medicationCategories?: string[]; // Broad categories of medication types
-  contactHistory?: string[]; 
+  contactHistory?: string[];
 
   // Detailed lifestyle questions
-  contactHistory_oy?: YesNoOption; 
-  contactHistory_dust?: YesNoOption; 
-  contactHistory_toxic?: YesNoOption; 
-  contactHistory_highTemp?: YesNoOption; 
-  contactHistory_lowTemp?: YesNoOption; 
-  contactHistory_noise?: YesNoOption; 
-  contactHistory_radiation?: YesNoOption; 
+  contactHistory_oy?: YesNoOption;
+  contactHistory_dust?: YesNoOption;
+  contactHistory_toxic?: YesNoOption;
+  contactHistory_highTemp?: YesNoOption;
+  contactHistory_lowTemp?: YesNoOption;
+  contactHistory_noise?: YesNoOption;
+  contactHistory_radiation?: YesNoOption;
 
   dietaryHabits_breakfastDays?: FrequencyOption;
   dietaryHabits_lateSnackDays?: FrequencyOption;
-  dietaryHabits_badHabits?: string[]; 
-  dietaryHabits_preferences?: string[]; 
-  dietaryHabits_foodTypePreferences?: string[]; 
+  dietaryHabits_badHabits?: string[];
+  dietaryHabits_preferences?: string[];
+  dietaryHabits_foodTypePreferences?: string[];
 
   dietaryIntake_staple?: DietaryIntakeOption;
   dietaryIntake_meat?: DietaryIntakeOption;
@@ -289,15 +289,15 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   exercise_intensity?: ExerciseIntensityOption;
 
   smoking_status?: SmokingStatusOption;
-  smoking_cigarettesPerDay?: string; 
-  smoking_years?: string; 
+  smoking_cigarettesPerDay?: string;
+  smoking_years?: string;
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string; 
+  drinking_type?: AlcoholTypeOption | string;
   drinking_type_other?: string;
-  drinking_amountPerDay?: string; 
-  drinking_years?: string; 
+  drinking_amountPerDay?: string;
+  drinking_years?: string;
 
   mentalHealth_majorEvents?: YesNoOption;
   mentalHealth_impactOnLife?: '几乎没有' | '有一点' | '较明显' | '很大';
@@ -322,40 +322,40 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
 
   adherence_selfAssessmentBody?: AdherenceBodyOption;
   adherence_selfAssessmentMind?: AdherenceMindOption;
-  adherence_priorityProblems?: string[]; 
+  adherence_priorityProblems?: string[];
   adherence_doctorAdviceCompliance?: AdherenceComplianceOption;
-  adherence_healthPromotionMethods?: string[]; 
-  adherence_otherHealthPromotion?: string; 
+  adherence_healthPromotionMethods?: string[];
+  adherence_otherHealthPromotion?: string;
 
   sleep_adequacy?: SleepAdequacyOption;
 
-  otherInfo_medicationsUsed?: string; 
-  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; 
+  otherInfo_medicationsUsed?: string;
+  otherInfo_contactPreference_method?: ContactPreferenceMethod | string;
   otherInfo_contactPreference_method_other?: string;
   otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string;
   otherInfo_contactPreference_frequency_other?: string;
   otherInfo_contactPreference_time?: ContactPreferenceTime | string;
   otherInfo_contactPreference_time_other?: string;
-  otherInfo_suggestions?: string; 
+  otherInfo_suggestions?: string;
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
 
-  otherMedicalInfo?: string; 
-  healthGoals?: string[]; 
+  otherMedicalInfo?: string;
+  healthGoals?: string[];
 }
 
 
 export interface DoctorProfileDetails {
   id: string;
   name: string;
-  email: string; 
+  email: string;
   phone?: string;
   specialty?: string;
   hospitalAffiliation?: string;
   yearsOfExperience?: number;
   bio?: string;
-  avatarUrl?: string; 
-  licenseNumber?: string; 
-  department?: string; 
+  avatarUrl?: string;
+  licenseNumber?: string;
+  department?: string;
 }
 
 
@@ -368,14 +368,14 @@ export interface SingleOutboundCallTask {
   patientId: string;
   patientName: string;
   content: string;
-  scheduledTime: string; 
+  scheduledTime: string;
   callAttempts: number;
-  maxCallAttempts: number; 
+  maxCallAttempts: number;
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; 
+  wechatInfo: string;
   status: CallTaskStatus;
-  creationDate: string; 
-  lastAttemptTime?: string; 
+  creationDate: string;
+  lastAttemptTime?: string;
   notes?: string;
 }
 
@@ -385,22 +385,22 @@ export interface OutboundCallGroup {
   description?: string;
   patientIds: string[];
   memberCount: number;
-  creationDate: string; 
+  creationDate: string;
 }
 
 export interface GroupOutboundCallTask {
   id: string;
   groupId: string;
-  groupName: string; 
+  groupName: string;
   content: string;
-  scheduledTime: string; 
-  callAttempts: number; 
-  maxCallAttempts: number; 
+  scheduledTime: string;
+  callAttempts: number;
+  maxCallAttempts: number;
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; 
-  status: CallTaskStatus; 
-  creationDate: string; 
-  lastExecutionTime?: string; 
+  wechatInfo: string;
+  status: CallTaskStatus;
+  creationDate: string;
+  lastExecutionTime?: string;
   notes?: string;
 }
 
@@ -414,24 +414,24 @@ export interface SaasEnterprise {
   contactPhone: string;
   address?: string;
   status: 'active' | 'inactive' | 'pending_approval' | 'suspended';
-  creationDate: string; 
+  creationDate: string;
   assignedResources: {
     maxUsers: number;
     maxStorageGB: number;
     maxPatients: number;
   };
-  servicePackageId?: string; 
+  servicePackageId?: string;
   notes?: string;
 }
 
 export interface SaasDepartment {
   id: string;
-  enterpriseId: string; 
+  enterpriseId: string;
   name: string;
-  parentDepartmentId?: string | null; 
-  headEmployeeId?: string | null; 
+  parentDepartmentId?: string | null;
+  headEmployeeId?: string | null;
   description?: string;
-  creationDate: string; 
+  creationDate: string;
 }
 
 export interface SaasEmployee {
@@ -442,21 +442,21 @@ export interface SaasEmployee {
   email: string;
   phone?: string;
   employeeNumber?: string;
-  roleTitle?: string; 
+  roleTitle?: string;
   status: 'active' | 'invited' | 'disabled';
-  joinDate: string; 
-  creationDate?: string; 
+  joinDate: string;
+  creationDate?: string;
 }
 
-export interface SaasPatient { 
+export interface SaasPatient {
   id: string;
-  enterpriseId: string; 
+  enterpriseId: string;
   name: string;
   gender: Gender;
   dob?: string;
   contactPhone?: string;
-  primaryDisease?: string; 
-  lastInteractionDate?: string; 
+  primaryDisease?: string;
+  lastInteractionDate?: string;
 }
 
 export interface SaasServicePackage {
@@ -465,7 +465,7 @@ export interface SaasServicePackage {
   type: 'basic' | 'standard' | 'premium' | 'custom';
   priceMonthly: number;
   priceAnnually?: number;
-  features: string[]; 
+  features: string[];
   highlights?: string;
   maxUsers: number;
   maxStorageGB: number;
@@ -477,16 +477,16 @@ export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
-  orderDate: string; 
+  orderDate: string;
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
-  currency: string; 
+  currency: string;
   transactionId?: string;
   billingCycle: 'monthly' | 'annually' | 'one-time';
-  renewalDate?: string; 
+  renewalDate?: string;
   invoiceNumber?: string;
   notes?: string;
-  enterpriseName?: string; 
+  enterpriseName?: string;
   servicePackageName?: string;
 }
 
@@ -494,16 +494,16 @@ export interface SaasSystemUser {
   id: string;
   name: string;
   email: string;
-  systemRoleId: string; 
+  systemRoleId: string;
   status: 'active' | 'disabled';
-  lastLogin?: string; 
+  lastLogin?: string;
 }
 
 export interface SaasSystemRole {
   id: string;
-  name: string; 
+  name: string;
   description?: string;
-  permissions: string[]; 
+  permissions: string[];
 }
 
 export interface SaasSopService {
@@ -511,28 +511,27 @@ export interface SaasSopService {
   name: string;
   type: 'Coze' | 'Dify' | 'Other';
   apiEndpoint: string;
-  apiKey?: string; 
+  apiKey?: string;
   description?: string;
   status: 'active' | 'inactive' | 'error';
-  creationDate: string; 
-  lastCallTimestamp?: string; 
+  creationDate: string;
+  lastCallTimestamp?: string;
   callCount?: number;
   errorCount?: number;
-  parameters?: string; 
+  parameters?: string;
 }
 
 export interface SaasOutboundCallTask {
   id: string;
   name: string;
   targetType: 'customer_segment' | 'employee_group' | 'custom_list' | 'individual_patient';
-  targetDetails: string; 
+  targetDetails: string;
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-  creationDate: string; 
-  scheduledTime?: string; 
-  scriptId?: string; 
-  assignedTo?: string; 
+  creationDate: string;
+  scheduledTime?: string;
+  scriptId?: string;
+  assignedTo?: string;
   callCount?: number;
   successCount?: number;
   notes?: string;
 }
-```

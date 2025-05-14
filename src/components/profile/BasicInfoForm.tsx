@@ -111,14 +111,6 @@ export function BasicInfoForm() {
     mode: "onChange",
   });
 
-  // Helper function to transform API data to form data if needed (especially for dates)
-  // const transformProfileToFormValues = (profile: UserProfile): ProfileFormValues => ({
-  //   ...profile,
-  //   dob: profile.dob ? parseISO(profile.dob) : new Date(),
-  //   admissionDate: profile.admissionDate ? parseISO(profile.admissionDate) : undefined,
-  //   recordDate: profile.recordDate ? parseISO(profile.recordDate) : undefined,
-  // });
-
 
   function onSubmit(data: ProfileFormValues) {
     console.log("Profile data submitted:", data);
@@ -136,19 +128,21 @@ export function BasicInfoForm() {
   }
 
   if (!isClient) {
+    // Simple loading state or skeleton for SSR consistency
     return (
-      <div className="space-y-6">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end animate-pulse">
+      <div className="space-y-6 animate-pulse">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="h-10 bg-muted rounded w-full"></div>
-            <div className="h-10 bg-muted rounded w-full"></div>
-            <div className="h-10 bg-muted rounded w-full"></div>
+            <div className="h-10 bg-muted rounded w-full md:col-span-1"></div>
+            <div className="h-10 bg-muted rounded w-full md:col-span-1"></div>
           </div>
         ))}
+         <div className="h-10 bg-primary/50 rounded w-24 ml-auto mt-8"></div>
       </div>
     );
   }
-  
+
 
   return (
     <Form {...form}>
@@ -251,7 +245,7 @@ export function BasicInfoForm() {
               </FormItem>
             )}
           />
-          <div className="space-y-2 pt-1 md:pt-7"> 
+          <div className="space-y-2 pt-1 md:pt-7">
             <FormField
               control={form.control}
               name="hadPreviousCheckup"
@@ -316,7 +310,7 @@ export function BasicInfoForm() {
             )}
           />
         </div>
-        
+
         {/* Row 4: Blood Type, Marital Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -427,11 +421,11 @@ export function BasicInfoForm() {
               <FormItem className="flex flex-col">
                 <FormLabel>入院日期</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="date" 
-                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} 
+                      <Input
+                        type="date"
+                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
                         onChange={(e) => field.onChange(e.target.value ? parseISO(e.target.value) : undefined)}
-                        disabled 
+                        disabled
                       />
                     </FormControl>
                 <FormDescription className="text-xs">由医疗机构管理</FormDescription>
@@ -446,11 +440,11 @@ export function BasicInfoForm() {
               <FormItem className="flex flex-col">
                 <FormLabel>记录日期</FormLabel>
                  <FormControl>
-                      <Input 
-                        type="date" 
-                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} 
+                      <Input
+                        type="date"
+                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
                         onChange={(e) => field.onChange(e.target.value ? parseISO(e.target.value) : undefined)}
-                        disabled 
+                        disabled
                       />
                     </FormControl>
                  <FormDescription className="text-xs">由医疗机构管理</FormDescription>
@@ -496,7 +490,7 @@ export function BasicInfoForm() {
             )}
           />
         </div>
-        
+
         <Button type="submit" className="mt-8">保存更新</Button>
       </form>
     </Form>
