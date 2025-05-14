@@ -1,12 +1,13 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Info, Pill, Bed } from "lucide-react"; // Added Info, Pill, Bed
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -76,14 +77,9 @@ const mockPatientsList: DoctorPatient[] = [
         drinking_type: '啤酒',
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
-        otherMedicalInfo: "长期服用降压药。",
-        healthGoals: ["控制血糖, 防止并发症"],
-        operationHistory_text: "2010年阑尾炎切除术", 
-        bloodTransfusionHistory_details: "无",
-        contactHistory_oy: "是", 
-        mentalHealth_majorEvents: "否",
-        mentalHealth_impactOnLife: "有一点",
-        mentalHealth_stressLevel: "较明显",
+        mentalHealth_majorEvents: '否',
+        mentalHealth_impactOnLife: '有一点',
+        mentalHealth_stressLevel: '较明显',
         mentalHealth_sas_anxiety: "小部分时间有",
         mentalHealth_sas_fear: "没有或很少有时间有",
         mentalHealth_sas_panic: "小部分时间有",
@@ -101,6 +97,11 @@ const mockPatientsList: DoctorPatient[] = [
         mentalHealth_sas_stomachPain: "小部分时间有",
         mentalHealth_sas_frequentUrination: "没有或很少有时间有",
         mentalHealth_sas_sweating: "小部分时间有",
+        otherMedicalInfo: "长期服用降压药。",
+        healthGoals: ["控制血糖, 防止并发症"],
+        operationHistory_text: "2010年阑尾炎切除术", 
+        bloodTransfusionHistory_details: "无",
+        contactHistory_oy: "是", 
         adherence_selfAssessmentBody: "满意",
         adherence_selfAssessmentMind: "还算关心",
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
@@ -221,10 +222,11 @@ export default function DoctorPatientDetailPage() {
       <strong className="text-sm">{label}:</strong> <span className="text-sm text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span>
     </div>
   );
-
+  
   const renderSASQuestion = (label: string, value?: SASOption) => (
      <div className="text-sm"><strong>{label}:</strong> <span className="text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span></div>
   );
+
 
   if (isLoading) {
     return (
@@ -484,7 +486,6 @@ export default function DoctorPatientDetailPage() {
                 </div>
               </div>
 
-
               <p className="text-xs text-muted-foreground pt-4">
                 更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
               </p>
@@ -580,3 +581,6 @@ export default function DoctorPatientDetailPage() {
     </div>
   );
 }
+
+
+    
