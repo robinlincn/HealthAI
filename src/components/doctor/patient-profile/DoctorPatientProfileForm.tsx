@@ -23,12 +23,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid, parse } from "date-fns";
 import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const pastIllnessOptions = [
@@ -43,13 +44,18 @@ const pastIllnessOptions = [
   { id: 'tuberculosis', label: '结核病' },
 ];
 
+const familyMedicalHistoryEntrySchema = z.object({
+  relative: z.enum(["self", "father", "mother", "paternal_grandparents", "maternal_grandparents"]),
+  conditions: z.array(z.string()),
+});
+
 
 const patientProfileSchema = z.object({
   recordNumber: z.string().optional(),
   name: z.string().min(1, "姓名不能为空"),
   gender: z.enum(['male', 'female', 'other'] as [Gender, ...Gender[]]).optional(),
-  dob: z.string().optional().refine(val => !val || isValid(parseISO(val)), { message: "出生日期格式无效" }), // Date as string for input
-  age: z.coerce.number().positive("年龄必须为正数").optional(), // Age is derived or manually entered
+  dob: z.string().optional().refine(val => !val || isValid(parseISO(val)), { message: "出生日期格式无效" }), 
+  age: z.coerce.number().positive("年龄必须为正数").optional(), 
   maritalStatus: z.enum(['unmarried', 'married', 'divorced', 'widowed', 'other'] as [MaritalStatus, ...MaritalStatus[]]).optional(),
   occupation: z.string().optional(),
   nationality: z.string().optional(),
@@ -58,7 +64,7 @@ const patientProfileSchema = z.object({
   contactPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的中国大陆手机号码.").or(z.literal("")).optional(),
   contactEmail: z.string().email("请输入有效的邮箱地址.").or(z.literal("")).optional(),
   bloodType: z.enum(['A', 'B', 'O', 'AB', 'unknown'] as [BloodType, ...BloodType[]]).optional(),
-  educationLevel: z.string().optional(), // e.g., 'bachelor', 'master'
+  educationLevel: z.string().optional(), 
   hadPreviousCheckup: z.boolean().default(false).optional(),
   agreesToIntervention: z.boolean().default(false).optional(),
 
@@ -84,10 +90,7 @@ const patientProfileSchema = z.object({
   personalHistory_drugAbuseHistory: z.string().optional(),
   personalHistory_menstrualAndObstetric: z.string().optional(),
 
-  familyHistory_father: z.string().optional(),
-  familyHistory_mother: z.string().optional(),
-  familyHistory_siblings: z.string().optional(),
-  familyHistory_children: z.string().optional(),
+  familyMedicalHistory: z.array(familyMedicalHistoryEntrySchema).optional(), // Added this
 
   physicalExam_temperature: z.string().optional(),
   physicalExam_pulseRate: z.string().optional(),
@@ -114,11 +117,29 @@ interface DoctorPatientProfileFormProps {
   onSave: (data: DetailedPatientProfile) => void;
 }
 
+const allFamilyConditions = ["高血压", "糖尿病", "冠心病", "高血脂", "肥胖", "脑卒中", "骨质疏松", "老年痴呆", "肺癌", "肝癌", "胃肠癌", "前列腺癌", "乳腺癌", "宫颈癌"];
+const relativesMap: Record<FamilyMedicalHistoryEntry["relative"], string> = {
+  self: "本人",
+  father: "父亲",
+  mother: "母亲",
+  paternal_grandparents: "祖父母",
+  maternal_grandparents: "外祖父母",
+};
+const defaultFamilyHistory: FamilyMedicalHistoryEntry[] = [
+  { relative: "self", conditions: [] },
+  { relative: "father", conditions: [] },
+  { relative: "mother", conditions: [] },
+  { relative: "paternal_grandparents", conditions: [] },
+  { relative: "maternal_grandparents", conditions: [] },
+];
+
+
 export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfileFormProps) {
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(true); // Default to true for edit page
+  const [isEditing, setIsEditing] = useState(true); 
 
   const initialDetailedProfile = patient.detailedProfile || {};
+  
   const form = useForm<PatientProfileFormValues>({
     resolver: zodResolver(patientProfileSchema),
     defaultValues: {
@@ -133,11 +154,14 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       educationLevel: initialDetailedProfile.educationLevel,
       hadPreviousCheckup: initialDetailedProfile.hadPreviousCheckup || false,
       agreesToIntervention: initialDetailedProfile.agreesToIntervention || false,
-      ...initialDetailedProfile, // Spread the rest of detailed profile
+      ...initialDetailedProfile, 
       admissionDate: initialDetailedProfile.admissionDate ? format(parseISO(initialDetailedProfile.admissionDate), 'yyyy-MM-dd') : undefined,
       recordDate: initialDetailedProfile.recordDate ? format(parseISO(initialDetailedProfile.recordDate), 'yyyy-MM-dd') : undefined,
       pastIllnesses: initialDetailedProfile.pastIllnesses || [],
       infectiousDiseases: initialDetailedProfile.infectiousDiseases || [],
+      familyMedicalHistory: initialDetailedProfile.familyMedicalHistory && initialDetailedProfile.familyMedicalHistory.length > 0 
+        ? initialDetailedProfile.familyMedicalHistory 
+        : defaultFamilyHistory,
     },
   });
   
@@ -160,6 +184,9 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       recordDate: currentDetailedProfile.recordDate ? format(parseISO(currentDetailedProfile.recordDate), 'yyyy-MM-dd') : undefined,
       pastIllnesses: currentDetailedProfile.pastIllnesses || [],
       infectiousDiseases: currentDetailedProfile.infectiousDiseases || [],
+      familyMedicalHistory: currentDetailedProfile.familyMedicalHistory && currentDetailedProfile.familyMedicalHistory.length > 0
+        ? currentDetailedProfile.familyMedicalHistory
+        : defaultFamilyHistory,
     });
   }, [patient, form]);
 
@@ -171,9 +198,12 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
         dob: data.dob ? parseISO(data.dob).toISOString() : undefined,
         admissionDate: data.admissionDate ? parseISO(data.admissionDate).toISOString() : undefined,
         recordDate: data.recordDate ? parseISO(data.recordDate).toISOString() : undefined,
+        familyMedicalHistory: data.familyMedicalHistory?.map(entry => ({
+          ...entry,
+          conditions: entry.conditions.filter(c => c) // Ensure no empty strings
+        }))
     };
     onSave(detailedData);
-    // setIsEditing(false); // No need to change edit mode on this page
     toast({
       title: "病人信息已更新",
       description: `${data.name} 的病历信息已成功保存。`,
@@ -247,8 +277,6 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Removed the Edit Mode button as this is a dedicated edit page */}
-
         {renderSection("基本资料", (
           <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -258,7 +286,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
             <FormField control={form.control} name="address" className="md:col-span-2" render={({ field }) => (<FormItem><FormLabel>家庭地址</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <div className="space-y-2 pt-1 md:pt-7"> {/* Align checkboxes better */}
+            <div className="space-y-2 pt-1 md:pt-7"> 
               <FormField control={form.control} name="hadPreviousCheckup" render={({ field }) => (<FormItem className="flex flex-row items-center space-x-2 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={!isEditing} /></FormControl><FormLabel className="font-normal">以前在本机构体检过</FormLabel><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="agreesToIntervention" render={({ field }) => (<FormItem className="flex flex-row items-center space-x-2 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={!isEditing} /></FormControl><FormLabel className="font-normal">同意接受健康干预服务</FormLabel><FormMessage /></FormItem>)} />
             </div>
@@ -276,13 +304,71 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
             <FormField control={form.control} name="educationLevel" render={({ field }) => (<FormItem><FormLabel>文化程度</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择文化程度" /></SelectTrigger></FormControl><SelectContent>{educationLevelOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
           </div>
           <FormField control={form.control} name="recordNumber" render={({ field }) => (<FormItem><FormLabel>病案号</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-           {/* Other basic fields like nationality, birthplace, admissionDate, etc. */}
             <FormField control={form.control} name="admissionDate" render={({ field }) => (<FormItem><FormLabel>入院日期</FormLabel><FormControl><Input type="date" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="recordDate" render={({ field }) => (<FormItem><FormLabel>病史记录日期</FormLabel><FormControl><Input type="date" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="informant" render={({ field }) => (<FormItem><FormLabel>病史陈述者</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="reliability" render={({ field }) => (<FormItem><FormLabel>可靠程度</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="reliable">可靠</SelectItem><SelectItem value="partially_reliable">部分可靠</SelectItem><SelectItem value="unreliable">不可靠</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
           </>
         ))}
+        
+        {renderSection("家族病史及患病情况", (
+          <FormField
+            control={form.control}
+            name="familyMedicalHistory"
+            render={() => ( /* No field needed here directly, children will handle individual fields */
+              <FormItem>
+                <Tabs defaultValue="self" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 h-auto">
+                    {(form.getValues('familyMedicalHistory') || []).map((relativeEntry) => (
+                      <TabsTrigger 
+                        key={relativeEntry.relative} 
+                        value={relativeEntry.relative} 
+                        className="text-xs px-1 py-1.5 h-full"
+                        disabled={!isEditing}
+                      >
+                        {relativesMap[relativeEntry.relative]}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {(form.getValues('familyMedicalHistory') || []).map((_relativeEntry, relativeIndex) => (
+                    <TabsContent key={form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)} value={form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)}>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-2 p-2 border rounded-md mt-2">
+                        {allFamilyConditions.map((condition) => (
+                          <FormField
+                            key={`${form.getValues(`familyMedicalHistory.${relativeIndex}.relative`)}-${condition}`}
+                            control={form.control}
+                            name={`familyMedicalHistory.${relativeIndex}.conditions`}
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(condition)}
+                                    disabled={!isEditing}
+                                    onCheckedChange={(checked) => {
+                                      const currentConditions = field.value || [];
+                                      return checked
+                                        ? field.onChange([...currentConditions, condition])
+                                        : field.onChange(currentConditions.filter((value: string) => value !== condition));
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-xs font-normal leading-tight">
+                                  {condition}
+                                </FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ))}
+
 
         {renderSection("主诉、现病史", (
           <>
@@ -299,11 +385,11 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </>
         ))}
         
-        {renderSection("个人史与家族史", (
+        {renderSection("个人史与家族史（文字描述，备用）", (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="personalHistory_smokingHistory" render={({ field }) => (<FormItem><FormLabel>吸烟史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="personalHistory_drinkingHistory" render={({ field }) => (<FormItem><FormLabel>饮酒史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="familyHistory_father" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>家族史（父母、兄弟姐妹、子女健康状况）</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="familyHistory_father" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>家族史文字描述（父母、兄弟姐妹、子女健康状况）</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </div>
         ))}
 

@@ -4,14 +4,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
+import { Separator } from "@/components/ui/separator"; // Added Separator
 
 // Mock data fetching function (replace with actual data fetching)
 const mockPatientsList: DoctorPatient[] = [
@@ -22,17 +23,26 @@ const mockPatientsList: DoctorPatient[] = [
       detailedProfile: {
         recordNumber: "MR00123", name: "张三", gender: "male", age: 45, dob: "1979-05-15",
         maritalStatus: "married", occupation: "工程师",
-        address: "示例省示例市示例路123号", // Mapped from patient.contact
+        address: "示例省示例市示例路123号", 
         contactPhone: "13800138001",
         contactEmail: "zhangsan@example.com",
         bloodType: "A",
         educationLevel: "bachelor",
         hadPreviousCheckup: true,
         agreesToIntervention: true,
+        admissionDate: "2024-04-01T00:00:00.000Z", 
+        recordDate: "2024-04-01T00:00:00.000Z",    
         chiefComplaint: "头晕、乏力一周",
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
-        familyHistory_father: "高血压病史", pastIllnesses: ["hypertension", "diabetes"],
+        pastIllnesses: ["hypertension", "diabetes"],
+        familyMedicalHistory: [
+            { relative: "self", conditions: ["高血压", "糖尿病"] },
+            { relative: "father", conditions: ["高血压"] },
+            { relative: "mother", conditions: ["糖尿病"] },
+            { relative: "paternal_grandparents", conditions: [] },
+            { relative: "maternal_grandparents", conditions: ["高血脂"] },
+        ],
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -55,6 +65,15 @@ const mockPatientsList: DoctorPatient[] = [
 
 const getPatientDetails = (patientId: string): DoctorPatient | null => {
   return mockPatientsList.find(p => p.id === patientId) || null;
+};
+
+const allFamilyConditions = ["高血压", "糖尿病", "冠心病", "高血脂", "肥胖", "脑卒中", "骨质疏松", "老年痴呆", "肺癌", "肝癌", "胃肠癌", "前列腺癌", "乳腺癌", "宫颈癌"];
+const relativesMap: Record<FamilyMedicalHistoryEntry["relative"], string> = {
+  self: "本人",
+  father: "父亲",
+  mother: "母亲",
+  paternal_grandparents: "祖父母",
+  maternal_grandparents: "外祖父母",
 };
 
 
@@ -205,6 +224,37 @@ export default function DoctorPatientDetailPage() {
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
                 </p>
               )}
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Heart className="mr-2 h-4 w-4 text-primary"/>家族病史及患病情况</h3>
+                {patient.detailedProfile?.familyMedicalHistory && patient.detailedProfile.familyMedicalHistory.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="p-1 border text-left">亲属</th>
+                          {allFamilyConditions.map(disease => (
+                            <th key={disease} className="p-1 border text-center min-w-[50px]">{disease.substring(0,2)}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {patient.detailedProfile.familyMedicalHistory.map(entry => (
+                          <tr key={entry.relative}>
+                            <td className="p-1 border font-medium">{relativesMap[entry.relative]}</td>
+                            {allFamilyConditions.map(disease => (
+                              <td key={`${entry.relative}-${disease}`} className="p-1 border text-center">
+                                {entry.conditions.includes(disease) ? <Check className="h-3 w-3 text-green-600 mx-auto" /> : <span className="text-muted-foreground">-</span>}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : <p className="text-muted-foreground">暂无家族病史记录。</p>}
+              </div>
+
               <p className="text-xs text-muted-foreground pt-4">
                 更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
               </p>
@@ -222,7 +272,6 @@ export default function DoctorPatientDetailPage() {
               {patient.detailedProfile?.chiefComplaint && <p><strong>主诉:</strong> {patient.detailedProfile.chiefComplaint}</p>}
               {patient.detailedProfile?.historyOfPresentIllness && <p><strong>现病史:</strong> {patient.detailedProfile.historyOfPresentIllness}</p>}
               {patient.detailedProfile?.pastMedicalHistoryDetails && <p><strong>既往史:</strong> {patient.detailedProfile.pastMedicalHistoryDetails}</p>}
-              {patient.detailedProfile?.familyHistory_father && <p><strong>家族史 (父亲):</strong> {patient.detailedProfile.familyHistory_father}</p>}
               <p className="text-xs text-muted-foreground pt-4">详细病历信息请点击 "编辑病人信息" 查看或修改。</p>
             </CardContent>
           </Card>
@@ -268,4 +317,3 @@ export default function DoctorPatientDetailPage() {
     </div>
   );
 }
-

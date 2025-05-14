@@ -3,14 +3,14 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, FamilyMedicalHistoryEntry } from "@/lib/types"; // Added FamilyMedicalHistoryEntry
 import { DoctorPatientProfileForm } from "@/components/doctor/patient-profile/DoctorPatientProfileForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, UserCog } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { format, parseISO } from "date-fns"; // Import format and parseISO
+import { format, parseISO } from "date-fns"; 
 
 // Mock data fetching function (consistent with the detail page)
 const mockPatientsList: DoctorPatient[] = [
@@ -21,19 +21,26 @@ const mockPatientsList: DoctorPatient[] = [
       detailedProfile: {
         recordNumber: "MR00123", name: "张三", gender: "male", age: 45, dob: "1979-05-15",
         maritalStatus: "married", occupation: "工程师",
-        address: "示例省示例市示例路123号",
+        address: "示例省示例市示例路123号", 
         contactPhone: "13800138001",
         contactEmail: "zhangsan@example.com",
         bloodType: "A",
         educationLevel: "bachelor",
         hadPreviousCheckup: true,
         agreesToIntervention: false,
-        admissionDate: "2024-04-01T00:00:00.000Z", // Example ISO string
-        recordDate: "2024-04-01T00:00:00.000Z",    // Example ISO string
+        admissionDate: "2024-04-01T00:00:00.000Z", 
+        recordDate: "2024-04-01T00:00:00.000Z",    
         chiefComplaint: "头晕、乏力一周",
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
-        familyHistory_father: "高血压病史", pastIllnesses: ["hypertension", "diabetes"],
+        pastIllnesses: ["hypertension", "diabetes"],
+        familyMedicalHistory: [ // Added mock family history
+            { relative: "self", conditions: ["高血压", "糖尿病"] },
+            { relative: "father", conditions: ["高血压"] },
+            { relative: "mother", conditions: ["糖尿病"] },
+            { relative: "paternal_grandparents", conditions: [] },
+            { relative: "maternal_grandparents", conditions: ["高血脂"] },
+        ],
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -152,3 +159,4 @@ export default function EditPatientProfilePage() {
     </div>
   );
 }
+

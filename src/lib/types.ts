@@ -88,7 +88,7 @@ export interface Consultation {
   date: string; 
   timestamp: Timestamp | Date; 
   question: string;
-  status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled';
+  status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
   reply?: string;
   doctorReplyTimestamp?: Timestamp | Date; 
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
@@ -160,7 +160,7 @@ export interface DoctorPatient {
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
   pastHistory?: string;
-  familyHistory?: string;
+  // familyHistory field removed as it's now part of detailedProfile
   allergies?: string;
   healthDataSummary?: string;
   reports?: ExaminationReport[];
@@ -172,7 +172,7 @@ export interface DetailedPatientProfile {
   name: string;
   gender?: Gender;
   age?: number;
-  dob?: string; // Added dob
+  dob?: string; 
   maritalStatus?: MaritalStatus;
   occupation?: string;
   nationality?: string;
@@ -201,10 +201,11 @@ export interface DetailedPatientProfile {
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string;
 
-  familyHistory_father?: string;
+  familyHistory_father?: string; // Kept for simple text input if needed, but new structure is preferred
   familyHistory_mother?: string;
   familyHistory_siblings?: string;
   familyHistory_children?: string;
+  familyMedicalHistory?: FamilyMedicalHistoryEntry[]; // New structured family history
 
   physicalExam_temperature?: string; 
   physicalExam_pulseRate?: string; 
@@ -223,13 +224,12 @@ export interface DetailedPatientProfile {
   chiefPhysician?: string;
   recordingPhysician?: string;
 
-  // New fields for basic info based on user request
   bloodType?: BloodType;
-  educationLevel?: string; // e.g., 'bachelor', 'master'
+  educationLevel?: string; 
   hadPreviousCheckup?: boolean;
   agreesToIntervention?: boolean;
-  contactPhone?: string; // Already in UserProfile, ensure consistency if needed here
-  contactEmail?: string; // Already in UserProfile, ensure consistency if needed here
+  contactPhone?: string; 
+  contactEmail?: string; 
 }
 
 
@@ -424,4 +424,3 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
-
