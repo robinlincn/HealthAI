@@ -23,12 +23,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, MedicationEntry, YesNoOption, FrequencyOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, DietaryIntakeOption } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid, parse } from "date-fns";
-import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { CalendarIcon, PlusCircle, Trash2, Activity, Stethoscope, Info, Heart, AlertTriangle, TestTube, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed } from "lucide-react";
+import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
@@ -47,6 +47,14 @@ const pastIllnessOptions = [
 const familyMedicalHistoryEntrySchema = z.object({
   relative: z.enum(["self", "father", "mother", "paternal_grandparents", "maternal_grandparents"]),
   conditions: z.array(z.string()),
+});
+
+const medicationEntrySchema = z.object({
+  id: z.string(),
+  drugName: z.string().min(1, "药物名称不能为空。"),
+  dosage: z.string().min(1, "剂量不能为空。"),
+  frequency: z.string().min(1, "使用频次不能为空。"),
+  notes: z.string().optional(),
 });
 
 
@@ -108,21 +116,96 @@ const patientProfileSchema = z.object({
   chiefPhysician: z.string().optional(),
   recordingPhysician: z.string().optional(),
 
-  // New fields from user request
   currentSymptoms: z.array(z.string()).optional(),
   allergies: z.array(z.string()).optional(),
   operationHistory: z.array(z.string()).optional(),
   bloodTransfusionHistory: z.string().optional(),
   medicationCategories: z.array(z.string()).optional(),
   contactHistory: z.array(z.string()).optional(),
-  // Fields for existing medicationHistory (detailed entries)
-  medicationHistory: z.array(z.object({
-    id: z.string(),
-    drugName: z.string().min(1, "药物名称不能为空。"),
-    dosage: z.string().min(1, "剂量不能为空。"),
-    frequency: z.string().min(1, "使用频次不能为空。"),
-    notes: z.string().optional(),
-  })).optional(),
+  medicationHistory: z.array(medicationEntrySchema).optional(),
+  otherMedicalInfo: z.string().optional(),
+  healthGoals: z.array(z.string()).optional(),
+  
+  // Detailed lifestyle questions
+  contactHistory_oy: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  contactHistory_dust: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  contactHistory_toxic: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  contactHistory_highTemp: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  contactHistory_lowTemp: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  contactHistory_noise: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  contactHistory_radiation: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+
+  dietaryHabits_breakfastDays: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+  dietaryHabits_lateSnackDays: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+  dietaryHabits_badHabits: z.array(z.string()).optional(), 
+  dietaryHabits_preferences: z.array(z.string()).optional(), 
+  dietaryHabits_foodTypePreferences: z.array(z.string()).optional(), 
+
+  dietaryIntake_staple: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_meat: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_fish: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_eggs: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_dairy: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_soy: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_vegetables: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_fruits: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+  dietaryIntake_water: z.string().optional() as z.ZodType<DietaryIntakeOption | undefined>,
+
+  exercise_workHours: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+  exercise_sedentaryHours: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+  exercise_weeklyFrequency: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+  exercise_durationPerSession: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+  exercise_intensity: z.string().optional() as z.ZodType<ExerciseIntensityOption | undefined>,
+
+  smoking_status: z.string().optional() as z.ZodType<SmokingStatusOption | undefined>,
+  smoking_cigarettesPerDay: z.string().optional(), 
+  smoking_years: z.string().optional(), 
+  smoking_passiveDays: z.string().optional() as z.ZodType<FrequencyOption | undefined>,
+
+  drinking_status: z.string().optional() as z.ZodType<DrinkingStatusOption | undefined>,
+  drinking_type: z.string().optional() as z.ZodType<AlcoholTypeOption | undefined>,
+  drinking_amountPerDay: z.string().optional(), 
+  drinking_years: z.string().optional(), 
+
+  mentalHealth_majorEvents: z.string().optional() as z.ZodType<YesNoOption | undefined>,
+  mentalHealth_impactOnLife: z.enum(['几乎没有', '有一点', '较明显', '很大']).optional(),
+  mentalHealth_stressLevel: z.enum(['几乎没有', '有一点', '较明显', '很大']).optional(),
+  mentalHealth_sas_anxiety: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_fear: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_panic: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_goingCrazy: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_misfortune: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_trembling: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_bodyPain: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_fatigue: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_restlessness: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_palpitations: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_dizziness: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_fainting: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_breathingDifficulty: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_paresthesia: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_stomachPain: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_frequentUrination: z.string().optional() as z.ZodType<SASOption | undefined>,
+  mentalHealth_sas_sweating: z.string().optional() as z.ZodType<SASOption | undefined>,
+
+  adherence_selfAssessmentBody: z.string().optional() as z.ZodType<AdherenceBodyOption | undefined>,
+  adherence_selfAssessmentMind: z.string().optional() as z.ZodType<AdherenceMindOption | undefined>,
+  adherence_priorityProblems: z.array(z.string()).optional(), 
+  adherence_doctorAdviceCompliance: z.string().optional() as z.ZodType<AdherenceComplianceOption | undefined>,
+  adherence_healthPromotionMethods: z.array(z.string()).optional(), 
+  adherence_otherHealthPromotion: z.string().optional(),
+
+  sleep_adequacy: z.string().optional() as z.ZodType<SleepAdequacyOption | undefined>,
+
+  otherInfo_medicationsUsed: z.string().optional(), 
+  otherInfo_contactPreference_method: z.string().optional() as z.ZodType<ContactPreferenceMethod | undefined | string>, 
+  otherInfo_contactPreference_method_other: z.string().optional(),
+  otherInfo_contactPreference_frequency: z.string().optional() as z.ZodType<ContactPreferenceFrequency | undefined | string>,
+  otherInfo_contactPreference_frequency_other: z.string().optional(),
+  otherInfo_contactPreference_time: z.string().optional() as z.ZodType<ContactPreferenceTime | undefined | string>,
+  otherInfo_contactPreference_time_other: z.string().optional(),
+  otherInfo_suggestions: z.string().optional(), 
+  otherInfo_serviceSatisfaction: z.string().optional() as z.ZodType<ServiceSatisfactionOption | undefined>,
 });
 
 type PatientProfileFormValues = z.infer<typeof patientProfileSchema>;
@@ -148,12 +231,11 @@ const defaultFamilyHistory: FamilyMedicalHistoryEntry[] = [
   { relative: "maternal_grandparents", conditions: [] },
 ];
 
-// Options for new sections
 const currentSymptomsOptions = ["心情烦躁", "情绪低落", "体重下降", "严重失眠", "健忘", "经常头痛", "头晕", "皮肤瘙痒", "视力下降", "耳鸣", "经常鼻出血", "鼻涕带血", "声音嘶哑", "气喘", "经常干咳", "咳痰带血", "心慌", "胸闷", "胸痛", "吞咽不适或梗塞感", "食欲减退", "反酸", "嗳气", "腹胀", "腹痛", "腹部包块", "便秘", "腹泻", "便血", "大便变细", "尿频", "血尿", "肢体麻痛", "无力", "腰背痛", "女性血性白带", "接触性出血"];
-const allergyOptions = ["青霉素", "头孢类", "海鲜", "牛奶", "花粉或尘螨", "洗洁剂", "化妆品", "磺胺类", "链黄素", "鸡蛋", "粉尘"]; // "其他" will be a text field or handled differently if needed
-const operationOptions = ["头颅（含脑）", "眼耳鼻咽喉", "颌面部及口腔", "颈部或甲状腺胸部（含肺部）", "心脏（含心脏介入）", "外周血管", "胃肠", "肝胆", "肾脏", "脊柱", "四肢及关节", "膀胱", "妇科", "乳腺", "前列腺"]; // "其它" implies a text field
-const medicationCategoryOptions = ["降压药", "降糖药", "降脂药", "降尿酸药", "抗心律失常药", "缓解哮喘药物", "强的松类药物", "解热镇痛药（如布洛芬等）", "雌激素类药物", "利尿剂", "镇静剂或安眠药", "中草药", "避孕药", "抗抑郁药物"]; // "其他" implies text
-const contactHistoryOptions = ["油烟", "粉烟尘", "毒、致癌物", "高温", "低温", "噪音", "辐射"];
+const allergyOptions = ["青霉素", "头孢类", "海鲜", "牛奶", "花粉或尘螨", "洗洁剂", "化妆品", "磺胺类", "链黄素", "鸡蛋", "粉尘"];
+const operationOptions = ["头颅（含脑）", "眼耳鼻咽喉", "颌面部及口腔", "颈部或甲状腺胸部（含肺部）", "心脏（含心脏介入）", "外周血管", "胃肠", "肝胆", "肾脏", "脊柱", "四肢及关节", "膀胱", "妇科", "乳腺", "前列腺"];
+const medicationCategoryOptions = ["降压药", "降糖药", "降脂药", "降尿酸药", "抗心律失常药", "缓解哮喘药物", "强的松类药物", "解热镇痛药（如布洛芬等）", "雌激素类药物", "利尿剂", "镇静剂或安眠药", "中草药", "避孕药", "抗抑郁药物"];
+const contactHistoryOptions: YesNoOption[] = ["是", "否", "不详"];
 
 
 export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfileFormProps) {
@@ -189,7 +271,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       operationHistory: initialDetailedProfile.operationHistory || [],
       bloodTransfusionHistory: initialDetailedProfile.bloodTransfusionHistory || "",
       medicationCategories: initialDetailedProfile.medicationCategories || [],
-      contactHistory: initialDetailedProfile.contactHistory || [],
+      contactHistory: initialDetailedProfile.contactHistory || [], // Corrected from array of strings
       medicationHistory: initialDetailedProfile.medicationHistory || [],
     },
   });
@@ -221,7 +303,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
       operationHistory: currentDetailedProfile.operationHistory || [],
       bloodTransfusionHistory: currentDetailedProfile.bloodTransfusionHistory || "",
       medicationCategories: currentDetailedProfile.medicationCategories || [],
-      contactHistory: currentDetailedProfile.contactHistory || [],
+      contactHistory: currentDetailedProfile.contactHistory || [], // Corrected from array of strings
       medicationHistory: currentDetailedProfile.medicationHistory || [],
     });
   }, [patient, form]);
@@ -262,49 +344,45 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
   };
   
   
-  const renderCheckboxArrayField = (name: keyof PatientProfileFormValues, label: string, options: string[], otherOptionLabel?: string) => (
+ const renderCheckboxArrayField = (formFieldName: keyof PatientProfileFormValues, label: string, optionsArray: readonly string[], otherOptionLabel?: string) => (
     <FormField
       control={form.control}
-      name={name as any}
-      render={() => (
+      name={formFieldName as any}
+      render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2 border rounded-md">
-            {options.map((optionValue) => (
-              <FormField
-                key={optionValue}
-                control={form.control}
-                name={name as any}
-                render={({ field }) => {
-                  const isChecked = field.value?.includes(optionValue);
-                  return (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={isChecked}
-                          disabled={!isEditing}
-                          onCheckedChange={(checked) => {
-                            return checked
-                              ? field.onChange([...(field.value || []), optionValue])
-                              : field.onChange(
-                                  (field.value || []).filter(
-                                    (value: string) => value !== optionValue
-                                  )
-                                );
-                          }}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal leading-tight">
-                        {optionValue}
-                      </FormLabel>
-                    </FormItem>
-                  );
-                }}
-              />
+            {optionsArray.map((optionValue) => (
+              <FormItem
+                key={optionValue} // Key is now the string optionValue, ensure these are unique within optionsArray
+                className="flex flex-row items-center space-x-2 space-y-0"
+              >
+                <FormControl>
+                  <Checkbox
+                    checked={(field.value || []).includes(optionValue)}
+                    disabled={!isEditing}
+                    onCheckedChange={(checked) => {
+                      const currentArrayValue = field.value || [];
+                      if (checked) {
+                        field.onChange([...currentArrayValue, optionValue]);
+                      } else {
+                        field.onChange(
+                          currentArrayValue.filter(
+                            (value: string) => value !== optionValue
+                          )
+                        );
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormLabel className="text-sm font-normal leading-tight">
+                  {optionValue}
+                </FormLabel>
+              </FormItem>
             ))}
           </div>
           {/* TODO: Add "Other" text input if otherOptionLabel is provided */}
-          <FormMessage />
+          <FormMessage /> {/* This FormMessage is for the array field itself */}
         </FormItem>
       )}
     />
@@ -358,7 +436,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           </>
         ))}
         
-        {renderSection("家族病史及患病情况", Activity, (
+        {renderSection("家族病史及患病情况", Heart, (
           <FormField
             control={form.control}
             name="familyMedicalHistory"
@@ -416,26 +494,26 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           />
         ))}
 
-        {renderSection("现有不适症状", Stethoscope, renderCheckboxArrayField("currentSymptoms", "选择症状", currentSymptomsOptions))}
-        {renderSection("过敏史", Stethoscope, renderCheckboxArrayField("allergies", "选择过敏原", allergyOptions, "其他过敏源"))}
+        {renderSection("现有不适症状", AlertTriangle, renderCheckboxArrayField("currentSymptoms", "选择症状", currentSymptomsOptions))}
+        {renderSection("过敏史", TestTube, renderCheckboxArrayField("allergies", "选择过敏原", allergyOptions, "其他过敏源"))}
         {renderSection("手术史", Stethoscope, renderCheckboxArrayField("operationHistory", "选择手术史", operationOptions, "其他手术"))}
-        {renderSection("输血史", Stethoscope, (
-            <FormField control={form.control} name="bloodTransfusionHistory" render={({ field }) => (<FormItem><FormLabel>输血史详情</FormLabel><FormControl><Textarea rows={2} placeholder="请描述输血时间及原因" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+        {renderSection("输血史", Syringe, (
+            <FormField control={form.control} name="bloodTransfusionHistory" render={({ field }) => (<FormItem><FormLabel>输血史详情</FormLabel><FormControl><Textarea rows={2} placeholder="请描述输血时间及输血原因" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
         ))}
-        {renderSection("用药史（类别）", Stethoscope, renderCheckboxArrayField("medicationCategories", "选择用药类别", medicationCategoryOptions, "其他药物类别"))}
-        {renderSection("接触史", Stethoscope, renderCheckboxArrayField("contactHistory", "选择接触史", contactHistoryOptions))}
+        {renderSection("用药史（类别）", Pill, renderCheckboxArrayField("medicationCategories", "选择用药类别", medicationCategoryOptions, "其他药物类别"))}
+        {renderSection("接触史", Wind, renderCheckboxArrayField("contactHistory", "选择接触史", contactHistoryOptions as string[]))}
 
 
-        {renderSection("主诉、现病史", Stethoscope, (
+        {renderSection("主诉、现病史", Activity, (
           <>
             <FormField control={form.control} name="chiefComplaint" render={({ field }) => (<FormItem><FormLabel>主诉</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="historyOfPresentIllness" render={({ field }) => (<FormItem><FormLabel>现病史</FormLabel><FormControl><Textarea rows={4} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </>
         ))}
 
-        {renderSection("既往史", Stethoscope, (
+        {renderSection("既往史", Activity, (
           <>
-            {renderCheckboxArrayField("pastIllnesses", "主要既往疾病", pastIllnessOptions)}
+            {renderCheckboxArrayField("pastIllnesses", "主要既往疾病", pastIllnessOptions.map(o => o.label))}
             <FormField control={form.control} name="pastMedicalHistoryDetails" render={({ field }) => (<FormItem><FormLabel>其他既往史详情</FormLabel><FormControl><Textarea rows={3} placeholder="其他重要疾病、手术、外伤、输血史等" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
              <FormField control={form.control} name="vaccinationHistory" render={({ field }) => (<FormItem><FormLabel>预防接种史</FormLabel><FormControl><Textarea rows={2} {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
           </>
@@ -445,7 +523,6 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="personalHistory_smokingHistory" render={({ field }) => (<FormItem><FormLabel>吸烟史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="personalHistory_drinkingHistory" render={({ field }) => (<FormItem><FormLabel>饮酒史</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            {/* Removed familyHistory_father, etc. as we have the structured version now */}
           </div>
         ))}
 
