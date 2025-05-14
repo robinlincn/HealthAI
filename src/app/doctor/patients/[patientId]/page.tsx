@@ -4,10 +4,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind } from "lucide-react"; // Added more icons
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Pill } from "lucide-react"; // Added Utensils, Pill
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -50,41 +50,38 @@ const mockPatientsList: DoctorPatient[] = [
         bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
         contactHistory: ["油烟"],
-        medicationHistory: [
-            { id: "med1", drugName: "代文", dosage: "80mg*2", frequency: "一粒/次/天 (早晨空腹)", notes: "2016年开始服药" },
-        ],
+        dietaryHabits_breakfastDays: '7天',
+        dietaryHabits_lateSnackDays: '1-2天',
+        dietaryHabits_badHabits: ['吃饭过快', '吃得过饱'],
+        dietaryHabits_preferences: ['咸', '辣'],
+        dietaryHabits_foodTypePreferences: ['油炸食品', '经常吃快餐'],
+        dietaryIntake_staple: '2-4碗',
+        dietaryIntake_meat: '1-2两',
+        dietaryIntake_fish: '<1两',
+        dietaryIntake_eggs: '1-2个',
+        dietaryIntake_dairy: '1-2杯',
+        dietaryIntake_soy: '0.5-1两',
+        dietaryIntake_vegetables: '6-10两',
+        dietaryIntake_fruits: '1-4两',
+        dietaryIntake_water: '6-9杯',
+        exercise_workHours: '≥8小时',
+        exercise_sedentaryHours: '5-8小时',
+        exercise_weeklyFrequency: '偶尔（1-2次/周）',
+        exercise_durationPerSession: '30-60分钟',
+        exercise_intensity: '中度运动',
+        smoking_status: '吸烟',
+        smoking_cigarettesPerDay: '5-15支',
+        smoking_years: '10-20年',
+        smoking_passiveDays: '1-2天',
+        drinking_status: '偶尔',
+        drinking_type: '啤酒',
+        drinking_amountPerDay: '<2两',
+        drinking_years: '5-15年',
         otherMedicalInfo: "长期服用降压药。",
         healthGoals: ["控制血糖, 防止并发症"],
-        operationHistory_text: "2010年阑尾炎切除术", // Example if there's an "other" field
+        operationHistory_text: "2010年阑尾炎切除术", 
         bloodTransfusionHistory_details: "无",
         contactHistory_oy: "是", 
-        dietaryHabits_breakfastDays: "7",
-        dietaryHabits_lateSnackDays: "1-2",
-        dietaryHabits_badHabits: ["吃饭过快", "吃得过饱"],
-        dietaryHabits_preferences: ["咸", "辣"],
-        dietaryHabits_foodTypePreferences: ["油炸食品"],
-        dietaryIntake_staple: "2-4碗",
-        dietaryIntake_meat: "1-2两",
-        dietaryIntake_fish: "<1两",
-        dietaryIntake_eggs: "1-2个",
-        dietaryIntake_dairy: "1-2杯",
-        dietaryIntake_soy: "0.5-1两",
-        dietaryIntake_vegetables: "6-10两",
-        dietaryIntake_fruits: "1-4两",
-        dietaryIntake_water: "6-9杯",
-        exercise_workHours: "≥8小时",
-        exercise_sedentaryHours: "5-8小时",
-        exercise_weeklyFrequency: "偶尔（1-2次/周）",
-        exercise_durationPerSession: "30-60分钟",
-        exercise_intensity: "中度运动",
-        smoking_status: "吸烟",
-        smoking_cigarettesPerDay: "5-15支",
-        smoking_years: "10-20年",
-        smoking_passiveDays: "1-2天",
-        drinking_status: "偶尔",
-        drinking_type: "啤酒",
-        drinking_amountPerDay: "<2两",
-        drinking_years: "5-15年",
         mentalHealth_majorEvents: "否",
         mentalHealth_impactOnLife: "有一点",
         mentalHealth_stressLevel: "较明显",
@@ -185,13 +182,22 @@ export default function DoctorPatientDetailPage() {
 
   const renderInfoList = (items?: string[], emptyText: string = "无记录") => {
     if (!items || items.length === 0) {
-      return <p className="text-muted-foreground">{emptyText}</p>;
+      return <p className="text-muted-foreground text-sm">{emptyText}</p>;
     }
     return (
-      <div className="flex flex-wrap gap-2">
-        {items.map(item => <Badge key={item} variant="secondary">{item}</Badge>)}
+      <div className="flex flex-wrap gap-1">
+        {items.map(item => <Badge key={item} variant="secondary" className="text-xs">{item}</Badge>)}
       </div>
     );
+  };
+
+  const renderYesNo = (value?: YesNoOption | boolean) => {
+    if (typeof value === 'boolean') {
+        return value ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />;
+    }
+    if (value === '是') return <Check className="h-5 w-5 text-green-600" />;
+    if (value === '否') return <X className="h-5 w-5 text-red-600" />;
+    return <span className="text-muted-foreground text-sm">{value || '未记录'}</span>;
   };
 
 
@@ -270,13 +276,11 @@ export default function DoctorPatientDetailPage() {
 
                 <div className="flex items-center">
                   <strong className="mr-1">以前在本机构体检过:</strong> 
-                  {patient.detailedProfile?.hadPreviousCheckup ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />}
-                  <span className="ml-1">{patient.detailedProfile?.hadPreviousCheckup ? '是' : '否'}</span>
+                  {renderYesNo(patient.detailedProfile?.hadPreviousCheckup)}
                 </div>
                 <div className="flex items-center md:col-span-2">
                   <strong className="mr-1">同意接受健康干预服务:</strong> 
-                  {patient.detailedProfile?.agreesToIntervention ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />}
-                  <span className="ml-1">{patient.detailedProfile?.agreesToIntervention ? '是' : '否'}</span>
+                  {renderYesNo(patient.detailedProfile?.agreesToIntervention)}
                 </div>
 
                 <div><strong>手机:</strong> {patient.detailedProfile?.contactPhone || patient.contact || '未提供'}</div>
@@ -329,7 +333,7 @@ export default function DoctorPatientDetailPage() {
               <Separator className="my-4" /> 
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-destructive"/>现有不适症状</h3>
-                {renderInfoList(patient.detailedProfile?.currentSymptoms, "无记录")}
+                {renderInfoList(patient.detailedProfile?.currentSymptoms, "无不适症状记录")}
               </div>
 
               <Separator className="my-4" />
@@ -347,12 +351,12 @@ export default function DoctorPatientDetailPage() {
               <Separator className="my-4" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Syringe className="mr-2 h-4 w-4 text-orange-500"/>输血史</h3>
-                <p className="text-muted-foreground">{patient.detailedProfile?.bloodTransfusionHistory || "无输血史记录"}</p>
+                <p className="text-muted-foreground text-sm">{patient.detailedProfile?.bloodTransfusionHistory || "无输血史记录"}</p>
               </div>
 
               <Separator className="my-4" />
               <div>
-                <h3 className="text-md font-semibold mb-2 flex items-center"><ClipboardList className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Pill className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
                 {renderInfoList(patient.detailedProfile?.medicationCategories, "无用药史记录")}
               </div>
 
@@ -361,6 +365,19 @@ export default function DoctorPatientDetailPage() {
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Wind className="mr-2 h-4 w-4 text-teal-500"/>接触史</h3>
                 {renderInfoList(patient.detailedProfile?.contactHistory, "无特殊接触史记录")}
               </div>
+              
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                    <p><strong>平均每周吃早餐:</strong> {patient.detailedProfile?.dietaryHabits_breakfastDays || '未记录'}</p>
+                    <p><strong>平均每周吃夜宵:</strong> {patient.detailedProfile?.dietaryHabits_lateSnackDays || '未记录'}</p>
+                    <div className="md:col-span-2"><strong>不良饮食习惯:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_badHabits, "无")}</div>
+                    <div className="md:col-span-2"><strong>饮食口味偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_preferences, "无")}</div>
+                    <div className="md:col-span-2"><strong>食物类型偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_foodTypePreferences, "无")}</div>
+                </div>
+              </div>
+
 
               <p className="text-xs text-muted-foreground pt-4">
                 更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
@@ -399,9 +416,21 @@ export default function DoctorPatientDetailPage() {
               <Separator />
               <h4 className="font-semibold pt-2">个人史与生活习惯:</h4>
               {patient.detailedProfile?.contactHistory_oy && <p><strong>油烟接触:</strong> {patient.detailedProfile.contactHistory_oy}</p>}
-              {patient.detailedProfile?.dietaryHabits_breakfastDays && <p><strong>每周早餐天数:</strong> {patient.detailedProfile.dietaryHabits_breakfastDays}天</p>}
-              {patient.detailedProfile?.smoking_status && <p><strong>吸烟情况:</strong> {patient.detailedProfile.smoking_status}</p>}
-              {patient.detailedProfile?.drinking_status && <p><strong>饮酒情况:</strong> {patient.detailedProfile.drinking_status}</p>}
+              
+              {/* Dietary Intake will be shown in its own section or tab in future if very detailed */}
+              <h4 className="font-semibold pt-2">膳食摄入 (摘要):</h4>
+                <p>主食日均: {patient.detailedProfile?.dietaryIntake_staple || '未记录'}</p>
+                <p>肉类日均: {patient.detailedProfile?.dietaryIntake_meat || '未记录'}</p>
+                <p>饮水日均: {patient.detailedProfile?.dietaryIntake_water || '未记录'}</p>
+              
+              <h4 className="font-semibold pt-2">运动锻炼 (摘要):</h4>
+                <p>每周运动频率: {patient.detailedProfile?.exercise_weeklyFrequency || '未记录'}</p>
+                <p>运动强度: {patient.detailedProfile?.exercise_intensity || '未记录'}</p>
+
+              <h4 className="font-semibold pt-2">吸烟饮酒 (摘要):</h4>
+                <p>吸烟情况: {patient.detailedProfile?.smoking_status || '未记录'}</p>
+                <p>饮酒情况: {patient.detailedProfile?.drinking_status || '未记录'}</p>
+
 
               <Separator />
               <h4 className="font-semibold pt-2">其他信息:</h4>
