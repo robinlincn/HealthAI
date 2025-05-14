@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,28 +7,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types"; // Make sure DetailedPatientProfile is imported
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link"; // Import Link for navigation
 
 // Mock data fetching function (replace with actual data fetching)
-const getPatientDetails = (patientId: string): DoctorPatient | null => {
-  const mockPatientsList: DoctorPatient[] = [
+// Ensure this mock data includes comprehensive detailedProfile for testing
+const mockPatientsList: DoctorPatient[] = [
     { 
       id: "pat001", name: "张三", age: 45, gender: "male", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01",
       contact: "13800138001",
       emergencyContact: { name: "李四", phone: "13900139002", relationship: "配偶" },
       detailedProfile: {
-        recordNumber: "MR00123",
-        name: "张三",
-        gender: "male",
-        age: 45,
-        maritalStatus: "married",
-        occupation: "工程师",
+        recordNumber: "MR00123", name: "张三", gender: "male", age: 45, maritalStatus: "married", occupation: "工程师",
         chiefComplaint: "头晕、乏力一周",
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
-        familyHistory_father: "高血压病史",
+        familyHistory_father: "高血压病史", pastIllnesses: ["hypertension", "diabetes"],
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -38,7 +35,7 @@ const getPatientDetails = (patientId: string): DoctorPatient | null => {
     { 
       id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002",
       emergencyContact: { name: "王小明", phone: "13900239003", relationship: "儿子" },
-      detailedProfile: { name: "李四", gender: "female", age: 62, chiefComplaint: "胸闷、气短一月" },
+      detailedProfile: { name: "李四", gender: "female", age: 62, chiefComplaint: "胸闷、气短一月", pastIllnesses: ["heart_disease"] },
       healthDataSummary: "心率稳定，偶有胸闷。",
     },
     { 
@@ -47,6 +44,8 @@ const getPatientDetails = (patientId: string): DoctorPatient | null => {
       healthDataSummary: "血脂水平持续较高。",
     },
   ];
+
+const getPatientDetails = (patientId: string): DoctorPatient | null => {
   return mockPatientsList.find(p => p.id === patientId) || null;
 };
 
@@ -61,6 +60,7 @@ export default function DoctorPatientDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
+    // Simulate fetching data
     setTimeout(() => {
       const details = getPatientDetails(patientId);
       setPatient(details);
@@ -68,17 +68,21 @@ export default function DoctorPatientDetailPage() {
     }, 500);
   }, [patientId]);
 
-  const handleEditPatientInfo = () => {
-    // This would typically navigate to an edit page or open a modal form
-    // For now, it's a placeholder matching the image's description
-    toast({
-      title: "编辑功能提示",
-      description: "详细信息编辑功能正在建设中。如需修改，请联系管理员或使用未来的编辑功能。",
-      duration: 5000,
-    });
-    // Example navigation if an edit page exists:
-    // router.push(`/doctor/patients/${patientId}/edit`);
-  };
+  // This function would be used if editing was done via a modal on this page
+  // For navigation to a separate edit page, this specific save handler isn't needed here.
+  // const handleSaveProfile = (updatedDetailedProfile: DetailedPatientProfile) => {
+  //   if (patient) {
+  //     const updatedPatient = { ...patient, detailedProfile: updatedDetailedProfile };
+  //     setPatient(updatedPatient);
+  //     // Here you would also update your main data store / backend
+  //     const patientIndex = mockPatientsList.findIndex(p => p.id === patient.id);
+  //     if (patientIndex !== -1) {
+  //       mockPatientsList[patientIndex] = updatedPatient;
+  //     }
+  //     toast({ title: "病人信息已更新", description: `${updatedPatient.name} 的档案已保存。` });
+  //   }
+  // };
+
 
   if (isLoading) {
     return (
@@ -114,7 +118,8 @@ export default function DoctorPatientDetailPage() {
     );
   }
 
-  const getGenderText = (gender: DoctorPatient['gender']) => {
+  const getGenderText = (gender?: DoctorPatient['gender']) => {
+    if (!gender) return '未知';
     const map = { male: '男', female: '女', other: '其他' };
     return map[gender] || '未知';
   };
@@ -128,8 +133,10 @@ export default function DoctorPatientDetailPage() {
         <h1 className="text-xl md:text-2xl font-semibold text-center sm:text-left flex-grow">
           病人档案: {patient.name}
         </h1>
-        <Button onClick={handleEditPatientInfo} className="self-start sm:self-center">
-          <Edit3 className="mr-2 h-4 w-4" /> 编辑病人信息
+        <Button asChild className="self-start sm:self-center">
+          <Link href={`/doctor/patients/${patientId}/edit`}>
+            <Edit3 className="mr-2 h-4 w-4" /> 编辑病人信息
+          </Link>
         </Button>
       </div>
 
@@ -162,7 +169,7 @@ export default function DoctorPatientDetailPage() {
                  <p><strong>住址:</strong> {patient.detailedProfile.address}</p>
               )}
               <p className="text-xs text-muted-foreground pt-4">
-                详细信息编辑功能正在建设中。如需修改，请联系管理员或使用未来的编辑功能。
+                更多详细信息请点击 "编辑病人信息" 查看或修改。
               </p>
             </CardContent>
           </Card>
@@ -179,7 +186,7 @@ export default function DoctorPatientDetailPage() {
               {patient.detailedProfile?.historyOfPresentIllness && <p><strong>现病史:</strong> {patient.detailedProfile.historyOfPresentIllness}</p>}
               {patient.detailedProfile?.pastMedicalHistoryDetails && <p><strong>既往史:</strong> {patient.detailedProfile.pastMedicalHistoryDetails}</p>}
               {patient.detailedProfile?.familyHistory_father && <p><strong>家族史 (父亲):</strong> {patient.detailedProfile.familyHistory_father}</p>}
-              <p className="text-xs text-muted-foreground pt-4">此为病历摘要。详细病历编辑和查看功能正在建设中。</p>
+              <p className="text-xs text-muted-foreground pt-4">详细病历信息请点击 "编辑病人信息" 查看或修改。</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -191,7 +198,9 @@ export default function DoctorPatientDetailPage() {
             </CardHeader>
             <CardContent>
               <p>{patient.healthDataSummary || "暂无健康数据摘要。"}</p>
-              <p className="text-xs text-muted-foreground pt-4">详细健康数据图表和分析功能正在建设中。可前往“病情分析”模块查看更多。</p>
+              <Button asChild variant="link" className="mt-2 p-0 h-auto">
+                 <Link href={`/doctor/analytics/detail/${patient.id}`}>查看详细数据分析 &rarr;</Link>
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
