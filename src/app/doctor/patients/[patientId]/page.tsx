@@ -4,23 +4,31 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3 } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types"; // Make sure DetailedPatientProfile is imported
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
+import { format, parseISO } from "date-fns";
 
 // Mock data fetching function (replace with actual data fetching)
-// Ensure this mock data includes comprehensive detailedProfile for testing
 const mockPatientsList: DoctorPatient[] = [
     { 
       id: "pat001", name: "张三", age: 45, gender: "male", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01",
       contact: "13800138001",
       emergencyContact: { name: "李四", phone: "13900139002", relationship: "配偶" },
       detailedProfile: {
-        recordNumber: "MR00123", name: "张三", gender: "male", age: 45, maritalStatus: "married", occupation: "工程师",
+        recordNumber: "MR00123", name: "张三", gender: "male", age: 45, dob: "1979-05-15",
+        maritalStatus: "married", occupation: "工程师",
+        address: "示例省示例市示例路123号", // Mapped from patient.contact
+        contactPhone: "13800138001",
+        contactEmail: "zhangsan@example.com",
+        bloodType: "A",
+        educationLevel: "bachelor",
+        hadPreviousCheckup: true,
+        agreesToIntervention: true,
         chiefComplaint: "头晕、乏力一周",
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
@@ -35,12 +43,12 @@ const mockPatientsList: DoctorPatient[] = [
     { 
       id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002",
       emergencyContact: { name: "王小明", phone: "13900239003", relationship: "儿子" },
-      detailedProfile: { name: "李四", gender: "female", age: 62, chiefComplaint: "胸闷、气短一月", pastIllnesses: ["heart_disease"] },
+      detailedProfile: { name: "李四", gender: "female", age: 62, dob: "1962-10-20", chiefComplaint: "胸闷、气短一月", pastIllnesses: ["heart_disease"], bloodType: "O", educationLevel: "senior_high_school" },
       healthDataSummary: "心率稳定，偶有胸闷。",
     },
     { 
       id: "pat003", name: "王五", age: 50, gender: "male", diagnosis: "高血脂", lastVisit: "2024-04-22", contact: "13700137003",
-      detailedProfile: { name: "王五", gender: "male", age: 50, chiefComplaint: "体检发现血脂异常" },
+      detailedProfile: { name: "王五", gender: "male", age: 50, dob: "1974-01-01", chiefComplaint: "体检发现血脂异常", bloodType: "B", educationLevel: "college" },
       healthDataSummary: "血脂水平持续较高。",
     },
   ];
@@ -60,29 +68,12 @@ export default function DoctorPatientDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate fetching data
     setTimeout(() => {
       const details = getPatientDetails(patientId);
       setPatient(details);
       setIsLoading(false);
     }, 500);
   }, [patientId]);
-
-  // This function would be used if editing was done via a modal on this page
-  // For navigation to a separate edit page, this specific save handler isn't needed here.
-  // const handleSaveProfile = (updatedDetailedProfile: DetailedPatientProfile) => {
-  //   if (patient) {
-  //     const updatedPatient = { ...patient, detailedProfile: updatedDetailedProfile };
-  //     setPatient(updatedPatient);
-  //     // Here you would also update your main data store / backend
-  //     const patientIndex = mockPatientsList.findIndex(p => p.id === patient.id);
-  //     if (patientIndex !== -1) {
-  //       mockPatientsList[patientIndex] = updatedPatient;
-  //     }
-  //     toast({ title: "病人信息已更新", description: `${updatedPatient.name} 的档案已保存。` });
-  //   }
-  // };
-
 
   if (isLoading) {
     return (
@@ -118,11 +109,38 @@ export default function DoctorPatientDetailPage() {
     );
   }
 
-  const getGenderText = (gender?: DoctorPatient['gender']) => {
+  const getGenderText = (gender?: Gender) => {
     if (!gender) return '未知';
     const map = { male: '男', female: '女', other: '其他' };
     return map[gender] || '未知';
   };
+
+  const getMaritalStatusText = (status?: MaritalStatus) => {
+    if (!status) return '未知';
+    const map = { unmarried: '未婚', married: '已婚', divorced: '离异', widowed: '丧偶', other: '其他' };
+    return map[status] || '未知';
+  };
+
+  const getBloodTypeText = (type?: BloodType) => {
+    if (!type || type === 'unknown') return '未知';
+    return `${type.toUpperCase()}型`;
+  };
+
+  const getEducationLevelText = (level?: string) => {
+    if (!level) return '未知';
+    const map: { [key: string]: string } = {
+      primary_school: '小学',
+      junior_high_school: '初中',
+      senior_high_school: '高中/中专',
+      college: '大专',
+      bachelor: '本科',
+      master: '硕士',
+      doctorate: '博士',
+      other: '其他',
+    };
+    return map[level] || level;
+  };
+
 
   return (
     <div className="space-y-4 p-1 md:p-4 lg:p-6">
@@ -154,22 +172,41 @@ export default function DoctorPatientDetailPage() {
               <CardTitle className="text-xl">基本信息</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                <p><strong>姓名:</strong> {patient.name}</p>
-                <p><strong>年龄:</strong> {patient.age}岁</p>
-                <p><strong>性别:</strong> {getGenderText(patient.gender)}</p>
-                <p><strong>联系电话:</strong> {patient.contact || "未提供"}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
+                <div><strong>姓名:</strong> {patient.detailedProfile?.name || patient.name}</div>
+                <div><strong>性别:</strong> {getGenderText(patient.detailedProfile?.gender || patient.gender)}</div>
+                <div><strong>生日:</strong> {patient.detailedProfile?.dob ? format(parseISO(patient.detailedProfile.dob), 'yyyy-MM-dd') : (patient.age ? `${patient.age}岁` : '未知')}</div>
+                
+                <div className="md:col-span-3"><strong>家庭地址:</strong> {patient.detailedProfile?.address || '未提供'}</div>
+
+                <div className="flex items-center">
+                  <strong>以前在本机构体检过:</strong> 
+                  {patient.detailedProfile?.hadPreviousCheckup ? <Check className="ml-2 h-5 w-5 text-green-600" /> : <X className="ml-2 h-5 w-5 text-red-600" />}
+                  <span className="ml-1">{patient.detailedProfile?.hadPreviousCheckup ? '是' : '否'}</span>
+                </div>
+                <div className="flex items-center md:col-span-2">
+                  <strong>同意接受健康干预服务:</strong> 
+                  {patient.detailedProfile?.agreesToIntervention ? <Check className="ml-2 h-5 w-5 text-green-600" /> : <X className="ml-2 h-5 w-5 text-red-600" />}
+                  <span className="ml-1">{patient.detailedProfile?.agreesToIntervention ? '是' : '否'}</span>
+                </div>
+
+                <div><strong>手机:</strong> {patient.detailedProfile?.contactPhone || patient.contact || '未提供'}</div>
+                <div className="md:col-span-2"><strong>E-mail:</strong> {patient.detailedProfile?.contactEmail || '未提供'}</div>
+                
+                <div><strong>血型:</strong> {getBloodTypeText(patient.detailedProfile?.bloodType)}</div>
+                <div><strong>婚姻:</strong> {getMaritalStatusText(patient.detailedProfile?.maritalStatus)}</div>
+                
+                <div><strong>职业:</strong> {patient.detailedProfile?.occupation || '未提供'}</div>
+                <div className="md:col-span-2"><strong>文化程度:</strong> {getEducationLevelText(patient.detailedProfile?.educationLevel)}</div>
               </div>
+              
               {patient.emergencyContact && (
-                <p>
+                <p className="pt-2 border-t mt-3">
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
                 </p>
               )}
-              {patient.detailedProfile?.address && (
-                 <p><strong>住址:</strong> {patient.detailedProfile.address}</p>
-              )}
               <p className="text-xs text-muted-foreground pt-4">
-                更多详细信息请点击 "编辑病人信息" 查看或修改。
+                更详细的信息或修改请点击右上角 "编辑病人信息" 按钮。
               </p>
             </CardContent>
           </Card>
@@ -231,3 +268,4 @@ export default function DoctorPatientDetailPage() {
     </div>
   );
 }
+

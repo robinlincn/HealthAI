@@ -27,8 +27,8 @@ export interface UserProfile {
   educationLevel?: string;
   contactPhone: string;
   contactEmail: string;
-  hadPreviousCheckup?: boolean; // 新增：以前在本机构体检过
-  agreesToIntervention?: boolean; // 新增：同意接受健康干预服务
+  hadPreviousCheckup?: boolean; 
+  agreesToIntervention?: boolean; 
 }
 
 export interface EmergencyContact {
@@ -88,7 +88,7 @@ export interface Consultation {
   date: string; 
   timestamp: Timestamp | Date; 
   question: string;
-  status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled'; // Added more statuses
+  status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled';
   reply?: string;
   doctorReplyTimestamp?: Timestamp | Date; 
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
@@ -156,7 +156,7 @@ export interface DoctorPatient {
   gender: Gender;
   diagnosis: string;
   lastVisit: string; // ISO Date string
-  avatarUrl?: string; // Optional avatar URL
+  avatarUrl?: string; 
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
   pastHistory?: string;
@@ -172,13 +172,14 @@ export interface DetailedPatientProfile {
   name: string;
   gender?: Gender;
   age?: number;
+  dob?: string; // Added dob
   maritalStatus?: MaritalStatus;
   occupation?: string;
   nationality?: string;
   birthplace?: string;
   address?: string;
-  admissionDate?: string; // ISO Date String
-  recordDate?: string; // ISO Date String
+  admissionDate?: string; 
+  recordDate?: string; 
   informant?: string;
   reliability?: 'reliable' | 'unreliable' | 'partially_reliable';
   
@@ -186,7 +187,7 @@ export interface DetailedPatientProfile {
   historyOfPresentIllness?: string;
   
   pastMedicalHistoryDetails?: string;
-  pastIllnesses?: string[]; // For checkboxes
+  pastIllnesses?: string[]; 
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
   operationHistory?: string;
@@ -205,23 +206,30 @@ export interface DetailedPatientProfile {
   familyHistory_siblings?: string;
   familyHistory_children?: string;
 
-  physicalExam_temperature?: string; // e.g., "36.5 ℃"
-  physicalExam_pulseRate?: string; // e.g., "75 次/分"
-  physicalExam_respiratoryRate?: string; // e.g., "18 次/分"
-  physicalExam_bloodPressure?: string; // e.g., "120/80 mmHg"
-  physicalExam_height?: string; // e.g., "170 cm"
-  physicalExam_weight?: string; // e.g., "65 kg"
+  physicalExam_temperature?: string; 
+  physicalExam_pulseRate?: string; 
+  physicalExam_respiratoryRate?: string; 
+  physicalExam_bloodPressure?: string; 
+  physicalExam_height?: string; 
+  physicalExam_weight?: string; 
   physicalExam_generalAppearance?: string;
   physicalExam_skinAndMucosa?: string;
-  // ... add other specific exam fields as needed, or use a general text area
-
-  labAuxiliaryExams?: string; // Lab and auxiliary examinations
+  
+  labAuxiliaryExams?: string; 
   initialDiagnosis?: string;
   treatmentPlanOpinion?: string;
 
   attendingPhysician?: string;
   chiefPhysician?: string;
   recordingPhysician?: string;
+
+  // New fields for basic info based on user request
+  bloodType?: BloodType;
+  educationLevel?: string; // e.g., 'bachelor', 'master'
+  hadPreviousCheckup?: boolean;
+  agreesToIntervention?: boolean;
+  contactPhone?: string; // Already in UserProfile, ensure consistency if needed here
+  contactEmail?: string; // Already in UserProfile, ensure consistency if needed here
 }
 
 
@@ -235,8 +243,8 @@ export interface DoctorProfileDetails {
   yearsOfExperience?: number;
   bio?: string;
   avatarUrl?: string; 
-  licenseNumber?: string; // Added for doctor specific details
-  department?: string; // Added for doctor specific details
+  licenseNumber?: string; 
+  department?: string; 
 }
 
 
@@ -249,14 +257,14 @@ export interface SingleOutboundCallTask {
   patientId: string;
   patientName: string;
   content: string;
-  scheduledTime: string; // ISO string for datetime-local
+  scheduledTime: string; 
   callAttempts: number;
-  maxCallAttempts: number; // Max attempts for this task
+  maxCallAttempts: number; 
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; // WeChat name or group name for notification
+  wechatInfo: string; 
   status: CallTaskStatus;
-  creationDate: string; // ISO string
-  lastAttemptTime?: string; // ISO string
+  creationDate: string; 
+  lastAttemptTime?: string; 
   notes?: string;
 }
 
@@ -266,22 +274,22 @@ export interface OutboundCallGroup {
   description?: string;
   patientIds: string[];
   memberCount: number;
-  creationDate: string; // ISO string
+  creationDate: string; 
 }
 
 export interface GroupOutboundCallTask {
   id: string;
   groupId: string;
-  groupName: string; // Denormalized for display
+  groupName: string; 
   content: string;
-  scheduledTime: string; // ISO string for datetime-local
-  callAttempts: number; // Overall attempts for the group task trigger
-  maxCallAttempts: number; // Max attempts for this group task trigger
+  scheduledTime: string; 
+  callAttempts: number; 
+  maxCallAttempts: number; 
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; // General WeChat info for the group notification
-  status: CallTaskStatus; // Status of this specific group task trigger
-  creationDate: string; // ISO string
-  lastExecutionTime?: string; // ISO string for the last time this group task was triggered
+  wechatInfo: string; 
+  status: CallTaskStatus; 
+  creationDate: string; 
+  lastExecutionTime?: string; 
   notes?: string;
 }
 
@@ -406,12 +414,12 @@ export interface SaasOutboundCallTask {
   id: string;
   name: string;
   targetType: 'customer_segment' | 'employee_group' | 'custom_list' | 'individual_patient';
-  targetDetails: string; // e.g., Customer Segment Name, Employee Department, List Name, Patient ID
+  targetDetails: string; 
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-  creationDate: string; // ISO date string
-  scheduledTime?: string; // ISO date string
-  scriptId?: string; // Link to an SOP/script
-  assignedTo?: string; // Employee ID if manual
+  creationDate: string; 
+  scheduledTime?: string; 
+  scriptId?: string; 
+  assignedTo?: string; 
   callCount?: number;
   successCount?: number;
   notes?: string;

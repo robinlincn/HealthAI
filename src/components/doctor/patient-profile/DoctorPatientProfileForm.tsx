@@ -23,10 +23,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { format, parseISO, isValid } from "date-fns";
+import { format, parseISO, isValid, parse } from "date-fns";
 import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -41,7 +41,6 @@ const pastIllnessOptions = [
   { id: 'cancer', label: '恶性肿瘤' },
   { id: 'hepatitis', label: '肝炎' },
   { id: 'tuberculosis', label: '结核病' },
-  // Add more common illnesses as needed
 ];
 
 
@@ -49,12 +48,20 @@ const patientProfileSchema = z.object({
   recordNumber: z.string().optional(),
   name: z.string().min(1, "姓名不能为空"),
   gender: z.enum(['male', 'female', 'other'] as [Gender, ...Gender[]]).optional(),
-  age: z.coerce.number().positive("年龄必须为正数").optional(),
+  dob: z.string().optional().refine(val => !val || isValid(parseISO(val)), { message: "出生日期格式无效" }), // Date as string for input
+  age: z.coerce.number().positive("年龄必须为正数").optional(), // Age is derived or manually entered
   maritalStatus: z.enum(['unmarried', 'married', 'divorced', 'widowed', 'other'] as [MaritalStatus, ...MaritalStatus[]]).optional(),
   occupation: z.string().optional(),
   nationality: z.string().optional(),
   birthplace: z.string().optional(),
   address: z.string().optional(),
+  contactPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的中国大陆手机号码.").or(z.literal("")).optional(),
+  contactEmail: z.string().email("请输入有效的邮箱地址.").or(z.literal("")).optional(),
+  bloodType: z.enum(['A', 'B', 'O', 'AB', 'unknown'] as [BloodType, ...BloodType[]]).optional(),
+  educationLevel: z.string().optional(), // e.g., 'bachelor', 'master'
+  hadPreviousCheckup: z.boolean().default(false).optional(),
+  agreesToIntervention: z.boolean().default(false).optional(),
+
   admissionDate: z.string().optional().refine(val => !val || isValid(parseISO(val)), { message: "入院日期格式无效" }),
   recordDate: z.string().optional().refine(val => !val || isValid(parseISO(val)), { message: "记录日期格式无效" }),
   informant: z.string().optional(),
@@ -63,7 +70,7 @@ const patientProfileSchema = z.object({
   historyOfPresentIllness: z.string().optional(),
   
   pastMedicalHistoryDetails: z.string().optional(),
-  pastIllnesses: z.array(z.string()).optional(), // For checkboxes
+  pastIllnesses: z.array(z.string()).optional(), 
   infectiousDiseases: z.array(z.string()).optional(),
   vaccinationHistory: z.string().optional(),
   operationHistory: z.string().optional(),
@@ -109,33 +116,50 @@ interface DoctorPatientProfileFormProps {
 
 export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfileFormProps) {
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false); // Controls edit mode
+  const [isEditing, setIsEditing] = useState(true); // Default to true for edit page
 
+  const initialDetailedProfile = patient.detailedProfile || {};
   const form = useForm<PatientProfileFormValues>({
     resolver: zodResolver(patientProfileSchema),
     defaultValues: {
-      name: patient.name,
-      gender: patient.gender,
-      age: patient.age,
-      address: patient.contact, // Example, map appropriate fields
-      ...patient.detailedProfile, // Spread detailed profile if exists
-      // Ensure dates are strings for input type=date
-      admissionDate: patient.detailedProfile?.admissionDate ? format(parseISO(patient.detailedProfile.admissionDate), 'yyyy-MM-dd') : undefined,
-      recordDate: patient.detailedProfile?.recordDate ? format(parseISO(patient.detailedProfile.recordDate), 'yyyy-MM-dd') : undefined,
+      name: initialDetailedProfile.name || patient.name,
+      gender: initialDetailedProfile.gender || patient.gender,
+      age: initialDetailedProfile.age || patient.age,
+      dob: initialDetailedProfile.dob ? format(parseISO(initialDetailedProfile.dob), 'yyyy-MM-dd') : undefined,
+      address: initialDetailedProfile.address || patient.contact,
+      contactPhone: initialDetailedProfile.contactPhone || patient.contact,
+      contactEmail: initialDetailedProfile.contactEmail,
+      bloodType: initialDetailedProfile.bloodType,
+      educationLevel: initialDetailedProfile.educationLevel,
+      hadPreviousCheckup: initialDetailedProfile.hadPreviousCheckup || false,
+      agreesToIntervention: initialDetailedProfile.agreesToIntervention || false,
+      ...initialDetailedProfile, // Spread the rest of detailed profile
+      admissionDate: initialDetailedProfile.admissionDate ? format(parseISO(initialDetailedProfile.admissionDate), 'yyyy-MM-dd') : undefined,
+      recordDate: initialDetailedProfile.recordDate ? format(parseISO(initialDetailedProfile.recordDate), 'yyyy-MM-dd') : undefined,
+      pastIllnesses: initialDetailedProfile.pastIllnesses || [],
+      infectiousDiseases: initialDetailedProfile.infectiousDiseases || [],
     },
   });
   
   useEffect(() => {
+    const currentDetailedProfile = patient.detailedProfile || {};
     form.reset({
-      name: patient.name,
-      gender: patient.gender,
-      age: patient.age,
-      address: patient.contact,
-      ...patient.detailedProfile,
-      admissionDate: patient.detailedProfile?.admissionDate ? format(parseISO(patient.detailedProfile.admissionDate), 'yyyy-MM-dd') : undefined,
-      recordDate: patient.detailedProfile?.recordDate ? format(parseISO(patient.detailedProfile.recordDate), 'yyyy-MM-dd') : undefined,
-      pastIllnesses: patient.detailedProfile?.pastIllnesses || [],
-      infectiousDiseases: patient.detailedProfile?.infectiousDiseases || [],
+      name: currentDetailedProfile.name || patient.name,
+      gender: currentDetailedProfile.gender || patient.gender,
+      age: currentDetailedProfile.age || patient.age,
+      dob: currentDetailedProfile.dob ? format(parseISO(currentDetailedProfile.dob), 'yyyy-MM-dd') : undefined,
+      address: currentDetailedProfile.address || patient.contact,
+      contactPhone: currentDetailedProfile.contactPhone || patient.contact,
+      contactEmail: currentDetailedProfile.contactEmail,
+      bloodType: currentDetailedProfile.bloodType,
+      educationLevel: currentDetailedProfile.educationLevel,
+      hadPreviousCheckup: currentDetailedProfile.hadPreviousCheckup || false,
+      agreesToIntervention: currentDetailedProfile.agreesToIntervention || false,
+      ...currentDetailedProfile,
+      admissionDate: currentDetailedProfile.admissionDate ? format(parseISO(currentDetailedProfile.admissionDate), 'yyyy-MM-dd') : undefined,
+      recordDate: currentDetailedProfile.recordDate ? format(parseISO(currentDetailedProfile.recordDate), 'yyyy-MM-dd') : undefined,
+      pastIllnesses: currentDetailedProfile.pastIllnesses || [],
+      infectiousDiseases: currentDetailedProfile.infectiousDiseases || [],
     });
   }, [patient, form]);
 
@@ -144,14 +168,15 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     console.log("Patient profile data submitted:", data);
     const detailedData: DetailedPatientProfile = {
         ...data,
+        dob: data.dob ? parseISO(data.dob).toISOString() : undefined,
         admissionDate: data.admissionDate ? parseISO(data.admissionDate).toISOString() : undefined,
         recordDate: data.recordDate ? parseISO(data.recordDate).toISOString() : undefined,
     };
     onSave(detailedData);
-    setIsEditing(false); // Exit edit mode after saving
+    // setIsEditing(false); // No need to change edit mode on this page
     toast({
       title: "病人信息已更新",
-      description: `${patient.name} 的病历信息已成功保存。`,
+      description: `${data.name} 的病历信息已成功保存。`,
     });
   }
 
@@ -165,7 +190,7 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
   const renderCheckboxArrayField = (name: keyof PatientProfileFormValues, label: string, options: { id: string; label: string }[]) => (
     <FormField
       control={form.control}
-      name={name as any} // Type assertion for array fields
+      name={name as any}
       render={() => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
@@ -208,32 +233,55 @@ export function DoctorPatientProfileForm({ patient, onSave }: DoctorPatientProfi
     />
   );
 
+  const educationLevelOptions = [
+    { value: 'primary_school', label: '小学' },
+    { value: 'junior_high_school', label: '初中' },
+    { value: 'senior_high_school', label: '高中/中专' },
+    { value: 'college', label: '大专' },
+    { value: 'bachelor', label: '本科' },
+    { value: 'master', label: '硕士' },
+    { value: 'doctorate', label: '博士' },
+    { value: 'other', label: '其他' },
+  ];
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex justify-end mb-4">
-          <Button type="button" onClick={() => setIsEditing(!isEditing)} variant={isEditing ? "secondary" : "default"}>
-            {isEditing ? "取消编辑" : "编辑模式"}
-          </Button>
-        </div>
+        {/* Removed the Edit Mode button as this is a dedicated edit page */}
 
         {renderSection("基本资料", (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <FormField control={form.control} name="recordNumber" render={({ field }) => (<FormItem><FormLabel>病案号</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+          <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>姓名</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>性别</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">男</SelectItem><SelectItem value="female">女</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="age" render={({ field }) => (<FormItem><FormLabel>年龄</FormLabel><FormControl><Input type="number" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>婚否</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="unmarried">未婚</SelectItem><SelectItem value="married">已婚</SelectItem><SelectItem value="divorced">离异</SelectItem><SelectItem value="widowed">丧偶</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="gender" render={({ field }) => (<FormItem><FormLabel>性别</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择性别" /></SelectTrigger></FormControl><SelectContent><SelectItem value="male">男</SelectItem><SelectItem value="female">女</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="dob" render={({ field }) => (<FormItem><FormLabel>生日</FormLabel><FormControl><Input type="date" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <FormField control={form.control} name="address" className="md:col-span-2" render={({ field }) => (<FormItem><FormLabel>家庭地址</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+            <div className="space-y-2 pt-1 md:pt-7"> {/* Align checkboxes better */}
+              <FormField control={form.control} name="hadPreviousCheckup" render={({ field }) => (<FormItem className="flex flex-row items-center space-x-2 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={!isEditing} /></FormControl><FormLabel className="font-normal">以前在本机构体检过</FormLabel><FormMessage /></FormItem>)} />
+              <FormField control={form.control} name="agreesToIntervention" render={({ field }) => (<FormItem className="flex flex-row items-center space-x-2 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={!isEditing} /></FormControl><FormLabel className="font-normal">同意接受健康干预服务</FormLabel><FormMessage /></FormItem>)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField control={form.control} name="contactPhone" render={({ field }) => (<FormItem><FormLabel>手机</FormLabel><FormControl><Input type="tel" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="contactEmail" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input type="email" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField control={form.control} name="bloodType" render={({ field }) => (<FormItem><FormLabel>血型</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择血型" /></SelectTrigger></FormControl><SelectContent><SelectItem value="A">A型</SelectItem><SelectItem value="B">B型</SelectItem><SelectItem value="O">O型</SelectItem><SelectItem value="AB">AB型</SelectItem><SelectItem value="unknown">未知</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>婚姻</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择婚姻状况" /></SelectTrigger></FormControl><SelectContent><SelectItem value="unmarried">未婚</SelectItem><SelectItem value="married">已婚</SelectItem><SelectItem value="divorced">离异</SelectItem><SelectItem value="widowed">丧偶</SelectItem><SelectItem value="other">其他</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="occupation" render={({ field }) => (<FormItem><FormLabel>职业</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="nationality" render={({ field }) => (<FormItem><FormLabel>民族</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="birthplace" render={({ field }) => (<FormItem><FormLabel>籍贯</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="address" render={({ field }) => (<FormItem className="lg:col-span-2"><FormLabel>住址</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="educationLevel" render={({ field }) => (<FormItem><FormLabel>文化程度</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue placeholder="选择文化程度" /></SelectTrigger></FormControl><SelectContent>{educationLevelOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>)} />
+          </div>
+          <FormField control={form.control} name="recordNumber" render={({ field }) => (<FormItem><FormLabel>病案号</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
+           {/* Other basic fields like nationality, birthplace, admissionDate, etc. */}
             <FormField control={form.control} name="admissionDate" render={({ field }) => (<FormItem><FormLabel>入院日期</FormLabel><FormControl><Input type="date" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="recordDate" render={({ field }) => (<FormItem><FormLabel>病史记录日期</FormLabel><FormControl><Input type="date" {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="informant" render={({ field }) => (<FormItem><FormLabel>病史陈述者</FormLabel><FormControl><Input {...field} disabled={!isEditing} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="reliability" render={({ field }) => (<FormItem><FormLabel>可靠程度</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!isEditing}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="reliable">可靠</SelectItem><SelectItem value="partially_reliable">部分可靠</SelectItem><SelectItem value="unreliable">不可靠</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-          </div>
+          </>
         ))}
 
         {renderSection("主诉、现病史", (
