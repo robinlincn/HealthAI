@@ -14,6 +14,7 @@ export interface NavItem {
 export type Gender = "male" | "female" | "other";
 export type BloodType = "A" | "B" | "O" | "AB" | "unknown";
 export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "other";
+export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable";
 
 
 export interface UserProfile { // Patient-side profile
@@ -24,17 +25,18 @@ export interface UserProfile { // Patient-side profile
   bloodType?: BloodType;
   maritalStatus?: MaritalStatus;
   occupation?: string;
-  educationLevel?: string; // e.g., 'bachelor', 'master'
+  educationLevel?: string; 
   contactPhone: string;
-  contactEmail: string;
+  contactEmail?: string; // Made optional as per common practice for patient-input
   hadPreviousCheckup?: boolean; 
   agreesToIntervention?: boolean; 
-  // Fields to match doctor-side basic info view, potentially read-only for patient
-  recordNumber?: string; // 病案号
-  admissionDate?: string; // 入院日期 (ISO string)
-  recordDate?: string; // 记录日期 (ISO string)
-  informant?: string; // 病史陈述者
-  reliability?: 'reliable' | 'unreliable' | 'partially_reliable'; // 可靠程度
+  
+  // Fields typically managed by institution, shown as read-only to patient
+  recordNumber?: string; 
+  admissionDate?: string; 
+  recordDate?: string; 
+  informant?: string; 
+  reliability?: ReliabilityOption; 
 }
 
 export interface EmergencyContact {
@@ -188,21 +190,21 @@ export type ContactPreferenceTime = '上午' | '下午' | '晚上7点后' | '其
 export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满意';
 
 
-export interface DetailedPatientProfile {
+export interface DetailedPatientProfile { // This is the comprehensive profile, primarily for Doctor's side
   recordNumber?: string;
   name: string;
   gender?: Gender;
-  age?: number;
-  dob?: string; 
+  age?: number; // Calculated from dob typically
+  dob?: string; // ISO Date string
   maritalStatus?: MaritalStatus;
   occupation?: string;
   nationality?: string;
   birthplace?: string;
   address?: string;
-  admissionDate?: string; 
-  recordDate?: string; 
+  admissionDate?: string; // ISO Date string
+  recordDate?: string; // ISO Date string
   informant?: string;
-  reliability?: 'reliable' | 'unreliable' | 'partially_reliable';
+  reliability?: ReliabilityOption;
   
   chiefComplaint?: string;
   historyOfPresentIllness?: string;
@@ -241,17 +243,18 @@ export interface DetailedPatientProfile {
   chiefPhysician?: string;
   recordingPhysician?: string;
 
+  // Fields that are common and patient can edit/view
+  contactPhone?: string; 
+  contactEmail?: string; 
   bloodType?: BloodType;
   educationLevel?: string; 
   hadPreviousCheckup?: boolean;
   agreesToIntervention?: boolean;
-  contactPhone?: string; 
-  contactEmail?: string; 
   
   currentSymptoms?: string[];
   allergies?: string[]; 
-  medicationHistory?: MedicationEntry[]; 
-  medicationCategories?: string[]; 
+  medicationHistory?: MedicationEntry[]; // Detailed list of medications
+  medicationCategories?: string[]; // Broad categories of medication types
   contactHistory?: string[]; 
 
   // Detailed lifestyle questions
@@ -291,7 +294,7 @@ export interface DetailedPatientProfile {
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string; // Allow '其他'
+  drinking_type?: AlcoholTypeOption | string; 
   drinking_type_other?: string;
   drinking_amountPerDay?: string; 
   drinking_years?: string; 
@@ -336,8 +339,8 @@ export interface DetailedPatientProfile {
   otherInfo_suggestions?: string; 
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
 
-  otherMedicalInfo?: string; // Added from MedicalHistory
-  healthGoals?: string[]; // Added from MedicalHistory
+  otherMedicalInfo?: string; 
+  healthGoals?: string[]; 
 }
 
 
@@ -532,3 +535,4 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
+```

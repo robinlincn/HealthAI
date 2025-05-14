@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import type { UserProfile, Gender, BloodType, MaritalStatus } from "@/lib/types";
+import type { UserProfile, Gender, BloodType, MaritalStatus, ReliabilityOption } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, parse, isValid, parseISO } from "date-fns";
@@ -42,6 +42,12 @@ const educationLevelOptions = [
   { value: 'master', label: '硕士' },
   { value: 'doctorate', label: '博士' },
   { value: 'other', label: '其他' },
+];
+
+const reliabilityOptions: { value: ReliabilityOption; label: string }[] = [
+    { value: 'reliable', label: '可靠' },
+    { value: 'partially_reliable', label: '部分可靠' },
+    { value: 'unreliable', label: '不可靠' },
 ];
 
 const profileFormSchema = z.object({
@@ -61,7 +67,7 @@ const profileFormSchema = z.object({
   admissionDate: z.date().optional(),
   recordDate: z.date().optional(),
   informant: z.string().optional(),
-  reliability: z.enum(['reliable', 'unreliable', 'partially_reliable']).optional(),
+  reliability: z.enum(['reliable', 'partially_reliable', 'unreliable']).optional() as z.ZodType<ReliabilityOption | undefined>,
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -93,9 +99,10 @@ export function BasicInfoForm() {
 
   useEffect(() => {
     setIsClient(true);
-    // Here you would fetch existing user profile data and populate the form
-    // For now, we use defaultValues which might be updated if a user profile is passed in as prop
-    // form.reset(fetchedUserProfileData);
+    // In a real app, you would fetch existing user profile data and set it here
+    // For now, we'll use the defaultValues and imagine they could be updated
+    // if a `userProfile` prop was passed and its data was merged in.
+    // e.g., if (userProfile) form.reset(transformProfileToFormValues(userProfile));
   }, []);
 
   const form = useForm<ProfileFormValues>({
@@ -104,8 +111,24 @@ export function BasicInfoForm() {
     mode: "onChange",
   });
 
+  // Helper function to transform API data to form data if needed (especially for dates)
+  // const transformProfileToFormValues = (profile: UserProfile): ProfileFormValues => ({
+  //   ...profile,
+  //   dob: profile.dob ? parseISO(profile.dob) : new Date(),
+  //   admissionDate: profile.admissionDate ? parseISO(profile.admissionDate) : undefined,
+  //   recordDate: profile.recordDate ? parseISO(profile.recordDate) : undefined,
+  // });
+
+
   function onSubmit(data: ProfileFormValues) {
     console.log("Profile data submitted:", data);
+    // Here you would transform data back if needed, e.g., format Dates to ISO strings
+    // const dataToSubmit = {
+    //   ...data,
+    //   dob: data.dob ? format(data.dob, "yyyy-MM-dd") : undefined,
+    //   admissionDate: data.admissionDate ? format(data.admissionDate, "yyyy-MM-dd") : undefined,
+    //   recordDate: data.recordDate ? format(data.recordDate, "yyyy-MM-dd") : undefined,
+    // };
     toast({
       title: "信息已更新",
       description: "您的基本信息已成功保存。",
@@ -113,16 +136,15 @@ export function BasicInfoForm() {
   }
 
   if (!isClient) {
-    // Render a loading state or null for SSR to prevent hydration mismatch
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end animate-pulse">
-          <div className="h-10 bg-muted rounded w-full"></div>
-          <div className="h-10 bg-muted rounded w-full"></div>
-          <div className="h-10 bg-muted rounded w-full"></div>
-        </div>
-        <div className="h-10 bg-muted rounded w-full animate-pulse"></div>
-        {/* Add more skeleton loaders as needed */}
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end animate-pulse">
+            <div className="h-10 bg-muted rounded w-full"></div>
+            <div className="h-10 bg-muted rounded w-full"></div>
+            <div className="h-10 bg-muted rounded w-full"></div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -229,7 +251,7 @@ export function BasicInfoForm() {
               </FormItem>
             )}
           />
-          <div className="space-y-2 pt-1 md:pt-7"> {/* Align checkboxes with label */}
+          <div className="space-y-2 pt-1 md:pt-7"> 
             <FormField
               control={form.control}
               name="hadPreviousCheckup"
@@ -402,9 +424,16 @@ export function BasicInfoForm() {
             control={form.control}
             name="admissionDate"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>入院日期</FormLabel>
-                <FormControl><Input type="date" value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} disabled /></FormControl>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} 
+                        onChange={(e) => field.onChange(e.target.value ? parseISO(e.target.value) : undefined)}
+                        disabled 
+                      />
+                    </FormControl>
                 <FormDescription className="text-xs">由医疗机构管理</FormDescription>
                 <FormMessage />
               </FormItem>
@@ -414,9 +443,16 @@ export function BasicInfoForm() {
             control={form.control}
             name="recordDate"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>记录日期</FormLabel>
-                <FormControl><Input type="date" value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} disabled /></FormControl>
+                 <FormControl>
+                      <Input 
+                        type="date" 
+                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} 
+                        onChange={(e) => field.onChange(e.target.value ? parseISO(e.target.value) : undefined)}
+                        disabled 
+                      />
+                    </FormControl>
                  <FormDescription className="text-xs">由医疗机构管理</FormDescription>
                 <FormMessage />
               </FormItem>
@@ -451,9 +487,7 @@ export function BasicInfoForm() {
                       </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                      <SelectItem value="reliable">可靠</SelectItem>
-                      <SelectItem value="partially_reliable">部分可靠</SelectItem>
-                      <SelectItem value="unreliable">不可靠</SelectItem>
+                      {reliabilityOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
                  <FormDescription className="text-xs">由医疗机构评估</FormDescription>
@@ -468,4 +502,3 @@ export function BasicInfoForm() {
     </Form>
   );
 }
-
