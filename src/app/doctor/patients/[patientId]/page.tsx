@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Pill } from "lucide-react"; // Added Utensils, Pill
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Pill, Dumbbell, Cigarette, Wine } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption } from "@/lib/types";
@@ -73,7 +73,7 @@ const mockPatientsList: DoctorPatient[] = [
         smoking_cigarettesPerDay: '5-15支',
         smoking_years: '10-20年',
         smoking_passiveDays: '1-2天',
-        drinking_status: '偶尔',
+        drinking_status: '饮酒',
         drinking_type: '啤酒',
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
@@ -199,6 +199,12 @@ export default function DoctorPatientDetailPage() {
     if (value === '否') return <X className="h-5 w-5 text-red-600" />;
     return <span className="text-muted-foreground text-sm">{value || '未记录'}</span>;
   };
+
+  const renderGridItem = (label: string, value?: string | null, colSpan?: number) => (
+    <div className={colSpan ? `md:col-span-${colSpan}` : ""}>
+      <strong>{label}:</strong> {value || <span className="text-muted-foreground text-xs">未记录</span>}
+    </div>
+  );
 
 
   if (isLoading) {
@@ -368,13 +374,74 @@ export default function DoctorPatientDetailPage() {
               
               <Separator className="my-4" />
               <div>
-                <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
+                  <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                      {renderGridItem("平均每周吃早餐", patient.detailedProfile?.dietaryHabits_breakfastDays)}
+                      {renderGridItem("平均每周吃夜宵", patient.detailedProfile?.dietaryHabits_lateSnackDays)}
+                      <div className="md:col-span-2"><strong>不良饮食习惯:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_badHabits)}</div>
+                      <div className="md:col-span-2"><strong>饮食口味偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_preferences)}</div>
+                      <div className="md:col-span-2"><strong>食物类型偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_foodTypePreferences)}</div>
+                  </div>
+              </div>
+              
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-lime-600"/>膳食摄入 (个人)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
+                    {renderGridItem("米、面、薯类日均摄入量", patient.detailedProfile?.dietaryIntake_staple)}
+                    {renderGridItem("肉类及肉制品日均摄入量", patient.detailedProfile?.dietaryIntake_meat)}
+                    {renderGridItem("鱼类及水产品日均摄入量", patient.detailedProfile?.dietaryIntake_fish)}
+                    {renderGridItem("蛋类及蛋制品日均摄入量", patient.detailedProfile?.dietaryIntake_eggs)}
+                    {renderGridItem("奶类及奶制品日均摄入量", patient.detailedProfile?.dietaryIntake_dairy)}
+                    {renderGridItem("大豆及豆制品日均摄入量", patient.detailedProfile?.dietaryIntake_soy)}
+                    {renderGridItem("新鲜蔬菜日均摄入量", patient.detailedProfile?.dietaryIntake_vegetables)}
+                    {renderGridItem("新鲜水果日均摄入量", patient.detailedProfile?.dietaryIntake_fruits)}
+                    {renderGridItem("平均日饮水摄入量", patient.detailedProfile?.dietaryIntake_water)}
+                </div>
+              </div>
+
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Dumbbell className="mr-2 h-4 w-4 text-indigo-500"/>运动锻炼</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                    {renderGridItem("平均每天的工作时间", patient.detailedProfile?.exercise_workHours)}
+                    {renderGridItem("平均每天坐姿(静止)时间", patient.detailedProfile?.exercise_sedentaryHours)}
+                    {renderGridItem("平均每周运动锻炼时间", patient.detailedProfile?.exercise_weeklyFrequency)}
+                    {renderGridItem("平均每次运动锻炼时间", patient.detailedProfile?.exercise_durationPerSession)}
+                    {renderGridItem("一般锻炼的强度", patient.detailedProfile?.exercise_intensity)}
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Cigarette className="mr-2 h-4 w-4 text-gray-500"/>吸烟情况</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                    <p><strong>平均每周吃早餐:</strong> {patient.detailedProfile?.dietaryHabits_breakfastDays || '未记录'}</p>
-                    <p><strong>平均每周吃夜宵:</strong> {patient.detailedProfile?.dietaryHabits_lateSnackDays || '未记录'}</p>
-                    <div className="md:col-span-2"><strong>不良饮食习惯:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_badHabits, "无")}</div>
-                    <div className="md:col-span-2"><strong>饮食口味偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_preferences, "无")}</div>
-                    <div className="md:col-span-2"><strong>食物类型偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_foodTypePreferences, "无")}</div>
+                    {renderGridItem("当前吸烟情况", patient.detailedProfile?.smoking_status)}
+                    {(patient.detailedProfile?.smoking_status === "吸烟" || patient.detailedProfile?.smoking_status === "戒烟") && (
+                      <>
+                        {renderGridItem("平均每天吸香烟支数", patient.detailedProfile?.smoking_cigarettesPerDay)}
+                        {renderGridItem("总共吸烟年数", patient.detailedProfile?.smoking_years)}
+                      </>
+                    )}
+                    {renderGridItem("平均每周被动吸烟情况", patient.detailedProfile?.smoking_passiveDays)}
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Wine className="mr-2 h-4 w-4 text-red-700"/>饮酒情况</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                    {renderGridItem("当前饮酒情况", patient.detailedProfile?.drinking_status)}
+                    {(patient.detailedProfile?.drinking_status === "饮酒" || patient.detailedProfile?.drinking_status === "戒酒") && (
+                      <>
+                        {renderGridItem("最常饮酒类型", patient.detailedProfile?.drinking_type)}
+                        {renderGridItem("平均每天饮酒量", patient.detailedProfile?.drinking_amountPerDay)}
+                        {renderGridItem("总共饮酒年数", patient.detailedProfile?.drinking_years)}
+                        <p className="text-xs text-muted-foreground md:col-span-2 mt-1">
+                            说明: 1瓶啤酒（约600ml）=1杯红酒（约3两）=1两低度白酒或0.5两高度白酒。
+                        </p>
+                      </>
+                    )}
                 </div>
               </div>
 
@@ -414,24 +481,11 @@ export default function DoctorPatientDetailPage() {
               )}
               
               <Separator />
-              <h4 className="font-semibold pt-2">个人史与生活习惯:</h4>
-              {patient.detailedProfile?.contactHistory_oy && <p><strong>油烟接触:</strong> {patient.detailedProfile.contactHistory_oy}</p>}
+              <h4 className="font-semibold pt-2">个人史与生活习惯 (旧版文本录入，新版数据在“基本信息”):</h4>
+              {patient.detailedProfile?.contactHistory_oy && <p><strong>油烟接触(旧):</strong> {patient.detailedProfile.contactHistory_oy}</p>}
+              {patient.detailedProfile?.personalHistory_smokingHistory && <p><strong>吸烟史(旧):</strong> {patient.detailedProfile.personalHistory_smokingHistory}</p>}
+              {patient.detailedProfile?.personalHistory_drinkingHistory && <p><strong>饮酒史(旧):</strong> {patient.detailedProfile.personalHistory_drinkingHistory}</p>}
               
-              {/* Dietary Intake will be shown in its own section or tab in future if very detailed */}
-              <h4 className="font-semibold pt-2">膳食摄入 (摘要):</h4>
-                <p>主食日均: {patient.detailedProfile?.dietaryIntake_staple || '未记录'}</p>
-                <p>肉类日均: {patient.detailedProfile?.dietaryIntake_meat || '未记录'}</p>
-                <p>饮水日均: {patient.detailedProfile?.dietaryIntake_water || '未记录'}</p>
-              
-              <h4 className="font-semibold pt-2">运动锻炼 (摘要):</h4>
-                <p>每周运动频率: {patient.detailedProfile?.exercise_weeklyFrequency || '未记录'}</p>
-                <p>运动强度: {patient.detailedProfile?.exercise_intensity || '未记录'}</p>
-
-              <h4 className="font-semibold pt-2">吸烟饮酒 (摘要):</h4>
-                <p>吸烟情况: {patient.detailedProfile?.smoking_status || '未记录'}</p>
-                <p>饮酒情况: {patient.detailedProfile?.drinking_status || '未记录'}</p>
-
-
               <Separator />
               <h4 className="font-semibold pt-2">其他信息:</h4>
               {patient.detailedProfile?.otherMedicalInfo && <p><strong>其他医疗信息:</strong> {patient.detailedProfile.otherMedicalInfo}</p>}
