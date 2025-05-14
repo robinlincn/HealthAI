@@ -1,13 +1,12 @@
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Pill, Dumbbell, Cigarette, Wine } from "lucide-react";
+import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -37,7 +36,7 @@ const mockPatientsList: DoctorPatient[] = [
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
         pastIllnesses: ["hypertension", "diabetes"],
-        familyMedicalHistory: [
+        familyMedicalHistory: [ 
             { relative: "self", conditions: ["高血压", "糖尿病"] },
             { relative: "father", conditions: ["高血压"] },
             { relative: "mother", conditions: ["糖尿病"] },
@@ -85,6 +84,23 @@ const mockPatientsList: DoctorPatient[] = [
         mentalHealth_majorEvents: "否",
         mentalHealth_impactOnLife: "有一点",
         mentalHealth_stressLevel: "较明显",
+        mentalHealth_sas_anxiety: "小部分时间有",
+        mentalHealth_sas_fear: "没有或很少有时间有",
+        mentalHealth_sas_panic: "小部分时间有",
+        mentalHealth_sas_goingCrazy: "没有或很少有时间有",
+        mentalHealth_sas_misfortune: "没有或很少有时间有",
+        mentalHealth_sas_trembling: "小部分时间有",
+        mentalHealth_sas_bodyPain: "相当多时间有",
+        mentalHealth_sas_fatigue: "相当多时间有",
+        mentalHealth_sas_restlessness: "小部分时间有",
+        mentalHealth_sas_palpitations: "小部分时间有",
+        mentalHealth_sas_dizziness: "相当多时间有",
+        mentalHealth_sas_fainting: "没有或很少有时间有",
+        mentalHealth_sas_breathingDifficulty: "小部分时间有",
+        mentalHealth_sas_paresthesia: "没有或很少有时间有",
+        mentalHealth_sas_stomachPain: "小部分时间有",
+        mentalHealth_sas_frequentUrination: "没有或很少有时间有",
+        mentalHealth_sas_sweating: "小部分时间有",
         adherence_selfAssessmentBody: "满意",
         adherence_selfAssessmentMind: "还算关心",
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
@@ -141,7 +157,7 @@ export default function DoctorPatientDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    setTimeout(() => {
+    setTimeout(() => { // Simulate API call
       const details = getPatientDetails(patientId);
       setPatient(details);
       setIsLoading(false);
@@ -193,19 +209,22 @@ export default function DoctorPatientDetailPage() {
 
   const renderYesNo = (value?: YesNoOption | boolean) => {
     if (typeof value === 'boolean') {
-        return value ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />;
+        return value ? <Check className="h-5 w-5 text-green-600 inline-block ml-1" /> : <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
     }
-    if (value === '是') return <Check className="h-5 w-5 text-green-600" />;
-    if (value === '否') return <X className="h-5 w-5 text-red-600" />;
-    return <span className="text-muted-foreground text-sm">{value || '未记录'}</span>;
+    if (value === '是') return <Check className="h-5 w-5 text-green-600 inline-block ml-1" />;
+    if (value === '否') return <X className="h-5 w-5 text-red-600 inline-block ml-1" />;
+    return <span className="text-muted-foreground text-sm ml-1">{value || '未记录'}</span>;
   };
-
-  const renderGridItem = (label: string, value?: string | null, colSpan?: number) => (
-    <div className={colSpan ? `md:col-span-${colSpan}` : ""}>
-      <strong>{label}:</strong> {value || <span className="text-muted-foreground text-xs">未记录</span>}
+  
+  const renderGridItem = (label: string, value?: string | React.ReactNode | null, colSpan?: number, className?: string) => (
+    <div className={cn(colSpan ? `md:col-span-${colSpan}` : "", className || "")}>
+      <strong className="text-sm">{label}:</strong> <span className="text-sm text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span>
     </div>
   );
 
+  const renderSASQuestion = (label: string, value?: SASOption) => (
+     <div className="text-sm"><strong>{label}:</strong> <span className="text-foreground/80">{value || <span className="text-muted-foreground text-xs">未记录</span>}</span></div>
+  );
 
   if (isLoading) {
     return (
@@ -241,6 +260,8 @@ export default function DoctorPatientDetailPage() {
     );
   }
 
+  const dp = patient.detailedProfile; // Alias for detailedProfile
+
   return (
     <div className="space-y-4 p-1 md:p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
@@ -259,8 +280,8 @@ export default function DoctorPatientDetailPage() {
 
       <Tabs defaultValue="basicInfo" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-muted/60">
-          <TabsTrigger value="basicInfo"><UserCircle className="mr-2 h-4 w-4"/>基本信息</TabsTrigger>
-          <TabsTrigger value="medicalRecords"><FileText className="mr-2 h-4 w-4"/>病历信息</TabsTrigger>
+          <TabsTrigger value="basicInfo"><UserCircle className="mr-2 h-4 w-4"/>基本与生活</TabsTrigger>
+          <TabsTrigger value="medicalRecords"><FileText className="mr-2 h-4 w-4"/>病历摘要</TabsTrigger>
           <TabsTrigger value="healthData"><LineChartIcon className="mr-2 h-4 w-4"/>健康数据</TabsTrigger>
           <TabsTrigger value="examReports"><ClipboardList className="mr-2 h-4 w-4"/>检查报告</TabsTrigger>
         </TabsList>
@@ -268,47 +289,35 @@ export default function DoctorPatientDetailPage() {
         <TabsContent value="basicInfo">
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle className="text-xl">基本信息</CardTitle>
+              <CardTitle className="text-xl flex items-center"><Info className="mr-2 h-5 w-5 text-primary"/>基本信息</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
-                <div><strong>姓名:</strong> {patient.detailedProfile?.name || patient.name}</div>
-                <div><strong>性别:</strong> {getGenderText(patient.detailedProfile?.gender || patient.gender)}</div>
-                <div>
-                  <strong>生日:</strong> {patient.detailedProfile?.dob && isValid(parseISO(patient.detailedProfile.dob)) ? format(parseISO(patient.detailedProfile.dob), 'yyyy-MM-dd') : (patient.age ? `${patient.age}岁 (推算)` : '未知')}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
+                {renderGridItem("姓名", dp?.name || patient.name)}
+                {renderGridItem("性别", getGenderText(dp?.gender || patient.gender))}
+                {renderGridItem("生日", dp?.dob && isValid(parseISO(dp.dob)) ? format(parseISO(dp.dob), 'yyyy-MM-dd') : (patient.age ? `${patient.age}岁 (约)` : '未知'))}
+                {renderGridItem("家庭地址", dp?.address || '未提供', 3)}
+                {renderGridItem("手机", dp?.contactPhone || patient.contact || '未提供')}
+                {renderGridItem("E-mail", dp?.contactEmail || '未提供', 2)}
+                {renderGridItem("血型", getBloodTypeText(dp?.bloodType))}
+                {renderGridItem("婚姻", getMaritalStatusText(dp?.maritalStatus))}
+                {renderGridItem("职业", dp?.occupation || '未提供')}
+                {renderGridItem("文化程度", getEducationLevelText(dp?.educationLevel))}
+                <div className="flex items-center md:col-span-3 gap-4">
+                  <div><strong>以前在本机构体检过:</strong>{renderYesNo(dp?.hadPreviousCheckup)}</div>
+                  <div><strong>同意接受健康干预服务:</strong>{renderYesNo(dp?.agreesToIntervention)}</div>
                 </div>
-                
-                <div className="md:col-span-3"><strong>家庭地址:</strong> {patient.detailedProfile?.address || '未提供'}</div>
-
-                <div className="flex items-center">
-                  <strong className="mr-1">以前在本机构体检过:</strong> 
-                  {renderYesNo(patient.detailedProfile?.hadPreviousCheckup)}
-                </div>
-                <div className="flex items-center md:col-span-2">
-                  <strong className="mr-1">同意接受健康干预服务:</strong> 
-                  {renderYesNo(patient.detailedProfile?.agreesToIntervention)}
-                </div>
-
-                <div><strong>手机:</strong> {patient.detailedProfile?.contactPhone || patient.contact || '未提供'}</div>
-                <div className="md:col-span-2"><strong>E-mail:</strong> {patient.detailedProfile?.contactEmail || '未提供'}</div>
-                
-                <div><strong>血型:</strong> {getBloodTypeText(patient.detailedProfile?.bloodType)}</div>
-                <div><strong>婚姻:</strong> {getMaritalStatusText(patient.detailedProfile?.maritalStatus)}</div>
-                
-                <div><strong>职业:</strong> {patient.detailedProfile?.occupation || '未提供'}</div>
-                <div className="md:col-span-2"><strong>文化程度:</strong> {getEducationLevelText(patient.detailedProfile?.educationLevel)}</div>
               </div>
-              
               {patient.emergencyContact && (
                 <p className="pt-2 border-t mt-3">
                   <strong>紧急联系人:</strong> {patient.emergencyContact.name} ({patient.emergencyContact.relationship || "未指定关系"}) - {patient.emergencyContact.phone}
                 </p>
               )}
               
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Heart className="mr-2 h-4 w-4 text-primary"/>家族病史及患病情况</h3>
-                {patient.detailedProfile?.familyMedicalHistory && patient.detailedProfile.familyMedicalHistory.length > 0 ? (
+                {dp?.familyMedicalHistory && dp.familyMedicalHistory.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs border-collapse">
                       <thead>
@@ -320,12 +329,12 @@ export default function DoctorPatientDetailPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {patient.detailedProfile.familyMedicalHistory.map(entry => (
+                        {dp.familyMedicalHistory.map(entry => (
                           <tr key={entry.relative}>
                             <td className="p-1 border font-medium">{relativesMap[entry.relative]}</td>
                             {allFamilyConditions.map(disease => (
                               <td key={`${entry.relative}-${disease}`} className="p-1 border text-center">
-                                {entry.conditions.includes(disease) ? <Check className="h-3 w-3 text-green-600 mx-auto" /> : <span className="text-muted-foreground">-</span>}
+                                {entry.conditions && entry.conditions.includes(disease) ? <Check className="h-3 w-3 text-green-600 mx-auto" /> : <span className="text-muted-foreground">-</span>}
                               </td>
                             ))}
                           </tr>
@@ -333,115 +342,145 @@ export default function DoctorPatientDetailPage() {
                       </tbody>
                     </table>
                   </div>
-                ) : <p className="text-muted-foreground">暂无家族病史记录。</p>}
+                ) : <p className="text-muted-foreground text-sm">暂无家族病史记录。</p>}
               </div>
 
-              <Separator className="my-4" /> 
+              <Separator className="my-3" /> 
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><AlertTriangle className="mr-2 h-4 w-4 text-destructive"/>现有不适症状</h3>
-                {renderInfoList(patient.detailedProfile?.currentSymptoms, "无不适症状记录")}
+                {renderInfoList(dp?.currentSymptoms, "无不适症状记录")}
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><TestTube className="mr-2 h-4 w-4 text-red-500"/>过敏史</h3>
-                {renderInfoList(patient.detailedProfile?.allergies, "无过敏史记录")}
+                {renderInfoList(dp?.allergies, "无过敏史记录")}
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Stethoscope className="mr-2 h-4 w-4 text-blue-500"/>手术史</h3>
-                {renderInfoList(patient.detailedProfile?.operationHistory, "无手术史记录")}
+                {renderInfoList(dp?.operationHistory, "无手术史记录")}
               </div>
               
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Syringe className="mr-2 h-4 w-4 text-orange-500"/>输血史</h3>
-                <p className="text-muted-foreground text-sm">{patient.detailedProfile?.bloodTransfusionHistory || "无输血史记录"}</p>
+                <p className="text-muted-foreground text-sm">{dp?.bloodTransfusionHistory || "无输血史记录"}</p>
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Pill className="mr-2 h-4 w-4 text-purple-500"/>用药史 (类别)</h3>
-                {renderInfoList(patient.detailedProfile?.medicationCategories, "无用药史记录")}
+                {renderInfoList(dp?.medicationCategories, "无用药史记录")}
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Wind className="mr-2 h-4 w-4 text-teal-500"/>接触史</h3>
-                {renderInfoList(patient.detailedProfile?.contactHistory, "无特殊接触史记录")}
+                {renderInfoList(dp?.contactHistory, "无特殊接触史记录")}
               </div>
               
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
-                  <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                      {renderGridItem("平均每周吃早餐", patient.detailedProfile?.dietaryHabits_breakfastDays)}
-                      {renderGridItem("平均每周吃夜宵", patient.detailedProfile?.dietaryHabits_lateSnackDays)}
-                      <div className="md:col-span-2"><strong>不良饮食习惯:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_badHabits)}</div>
-                      <div className="md:col-span-2"><strong>饮食口味偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_preferences)}</div>
-                      <div className="md:col-span-2"><strong>食物类型偏好:</strong> {renderInfoList(patient.detailedProfile?.dietaryHabits_foodTypePreferences)}</div>
-                  </div>
-              </div>
-              
-              <Separator className="my-4" />
-              <div>
-                <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-lime-600"/>膳食摄入 (个人)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
-                    {renderGridItem("米、面、薯类日均摄入量", patient.detailedProfile?.dietaryIntake_staple)}
-                    {renderGridItem("肉类及肉制品日均摄入量", patient.detailedProfile?.dietaryIntake_meat)}
-                    {renderGridItem("鱼类及水产品日均摄入量", patient.detailedProfile?.dietaryIntake_fish)}
-                    {renderGridItem("蛋类及蛋制品日均摄入量", patient.detailedProfile?.dietaryIntake_eggs)}
-                    {renderGridItem("奶类及奶制品日均摄入量", patient.detailedProfile?.dietaryIntake_dairy)}
-                    {renderGridItem("大豆及豆制品日均摄入量", patient.detailedProfile?.dietaryIntake_soy)}
-                    {renderGridItem("新鲜蔬菜日均摄入量", patient.detailedProfile?.dietaryIntake_vegetables)}
-                    {renderGridItem("新鲜水果日均摄入量", patient.detailedProfile?.dietaryIntake_fruits)}
-                    {renderGridItem("平均日饮水摄入量", patient.detailedProfile?.dietaryIntake_water)}
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-green-600"/>饮食习惯</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                    {renderGridItem("平均每周吃早餐", dp?.dietaryHabits_breakfastDays)}
+                    {renderGridItem("平均每周吃夜宵", dp?.dietaryHabits_lateSnackDays)}
+                    <div className="md:col-span-2"><strong>不良饮食习惯:</strong> {renderInfoList(dp?.dietaryHabits_badHabits)}</div>
+                    <div className="md:col-span-2"><strong>饮食口味偏好:</strong> {renderInfoList(dp?.dietaryHabits_preferences)}</div>
+                    <div className="md:col-span-2"><strong>食物类型偏好:</strong> {renderInfoList(dp?.dietaryHabits_foodTypePreferences)}</div>
                 </div>
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Utensils className="mr-2 h-4 w-4 text-lime-600"/>膳食摄入 (个人)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1 text-sm">
+                    {renderGridItem("米、面、薯类", dp?.dietaryIntake_staple)}
+                    {renderGridItem("肉类及肉制品", dp?.dietaryIntake_meat)}
+                    {renderGridItem("鱼类及水产品", dp?.dietaryIntake_fish)}
+                    {renderGridItem("蛋类及蛋制品", dp?.dietaryIntake_eggs)}
+                    {renderGridItem("奶类及奶制品", dp?.dietaryIntake_dairy)}
+                    {renderGridItem("大豆及豆制品", dp?.dietaryIntake_soy)}
+                    {renderGridItem("新鲜蔬菜", dp?.dietaryIntake_vegetables)}
+                    {renderGridItem("新鲜水果", dp?.dietaryIntake_fruits)}
+                    {renderGridItem("平均日饮水", dp?.dietaryIntake_water)}
+                </div>
+              </div>
+              
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Dumbbell className="mr-2 h-4 w-4 text-indigo-500"/>运动锻炼</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                    {renderGridItem("平均每天的工作时间", patient.detailedProfile?.exercise_workHours)}
-                    {renderGridItem("平均每天坐姿(静止)时间", patient.detailedProfile?.exercise_sedentaryHours)}
-                    {renderGridItem("平均每周运动锻炼时间", patient.detailedProfile?.exercise_weeklyFrequency)}
-                    {renderGridItem("平均每次运动锻炼时间", patient.detailedProfile?.exercise_durationPerSession)}
-                    {renderGridItem("一般锻炼的强度", patient.detailedProfile?.exercise_intensity)}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                    {renderGridItem("平均每天的工作时间", dp?.exercise_workHours)}
+                    {renderGridItem("平均每天坐姿(静止)时间", dp?.exercise_sedentaryHours)}
+                    {renderGridItem("平均每周运动锻炼频率", dp?.exercise_weeklyFrequency)}
+                    {renderGridItem("平均每次运动锻炼时长", dp?.exercise_durationPerSession)}
+                    {renderGridItem("一般锻炼强度", dp?.exercise_intensity)}
                 </div>
               </div>
               
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Cigarette className="mr-2 h-4 w-4 text-gray-500"/>吸烟情况</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                    {renderGridItem("当前吸烟情况", patient.detailedProfile?.smoking_status)}
-                    {(patient.detailedProfile?.smoking_status === "吸烟" || patient.detailedProfile?.smoking_status === "戒烟") && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                    {renderGridItem("当前吸烟情况", dp?.smoking_status)}
+                    {(dp?.smoking_status === "吸烟" || dp?.smoking_status === "戒烟") && (
                       <>
-                        {renderGridItem("平均每天吸香烟支数", patient.detailedProfile?.smoking_cigarettesPerDay)}
-                        {renderGridItem("总共吸烟年数", patient.detailedProfile?.smoking_years)}
+                        {renderGridItem("平均每天吸香烟支数", dp?.smoking_cigarettesPerDay)}
+                        {renderGridItem("总共吸烟年数", dp?.smoking_years)}
                       </>
                     )}
-                    {renderGridItem("平均每周被动吸烟情况", patient.detailedProfile?.smoking_passiveDays)}
+                    {renderGridItem("平均每周被动吸烟情况", dp?.smoking_passiveDays)}
                 </div>
               </div>
               
-              <Separator className="my-4" />
+              <Separator className="my-3" />
               <div>
                 <h3 className="text-md font-semibold mb-2 flex items-center"><Wine className="mr-2 h-4 w-4 text-red-700"/>饮酒情况</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                    {renderGridItem("当前饮酒情况", patient.detailedProfile?.drinking_status)}
-                    {(patient.detailedProfile?.drinking_status === "饮酒" || patient.detailedProfile?.drinking_status === "戒酒") && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                    {renderGridItem("当前饮酒情况", dp?.drinking_status)}
+                    {(dp?.drinking_status === "饮酒" || dp?.drinking_status === "戒酒") && (
                       <>
-                        {renderGridItem("最常饮酒类型", patient.detailedProfile?.drinking_type)}
-                        {renderGridItem("平均每天饮酒量", patient.detailedProfile?.drinking_amountPerDay)}
-                        {renderGridItem("总共饮酒年数", patient.detailedProfile?.drinking_years)}
+                        {renderGridItem("最常饮酒类型", dp?.drinking_type)}
+                        {renderGridItem("平均每天饮酒量", dp?.drinking_amountPerDay)}
+                        {renderGridItem("总共饮酒年数", dp?.drinking_years)}
                         <p className="text-xs text-muted-foreground md:col-span-2 mt-1">
                             说明: 1瓶啤酒（约600ml）=1杯红酒（约3两）=1两低度白酒或0.5两高度白酒。
                         </p>
                       </>
                     )}
+                </div>
+              </div>
+              
+              <Separator className="my-3" />
+              <div>
+                <h3 className="text-md font-semibold mb-2 flex items-center"><Brain className="mr-2 h-4 w-4 text-purple-500"/>心理健康</h3>
+                <div className="space-y-2 text-sm">
+                    {renderGridItem("正受一些重大意外困扰", renderYesNo(dp?.mentalHealth_majorEvents))}
+                    {renderGridItem("情绪对工作或生活的影响", dp?.mentalHealth_impactOnLife)}
+                    {renderGridItem("感觉到自己的精神压力", dp?.mentalHealth_stressLevel)}
+                    <p className="text-xs text-muted-foreground pt-1">最近一周焦虑自评 (SAS):</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 pl-4 text-xs">
+                        {renderSASQuestion("容易紧张和着急(焦虑)", dp?.mentalHealth_sas_anxiety)}
+                        {renderSASQuestion("无故感到害怕(害怕)", dp?.mentalHealth_sas_fear)}
+                        {renderSASQuestion("容易心里烦乱或惊恐(惊恐)", dp?.mentalHealth_sas_panic)}
+                        {renderSASQuestion("可能将要发疯(发疯感)", dp?.mentalHealth_sas_goingCrazy)}
+                        {renderSASQuestion("一切都很好，不会不幸(不幸预感)", dp?.mentalHealth_sas_misfortune)}
+                        {renderSASQuestion("手脚发抖打颤(手足颇抖)", dp?.mentalHealth_sas_trembling)}
+                        {renderSASQuestion("头痛颈痛背痛困扰(躯体疼痛)", dp?.mentalHealth_sas_bodyPain)}
+                        {renderSASQuestion("易衰弱和疲乏(乏力)", dp?.mentalHealth_sas_fatigue)}
+                        {renderSASQuestion("心平气和，易安静坐着(静坐不能)", dp?.mentalHealth_sas_restlessness)}
+                        {renderSASQuestion("心跳很快(心悸)", dp?.mentalHealth_sas_palpitations)}
+                        {renderSASQuestion("一阵阵头晕困扰(头昏)", dp?.mentalHealth_sas_dizziness)}
+                        {renderSASQuestion("晕倒发作或觉得要晕倒(晕厥感)", dp?.mentalHealth_sas_fainting)}
+                        {renderSASQuestion("呼气吸气很容易(呼吸困难)", dp?.mentalHealth_sas_breathingDifficulty)}
+                        {renderSASQuestion("手脚麻木和刺痛(手足刺痛)", dp?.mentalHealth_sas_paresthesia)}
+                        {renderSASQuestion("胃痛和消化不良困扰(胃痛)", dp?.mentalHealth_sas_stomachPain)}
+                        {renderSASQuestion("常常要小便(尿意频数)", dp?.mentalHealth_sas_frequentUrination)}
+                        {renderSASQuestion("手常常干燥温暖(多汗)", dp?.mentalHealth_sas_sweating)}
+                    </div>
                 </div>
               </div>
 
@@ -456,24 +495,24 @@ export default function DoctorPatientDetailPage() {
         <TabsContent value="medicalRecords">
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle className="text-xl">病历信息</CardTitle>
+              <CardTitle className="text-xl">病历摘要</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <p><strong>主要诊断:</strong> {patient.diagnosis}</p>
-              {patient.detailedProfile?.chiefComplaint && <p><strong>主诉:</strong> {patient.detailedProfile.chiefComplaint}</p>}
-              {patient.detailedProfile?.historyOfPresentIllness && <p><strong>现病史:</strong> {patient.detailedProfile.historyOfPresentIllness}</p>}
+              {dp?.chiefComplaint && <p><strong>主诉:</strong> {dp.chiefComplaint}</p>}
+              {dp?.historyOfPresentIllness && <p><strong>现病史:</strong> {dp.historyOfPresentIllness}</p>}
               
               <Separator />
               <h4 className="font-semibold pt-2">既往史:</h4>
-              {patient.detailedProfile?.pastMedicalHistoryDetails && <p>{patient.detailedProfile.pastMedicalHistoryDetails}</p>}
-              {patient.detailedProfile?.operationHistory_text && <p><strong>手术史(文本):</strong> {patient.detailedProfile.operationHistory_text}</p>}
-              {patient.detailedProfile?.bloodTransfusionHistory_details && <p><strong>输血史(文本):</strong> {patient.detailedProfile.bloodTransfusionHistory_details}</p>}
+              {dp?.pastMedicalHistoryDetails && <p>{dp.pastMedicalHistoryDetails}</p>}
+              {dp?.operationHistory_text && <p><strong>手术史(文本):</strong> {dp.operationHistory_text}</p>}
+              {dp?.bloodTransfusionHistory_details && <p><strong>输血史(文本):</strong> {dp.bloodTransfusionHistory_details}</p>}
               
-              {patient.detailedProfile?.medicationHistory && patient.detailedProfile.medicationHistory.length > 0 && (
+              {dp?.medicationHistory && dp.medicationHistory.length > 0 && (
                 <div>
                   <strong>主要用药史(详细):</strong>
                   <ul className="list-disc list-inside ml-4">
-                    {patient.detailedProfile.medicationHistory.map(med => (
+                    {dp.medicationHistory.map(med => (
                       <li key={med.id}>{med.drugName} ({med.dosage}, {med.frequency}) {med.notes && `- ${med.notes}`}</li>
                     ))}
                   </ul>
@@ -481,19 +520,19 @@ export default function DoctorPatientDetailPage() {
               )}
               
               <Separator />
-              <h4 className="font-semibold pt-2">个人史与生活习惯 (旧版文本录入，新版数据在“基本信息”):</h4>
-              {patient.detailedProfile?.contactHistory_oy && <p><strong>油烟接触(旧):</strong> {patient.detailedProfile.contactHistory_oy}</p>}
-              {patient.detailedProfile?.personalHistory_smokingHistory && <p><strong>吸烟史(旧):</strong> {patient.detailedProfile.personalHistory_smokingHistory}</p>}
-              {patient.detailedProfile?.personalHistory_drinkingHistory && <p><strong>饮酒史(旧):</strong> {patient.detailedProfile.personalHistory_drinkingHistory}</p>}
+              <h4 className="font-semibold pt-2">个人史与生活习惯 (旧版文本录入):</h4>
+              {dp?.contactHistory_oy && <p><strong>油烟接触(旧):</strong> {dp.contactHistory_oy}</p>}
+              {dp?.personalHistory_smokingHistory && <p><strong>吸烟史(旧):</strong> {dp.personalHistory_smokingHistory}</p>}
+              {dp?.personalHistory_drinkingHistory && <p><strong>饮酒史(旧):</strong> {dp.personalHistory_drinkingHistory}</p>}
               
               <Separator />
               <h4 className="font-semibold pt-2">其他信息:</h4>
-              {patient.detailedProfile?.otherMedicalInfo && <p><strong>其他医疗信息:</strong> {patient.detailedProfile.otherMedicalInfo}</p>}
-              {patient.detailedProfile?.healthGoals && patient.detailedProfile.healthGoals.length > 0 && (
-                <p><strong>健康目标:</strong> {patient.detailedProfile.healthGoals.join(', ')}</p>
+              {dp?.otherMedicalInfo && <p><strong>其他医疗信息:</strong> {dp.otherMedicalInfo}</p>}
+              {dp?.healthGoals && dp.healthGoals.length > 0 && (
+                <p><strong>健康目标:</strong> {dp.healthGoals.join(', ')}</p>
               )}
-               {patient.detailedProfile?.sleep_adequacy && <p><strong>睡眠情况:</strong> {patient.detailedProfile.sleep_adequacy}</p>}
-              {patient.detailedProfile?.otherInfo_suggestions && <p><strong>对中心建议:</strong> {patient.detailedProfile.otherInfo_suggestions}</p>}
+              {dp?.sleep_adequacy && <p><strong>睡眠情况:</strong> {dp.sleep_adequacy}</p>}
+              {dp?.otherInfo_suggestions && <p><strong>对中心建议:</strong> {dp.otherInfo_suggestions}</p>}
 
 
               <p className="text-xs text-muted-foreground pt-4">详细病历信息请点击 "编辑病人信息" 查看或修改。</p>
@@ -541,4 +580,3 @@ export default function DoctorPatientDetailPage() {
     </div>
   );
 }
-

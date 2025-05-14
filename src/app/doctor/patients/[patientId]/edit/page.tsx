@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -41,10 +40,10 @@ const mockPatientsList: DoctorPatient[] = [
             { relative: "paternal_grandparents", conditions: [] },
             { relative: "maternal_grandparents", conditions: ["高血脂"] },
         ],
-        currentSymptoms: ["心慌", "胸闷"],
-        allergies: ["青霉素"],
+        currentSymptoms: ["心慌", "胸闷", "头晕"], 
+        allergies: ["青霉素", "海鲜"],
         operationHistory: ["心脏（含心脏介入）"],
-        bloodTransfusionHistory: "2010年因外伤输血约400ml",
+        bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
         contactHistory: ["油烟"],
         dietaryHabits_breakfastDays: '7天',
@@ -74,7 +73,43 @@ const mockPatientsList: DoctorPatient[] = [
         drinking_type: '啤酒',
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
-        medicationHistory: [{ id: "med1", drugName: "拜糖平", dosage: "50mg", frequency: "TID", notes: "餐时口服" }],
+        otherMedicalInfo: "长期服用降压药。",
+        healthGoals: ["控制血糖, 防止并发症"],
+        operationHistory_text: "2010年阑尾炎切除术", 
+        bloodTransfusionHistory_details: "无",
+        contactHistory_oy: "是", 
+        mentalHealth_majorEvents: "否",
+        mentalHealth_impactOnLife: "有一点",
+        mentalHealth_stressLevel: "较明显",
+        mentalHealth_sas_anxiety: "小部分时间有",
+        mentalHealth_sas_fear: "没有或很少有时间有",
+        mentalHealth_sas_panic: "小部分时间有",
+        mentalHealth_sas_goingCrazy: "没有或很少有时间有",
+        mentalHealth_sas_misfortune: "没有或很少有时间有",
+        mentalHealth_sas_trembling: "小部分时间有",
+        mentalHealth_sas_bodyPain: "相当多时间有",
+        mentalHealth_sas_fatigue: "相当多时间有",
+        mentalHealth_sas_restlessness: "小部分时间有",
+        mentalHealth_sas_palpitations: "小部分时间有",
+        mentalHealth_sas_dizziness: "相当多时间有",
+        mentalHealth_sas_fainting: "没有或很少有时间有",
+        mentalHealth_sas_breathingDifficulty: "小部分时间有",
+        mentalHealth_sas_paresthesia: "没有或很少有时间有",
+        mentalHealth_sas_stomachPain: "小部分时间有",
+        mentalHealth_sas_frequentUrination: "没有或很少有时间有",
+        mentalHealth_sas_sweating: "小部分时间有",
+        adherence_selfAssessmentBody: "满意",
+        adherence_selfAssessmentMind: "还算关心",
+        adherence_priorityProblems: ["控制血糖", "减轻头晕"],
+        adherence_doctorAdviceCompliance: "执行一部分",
+        adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+        sleep_adequacy: "一般",
+        otherInfo_medicationsUsed: "拜阿司匹林 100mg qd",
+        otherInfo_contactPreference_method: "微信",
+        otherInfo_contactPreference_frequency: "每周一次",
+        otherInfo_contactPreference_time: "下午",
+        otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
+        otherInfo_serviceSatisfaction: "较好",
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -120,6 +155,7 @@ export default function EditPatientProfilePage() {
     if (patient) {
       console.log("Saving updated profile for patient:", patient.id, updatedDetailedProfile);
       
+      // Update the mock data in this "session"
       const patientIndex = mockPatientsList.findIndex(p => p.id === patient.id);
       if (patientIndex !== -1) {
         mockPatientsList[patientIndex] = {
@@ -127,7 +163,7 @@ export default function EditPatientProfilePage() {
           name: updatedDetailedProfile.name || mockPatientsList[patientIndex].name,
           age: updatedDetailedProfile.age || mockPatientsList[patientIndex].age,
           gender: updatedDetailedProfile.gender || mockPatientsList[patientIndex].gender,
-          contact: updatedDetailedProfile.address, 
+          contact: updatedDetailedProfile.address, // Assuming address might be a primary contact
           detailedProfile: updatedDetailedProfile,
         };
       }
@@ -193,4 +229,3 @@ export default function EditPatientProfilePage() {
     </div>
   );
 }
-
