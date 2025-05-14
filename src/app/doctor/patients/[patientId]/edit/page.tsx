@@ -3,7 +3,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, FamilyMedicalHistoryEntry, MedicationEntry } from "@/lib/types"; 
+import type { DoctorPatient, DetailedPatientProfile, FamilyMedicalHistoryEntry, MedicationEntry, Gender, SASOption, YesNoOption, FrequencyOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption } from "@/lib/types"; 
 import { DoctorPatientProfileForm } from "@/components/doctor/patient-profile/DoctorPatientProfileForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, UserCog } from "lucide-react";
@@ -33,7 +33,7 @@ const mockPatientsList: DoctorPatient[] = [
         chiefComplaint: "头晕、乏力一周",
         historyOfPresentIllness: "患者一周前无明显诱因出现头晕，伴乏力，自测血压波动于150-160/90-100mmHg，血糖餐后10-12mmol/L。",
         pastMedicalHistoryDetails: "2010年阑尾炎手术。高血压病史5年，2型糖尿病3年。",
-        pastIllnesses: ["hypertension", "diabetes"],
+        pastIllnesses: ["hypertension", "diabetes", "高血压", "糖尿病"],
         familyMedicalHistory: [ 
             { relative: "self", conditions: ["高血压", "糖尿病"] },
             { relative: "father", conditions: ["高血压"] },
@@ -41,17 +41,17 @@ const mockPatientsList: DoctorPatient[] = [
             { relative: "paternal_grandparents", conditions: [] },
             { relative: "maternal_grandparents", conditions: ["高血脂"] },
         ],
-        currentSymptoms: ["心慌", "胸闷", "头晕"], 
+        currentSymptoms: ["心慌", "胸闷", "头晕", "体重下降"], 
         allergies: ["青霉素", "海鲜"],
         operationHistory: ["心脏（含心脏介入）"],
         bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
-        contactHistory: ["油烟"],
+        contactHistory: ["油烟", "粉烟尘"],
         
         dietaryHabits_breakfastDays: '7天',
         dietaryHabits_lateSnackDays: '1-2天',
-        dietaryHabits_badHabits: ['吃饭过快', '吃得过饱'],
-        dietaryHabits_preferences: ['咸', '辣'],
+        dietaryHabits_badHabits: ['吃饭过快', '挑食偏食'],
+        dietaryHabits_preferences: ['咸', '辣', '生食'],
         dietaryHabits_foodTypePreferences: ['油炸食品', '经常吃快餐'],
 
         dietaryIntake_staple: '2-4碗',
@@ -80,52 +80,56 @@ const mockPatientsList: DoctorPatient[] = [
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
         
-        mentalHealth_majorEvents: '否',
-        mentalHealth_impactOnLife: '有一点',
-        mentalHealth_stressLevel: '较明显',
-        mentalHealth_sas_anxiety: "小部分时间有",
-        mentalHealth_sas_fear: "没有或很少有时间有",
-        mentalHealth_sas_panic: "小部分时间有",
-        mentalHealth_sas_goingCrazy: "没有或很少有时间有",
-        mentalHealth_sas_misfortune: "没有或很少有时间有",
-        mentalHealth_sas_trembling: "小部分时间有",
-        mentalHealth_sas_bodyPain: "相当多时间有",
-        mentalHealth_sas_fatigue: "相当多时间有",
-        mentalHealth_sas_restlessness: "小部分时间有",
-        mentalHealth_sas_palpitations: "小部分时间有",
-        mentalHealth_sas_dizziness: "相当多时间有",
-        mentalHealth_sas_fainting: "没有或很少有时间有",
-        mentalHealth_sas_breathingDifficulty: "小部分时间有",
-        mentalHealth_sas_paresthesia: "没有或很少有时间有",
-        mentalHealth_sas_stomachPain: "小部分时间有",
-        mentalHealth_sas_frequentUrination: "没有或很少有时间有",
-        mentalHealth_sas_sweating: "小部分时间有",
+        mentalHealth_majorEvents: '否' as YesNoOption,
+        mentalHealth_impactOnLife: '有一点' as '几乎没有' | '有一点' | '较明显' | '很大',
+        mentalHealth_stressLevel: '较明显' as '几乎没有' | '有一点' | '较明显' | '很大',
+        mentalHealth_sas_anxiety: "小部分时间有" as SASOption,
+        mentalHealth_sas_fear: "没有或很少有时间有" as SASOption,
+        mentalHealth_sas_panic: "小部分时间有" as SASOption,
+        mentalHealth_sas_goingCrazy: "没有或很少有时间有" as SASOption,
+        mentalHealth_sas_misfortune: "没有或很少有时间有" as SASOption,
+        mentalHealth_sas_trembling: "小部分时间有" as SASOption,
+        mentalHealth_sas_bodyPain: "相当多时间有" as SASOption,
+        mentalHealth_sas_fatigue: "相当多时间有" as SASOption,
+        mentalHealth_sas_restlessness: "小部分时间有" as SASOption,
+        mentalHealth_sas_palpitations: "小部分时间有" as SASOption,
+        mentalHealth_sas_dizziness: "相当多时间有" as SASOption,
+        mentalHealth_sas_fainting: "没有或很少有时间有" as SASOption,
+        mentalHealth_sas_breathingDifficulty: "小部分时间有" as SASOption,
+        mentalHealth_sas_paresthesia: "没有或很少有时间有" as SASOption,
+        mentalHealth_sas_stomachPain: "小部分时间有" as SASOption,
+        mentalHealth_sas_frequentUrination: "没有或很少有时间有" as SASOption,
+        mentalHealth_sas_sweating: "小部分时间有" as SASOption,
 
-        adherence_selfAssessmentBody: "满意",
-        adherence_selfAssessmentMind: "还算关心",
-        adherence_priorityProblems: ["控制血糖", "减轻头晕"],
-        adherence_doctorAdviceCompliance: "执行一部分",
+        adherence_selfAssessmentBody: "满意" as AdherenceBodyOption,
+        adherence_selfAssessmentMind: "还算关心" as AdherenceMindOption,
+        adherence_priorityProblems: ["控制血糖", "减轻头晕", "改善睡眠"],
+        adherence_doctorAdviceCompliance: "执行一部分" as AdherenceComplianceOption,
         adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
-        adherence_otherHealthPromotion: "定期复查",
+        adherence_otherHealthPromotion: "定期体检",
 
-        sleep_adequacy: "一般",
+        sleep_adequacy: "一般" as SleepAdequacyOption,
 
         otherInfo_medicationsUsed: "拜阿司匹林 100mg qd, 胰岛素 10U qn",
-        otherInfo_contactPreference_method: "微信",
-        otherInfo_contactPreference_frequency: "每周一次",
-        otherInfo_contactPreference_time: "下午",
+        otherInfo_contactPreference_method: "微信" as ContactPreferenceMethod,
+        otherInfo_contactPreference_method_other: "",
+        otherInfo_contactPreference_frequency: "每周一次" as ContactPreferenceFrequency,
+        otherInfo_contactPreference_frequency_other: "",
+        otherInfo_contactPreference_time: "下午" as ContactPreferenceTime,
+        otherInfo_contactPreference_time_other: "",
         otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
-        otherInfo_serviceSatisfaction: "较好",
+        otherInfo_serviceSatisfaction: "较好" as ServiceSatisfactionOption,
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
         { id: "rep001", name: "2024-04-15 血液检查.pdf", type: "pdf", url: "#", uploadDate: "2024-04-15"},
+        { id: "rep002", name: "2024-03-10 胸部CT.jpg", type: "image", url: "https://picsum.photos/seed/report_ct/200", uploadDate: "2024-03-10"},
       ]
     },
     { 
       id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002",
       emergencyContact: { name: "王小明", phone: "13900239003", relationship: "儿子" },
-      detailedProfile: { name: "李四", gender: "female", age: 62, dob: "1962-10-20", chiefComplaint: "胸闷、气短一月", pastIllnesses: ["heart_disease"], bloodType: "O", educationLevel: "senior_high_school" },
+      detailedProfile: { name: "李四", gender: "female", age: 62, dob: "1962-10-20", chiefComplaint: "胸闷、气短一月", pastIllnesses: ["heart_disease", "心脏病"], bloodType: "O", educationLevel: "senior_high_school" },
       healthDataSummary: "心率稳定，偶有胸闷。",
     },
      { 
@@ -234,3 +238,4 @@ export default function EditPatientProfilePage() {
     </div>
   );
 }
+
