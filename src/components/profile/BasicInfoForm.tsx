@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,10 +27,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import type { UserProfile, Gender, BloodType, MaritalStatus, ReliabilityOption } from "@/lib/types";
+import type { UserProfile, Gender, BloodType, MaritalStatus } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { format, parse, isValid, parseISO, startOfDay } from "date-fns";
+import { format, parse, isValid, parseISO } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 const educationLevelOptions = [
@@ -43,12 +44,7 @@ const educationLevelOptions = [
   { value: 'other', label: '其他' },
 ];
 
-const reliabilityOptions: { value: ReliabilityOption; label: string }[] = [
-    { value: 'reliable', label: '可靠' },
-    { value: 'partially_reliable', label: '部分可靠' },
-    { value: 'unreliable', label: '不可靠' },
-];
-
+// Schema for patient-editable fields
 const profileFormSchema = z.object({
   name: z.string().min(1, "姓名不能为空。").max(50, "姓名不能超过50个字符。"),
   gender: z.enum(["male", "female", "other"], { required_error: "请选择性别。" }) as z.ZodType<Gender>,
@@ -62,17 +58,12 @@ const profileFormSchema = z.object({
   maritalStatus: z.enum(["unmarried", "married", "divorced", "widowed", "other"], { required_error: "请选择婚姻状况。" }) as z.ZodType<MaritalStatus>,
   occupation: z.string().optional(),
   educationLevel: z.string().optional(),
-  recordNumber: z.string().optional(),
-  admissionDate: z.date().optional(),
-  recordDate: z.date().optional(),
-  informant: z.string().optional(),
-  reliability: z.enum(['reliable', 'partially_reliable', 'unreliable']).optional() as z.ZodType<ReliabilityOption | undefined>,
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// Mock data - in a real app, this would come from an API
-const defaultValues: ProfileFormValues = {
+// Mock data for patient-editable fields - institutional fields are removed for form defaults
+const defaultEditableValues: ProfileFormValues = {
   name: "王小宝",
   gender: "male",
   dob: parse("1980-06-06", "yyyy-MM-dd", new Date()),
@@ -85,11 +76,6 @@ const defaultValues: ProfileFormValues = {
   maritalStatus: "married",
   occupation: "软件工程师",
   educationLevel: "bachelor",
-  recordNumber: "PAT00123",
-  admissionDate: parse("2023-01-15", "yyyy-MM-dd", new Date()),
-  recordDate: parse("2023-01-10", "yyyy-MM-dd", new Date()),
-  informant: "本人",
-  reliability: "reliable",
 };
 
 export function BasicInfoForm() {
@@ -98,26 +84,25 @@ export function BasicInfoForm() {
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: defaultEditableValues, // Use editable defaults
     mode: "onChange",
   });
 
   useEffect(() => {
     setIsClient(true);
-    // This simulates fetching user data and resetting the form
-    // In a real app, replace defaultValues with fetched data
-    const fetchedData = defaultValues; // Replace with actual fetch
+    // Simulate fetching user data and resetting the form for editable fields
+    const fetchedEditableData = defaultEditableValues; // Replace with actual fetch if needed
     form.reset({
-      ...fetchedData,
-      dob: fetchedData.dob ? (typeof fetchedData.dob === 'string' ? parseISO(fetchedData.dob) : fetchedData.dob) : undefined,
-      admissionDate: fetchedData.admissionDate ? (typeof fetchedData.admissionDate === 'string' ? parseISO(fetchedData.admissionDate) : fetchedData.admissionDate) : undefined,
-      recordDate: fetchedData.recordDate ? (typeof fetchedData.recordDate === 'string' ? parseISO(fetchedData.recordDate) : fetchedData.recordDate) : undefined,
+      ...fetchedEditableData,
+      dob: fetchedEditableData.dob ? (typeof fetchedEditableData.dob === 'string' ? parseISO(fetchedEditableData.dob) : fetchedEditableData.dob) : undefined,
     });
   }, [form]);
 
 
   function onSubmit(data: ProfileFormValues) {
-    console.log("Profile data submitted:", data);
+    console.log("Patient-editable profile data submitted:", data);
+    // Here, you would typically send only 'data' to the backend
+    // The full UserProfile might be constructed server-side or by merging
     toast({
       title: "信息已更新",
       description: "您的基本信息已成功保存。",
@@ -127,7 +112,7 @@ export function BasicInfoForm() {
   if (!isClient) {
     return (
       <div className="space-y-6 animate-pulse">
-        {[...Array(7)].map((_, i) => (
+        {[...Array(6)].map((_, i) => ( // Reduced skeleton rows to match fewer fields
           <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="h-10 bg-muted rounded w-full"></div>
             <div className="h-10 bg-muted rounded w-full md:col-span-1"></div>
@@ -138,7 +123,6 @@ export function BasicInfoForm() {
       </div>
     );
   }
-
 
   return (
     <Form {...form}>
@@ -226,13 +210,13 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 2: Address */}
+        {/* Row 2: Address (full width) */}
         <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>家庭住址</FormLabel>
+                <FormLabel>家庭地址</FormLabel>
                 <FormControl>
                   <Input placeholder="请输入您的家庭住址" {...field} />
                 </FormControl>
@@ -240,8 +224,8 @@ export function BasicInfoForm() {
               </FormItem>
             )}
           />
-
-        {/* Row 3: Checkboxes */}
+        
+        {/* Row 3: Checkboxes (side-by-side) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-2">
             <FormField
               control={form.control}
@@ -277,7 +261,6 @@ export function BasicInfoForm() {
             />
         </div>
 
-
         {/* Row 4: Phone, Email */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
@@ -308,8 +291,8 @@ export function BasicInfoForm() {
           />
         </div>
 
-        {/* Row 5: Blood Type, Marital Status */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start"> {/* Increased gap for radio groups */}
+        {/* Row 5: Blood Type, Marital Status (side-by-side RadioGroups) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
           <FormField
             control={form.control}
             name="bloodType"
@@ -321,7 +304,7 @@ export function BasicInfoForm() {
                     onValueChange={field.onChange}
                     value={field.value}
                     defaultValue={field.value}
-                    className="flex flex-wrap gap-x-3 gap-y-1" // Adjusted gap for radios
+                    className="flex flex-wrap gap-x-3 gap-y-1"
                   >
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="A" /></FormControl><FormLabel className="font-normal text-sm">A型</FormLabel></FormItem>
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="B" /></FormControl><FormLabel className="font-normal text-sm">B型</FormLabel></FormItem>
@@ -339,13 +322,13 @@ export function BasicInfoForm() {
             name="maritalStatus"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>婚  姻</FormLabel>
+                <FormLabel>婚姻</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
                     value={field.value}
                     defaultValue={field.value}
-                    className="flex flex-wrap gap-x-3 gap-y-1" // Adjusted gap for radios
+                    className="flex flex-wrap gap-x-3 gap-y-1"
                   >
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal text-sm">未婚</FormLabel></FormItem>
                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal text-sm">已婚</FormLabel></FormItem>
@@ -391,97 +374,6 @@ export function BasicInfoForm() {
                       {educationLevelOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Row 7: Record Number, Admission Date, Record Date (Read-only for patient) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="recordNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>病案号</FormLabel>
-                <FormControl><Input {...field} disabled /></FormControl>
-                <FormDescription className="text-xs">由医疗机构管理</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="admissionDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>入院日期</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                        onChange={(e) => field.onChange(e.target.value ? parseISO(e.target.value) : undefined)}
-                        disabled
-                      />
-                    </FormControl>
-                <FormDescription className="text-xs">由医疗机构管理</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="recordDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>记录日期</FormLabel>
-                 <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                        onChange={(e) => field.onChange(e.target.value ? parseISO(e.target.value) : undefined)}
-                        disabled
-                      />
-                    </FormControl>
-                 <FormDescription className="text-xs">由医疗机构管理</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Row 8: Informant, Reliability (Read-only for patient) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField
-            control={form.control}
-            name="informant"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>病史陈述者</FormLabel>
-                <FormControl><Input {...field} disabled /></FormControl>
-                <FormDescription className="text-xs">由医疗机构记录</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="reliability"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>可靠程度</FormLabel>
-                 <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled>
-                  <FormControl>
-                      <SelectTrigger>
-                          <SelectValue placeholder="选择可靠程度" />
-                      </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                      {reliabilityOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                 <FormDescription className="text-xs">由医疗机构评估</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
