@@ -16,7 +16,7 @@ export type BloodType = "A" | "B" | "O" | "AB" | "unknown";
 export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "other";
 
 
-export interface UserProfile {
+export interface UserProfile { // Patient-side profile
   name: string;
   gender: Gender;
   dob?: string; 
@@ -24,11 +24,17 @@ export interface UserProfile {
   bloodType?: BloodType;
   maritalStatus?: MaritalStatus;
   occupation?: string;
-  educationLevel?: string;
+  educationLevel?: string; // e.g., 'bachelor', 'master'
   contactPhone: string;
   contactEmail: string;
   hadPreviousCheckup?: boolean; 
   agreesToIntervention?: boolean; 
+  // Fields to match doctor-side basic info view, potentially read-only for patient
+  recordNumber?: string; // 病案号
+  admissionDate?: string; // 入院日期 (ISO string)
+  recordDate?: string; // 记录日期 (ISO string)
+  informant?: string; // 病史陈述者
+  reliability?: 'reliable' | 'unreliable' | 'partially_reliable'; // 可靠程度
 }
 
 export interface EmergencyContact {
@@ -159,8 +165,6 @@ export interface DoctorPatient {
   avatarUrl?: string; 
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
-  // pastHistory removed, covered in detailedProfile
-  // allergies removed, covered in detailedProfile
   healthDataSummary?: string;
   reports?: ExaminationReport[];
   detailedProfile?: DetailedPatientProfile;
@@ -207,14 +211,14 @@ export interface DetailedPatientProfile {
   pastIllnesses?: string[]; 
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
-  operationHistory?: string[]; // Changed to string array for checkbox selection
+  operationHistory?: string[]; 
   traumaHistory?: string;
-  bloodTransfusionHistory?: string; // Text field for description
+  bloodTransfusionHistory?: string; 
 
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
-  personalHistory_smokingHistory?: string; // Consider structuring this like smoking_status below
-  personalHistory_drinkingHistory?: string; // Consider structuring this like drinking_status below
+  personalHistory_smokingHistory?: string; 
+  personalHistory_drinkingHistory?: string; 
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string;
 
@@ -246,24 +250,24 @@ export interface DetailedPatientProfile {
   
   currentSymptoms?: string[];
   allergies?: string[]; 
-  medicationHistory?: MedicationEntry[]; // Detailed medication entries
-  medicationCategories?: string[]; // For the new checkbox list of drug categories
+  medicationHistory?: MedicationEntry[]; 
+  medicationCategories?: string[]; 
   contactHistory?: string[]; 
 
   // Detailed lifestyle questions
-  contactHistory_oy?: YesNoOption; // 油烟
-  contactHistory_dust?: YesNoOption; // 粉烟尘
-  contactHistory_toxic?: YesNoOption; // 毒、致癌物
-  contactHistory_highTemp?: YesNoOption; // 高温
-  contactHistory_lowTemp?: YesNoOption; // 低温
-  contactHistory_noise?: YesNoOption; // 噪音
-  contactHistory_radiation?: YesNoOption; // 辐射
+  contactHistory_oy?: YesNoOption; 
+  contactHistory_dust?: YesNoOption; 
+  contactHistory_toxic?: YesNoOption; 
+  contactHistory_highTemp?: YesNoOption; 
+  contactHistory_lowTemp?: YesNoOption; 
+  contactHistory_noise?: YesNoOption; 
+  contactHistory_radiation?: YesNoOption; 
 
   dietaryHabits_breakfastDays?: FrequencyOption;
   dietaryHabits_lateSnackDays?: FrequencyOption;
-  dietaryHabits_badHabits?: string[]; // e.g., ["吃饭时喝水", "吃饭过快"]
-  dietaryHabits_preferences?: string[]; // e.g., ["咸", "甜"]
-  dietaryHabits_foodTypePreferences?: string[]; // e.g., ["油炸食品"]
+  dietaryHabits_badHabits?: string[]; 
+  dietaryHabits_preferences?: string[]; 
+  dietaryHabits_foodTypePreferences?: string[]; 
 
   dietaryIntake_staple?: DietaryIntakeOption;
   dietaryIntake_meat?: DietaryIntakeOption;
@@ -282,14 +286,15 @@ export interface DetailedPatientProfile {
   exercise_intensity?: ExerciseIntensityOption;
 
   smoking_status?: SmokingStatusOption;
-  smoking_cigarettesPerDay?: string; // E.g., "<5支", "5-15支"
-  smoking_years?: string; // E.g., "<1年", "1-5年"
+  smoking_cigarettesPerDay?: string; 
+  smoking_years?: string; 
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption;
-  drinking_amountPerDay?: string; // E.g., "<2两"
-  drinking_years?: string; // E.g., "<5年"
+  drinking_type?: AlcoholTypeOption | string; // Allow '其他'
+  drinking_type_other?: string;
+  drinking_amountPerDay?: string; 
+  drinking_years?: string; 
 
   mentalHealth_majorEvents?: YesNoOption;
   mentalHealth_impactOnLife?: '几乎没有' | '有一点' | '较明显' | '很大';
@@ -314,22 +319,25 @@ export interface DetailedPatientProfile {
 
   adherence_selfAssessmentBody?: AdherenceBodyOption;
   adherence_selfAssessmentMind?: AdherenceMindOption;
-  adherence_priorityProblems?: string[]; // Store as array of strings
+  adherence_priorityProblems?: string[]; 
   adherence_doctorAdviceCompliance?: AdherenceComplianceOption;
-  adherence_healthPromotionMethods?: string[]; // e.g., ["改变饮食习惯", "药物"]
-  adherence_otherHealthPromotion?: string; // For "其他" text input
+  adherence_healthPromotionMethods?: string[]; 
+  adherence_otherHealthPromotion?: string; 
 
   sleep_adequacy?: SleepAdequacyOption;
 
-  otherInfo_medicationsUsed?: string; // Text area for currently used meds
-  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; // Allow '其他'
+  otherInfo_medicationsUsed?: string; 
+  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; 
   otherInfo_contactPreference_method_other?: string;
   otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string;
   otherInfo_contactPreference_frequency_other?: string;
   otherInfo_contactPreference_time?: ContactPreferenceTime | string;
   otherInfo_contactPreference_time_other?: string;
-  otherInfo_suggestions?: string; // Text area
+  otherInfo_suggestions?: string; 
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
+
+  otherMedicalInfo?: string; // Added from MedicalHistory
+  healthGoals?: string[]; // Added from MedicalHistory
 }
 
 

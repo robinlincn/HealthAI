@@ -30,8 +30,19 @@ import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, Gender, BloodType, MaritalStatus } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { format, parse } from "date-fns";
+import { format, parse, isValid, parseISO } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+
+const educationLevelOptions = [
+  { value: 'primary_school', label: '小学' },
+  { value: 'junior_high_school', label: '初中' },
+  { value: 'senior_high_school', label: '高中/中专' },
+  { value: 'college', label: '大专' },
+  { value: 'bachelor', label: '本科' },
+  { value: 'master', label: '硕士' },
+  { value: 'doctorate', label: '博士' },
+  { value: 'other', label: '其他' },
+];
 
 const profileFormSchema = z.object({
   name: z.string().min(1, "姓名不能为空。").max(50, "姓名不能超过50个字符。"),
@@ -41,11 +52,16 @@ const profileFormSchema = z.object({
   hadPreviousCheckup: z.boolean().default(false).optional(),
   agreesToIntervention: z.boolean().default(false).optional(),
   contactPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的中国大陆手机号码。").or(z.literal("")),
-  contactEmail: z.string().email("请输入有效的邮箱地址。").or(z.literal("")),
+  contactEmail: z.string().email("请输入有效的邮箱地址。").or(z.literal("")).optional(),
   bloodType: z.enum(["A", "B", "O", "AB", "unknown"], { required_error: "请选择血型。" }) as z.ZodType<BloodType>,
   maritalStatus: z.enum(["unmarried", "married", "divorced", "widowed", "other"], { required_error: "请选择婚姻状况。" }) as z.ZodType<MaritalStatus>,
   occupation: z.string().optional(),
   educationLevel: z.string().optional(),
+  recordNumber: z.string().optional(),
+  admissionDate: z.date().optional(),
+  recordDate: z.date().optional(),
+  informant: z.string().optional(),
+  reliability: z.enum(['reliable', 'unreliable', 'partially_reliable']).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -54,7 +70,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 const defaultValues: ProfileFormValues = {
   name: "王小宝",
   gender: "male",
-  dob: parse("1980-06-06", "yyyy-MM-dd", new Date()), // Example DOB
+  dob: parse("1980-06-06", "yyyy-MM-dd", new Date()),
   address: "示例省 示例市 示例区 示例街道123号",
   hadPreviousCheckup: true,
   agreesToIntervention: true,
@@ -64,6 +80,11 @@ const defaultValues: ProfileFormValues = {
   maritalStatus: "married",
   occupation: "软件工程师",
   educationLevel: "bachelor",
+  recordNumber: "PAT00123",
+  admissionDate: parse("2023-01-15", "yyyy-MM-dd", new Date()),
+  recordDate: parse("2023-01-10", "yyyy-MM-dd", new Date()),
+  informant: "本人",
+  reliability: "reliable",
 };
 
 export function BasicInfoForm() {
@@ -72,6 +93,9 @@ export function BasicInfoForm() {
 
   useEffect(() => {
     setIsClient(true);
+    // Here you would fetch existing user profile data and populate the form
+    // For now, we use defaultValues which might be updated if a user profile is passed in as prop
+    // form.reset(fetchedUserProfileData);
   }, []);
 
   const form = useForm<ProfileFormValues>({
@@ -89,13 +113,26 @@ export function BasicInfoForm() {
   }
 
   if (!isClient) {
-    return <div className="space-y-4">加载中...</div>;
+    // Render a loading state or null for SSR to prevent hydration mismatch
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end animate-pulse">
+          <div className="h-10 bg-muted rounded w-full"></div>
+          <div className="h-10 bg-muted rounded w-full"></div>
+          <div className="h-10 bg-muted rounded w-full"></div>
+        </div>
+        <div className="h-10 bg-muted rounded w-full animate-pulse"></div>
+        {/* Add more skeleton loaders as needed */}
+      </div>
+    );
   }
+  
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        {/* Row 1: Name, Gender, DOB */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           <FormField
             control={form.control}
             name="name"
@@ -177,55 +214,58 @@ export function BasicInfoForm() {
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>家庭住址</FormLabel>
-              <FormControl>
-                <Input placeholder="请输入您的家庭住址" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 items-center">
-           <FormField
+        {/* Row 2: Address, Checkboxes */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+          <FormField
             control={form.control}
-            name="hadPreviousCheckup"
+            name="address"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-2">
+              <FormItem className="md:col-span-2">
+                <FormLabel>家庭住址</FormLabel>
                 <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Input placeholder="请输入您的家庭住址" {...field} />
                 </FormControl>
-                <FormLabel className="font-normal leading-none">以前在本机构体检过</FormLabel>
                 <FormMessage />
               </FormItem>
             )}
           />
-           <FormField
-            control={form.control}
-            name="agreesToIntervention"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-2">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="font-normal leading-none">同意接受健康干预服务</FormLabel>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="space-y-2 pt-1 md:pt-7"> {/* Align checkboxes with label */}
+            <FormField
+              control={form.control}
+              name="hadPreviousCheckup"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal leading-none text-sm">以前在本机构体检过</FormLabel>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="agreesToIntervention"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal leading-none text-sm">同意接受健康干预服务</FormLabel>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
+        {/* Row 3: Phone, Email */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -245,7 +285,7 @@ export function BasicInfoForm() {
             name="contactEmail"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>E-mail</FormLabel>
+                <FormLabel>E-mail (可选)</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="请输入您的邮箱地址" {...field} />
                 </FormControl>
@@ -255,6 +295,7 @@ export function BasicInfoForm() {
           />
         </div>
         
+        {/* Row 4: Blood Type, Marital Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -267,24 +308,13 @@ export function BasicInfoForm() {
                     onValueChange={field.onChange}
                     value={field.value}
                     defaultValue={field.value}
-                    className="flex space-x-4"
+                    className="flex flex-wrap gap-x-3 gap-y-2"
                   >
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="A" /></FormControl>
-                      <FormLabel className="font-normal">A型</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="B" /></FormControl>
-                      <FormLabel className="font-normal">B型</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="O" /></FormControl>
-                      <FormLabel className="font-normal">O型</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="AB" /></FormControl>
-                      <FormLabel className="font-normal">AB型</FormLabel>
-                    </FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="A" /></FormControl><FormLabel className="font-normal text-sm">A型</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="B" /></FormControl><FormLabel className="font-normal text-sm">B型</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="O" /></FormControl><FormLabel className="font-normal text-sm">O型</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="AB" /></FormControl><FormLabel className="font-normal text-sm">AB型</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unknown" /></FormControl><FormLabel className="font-normal text-sm">未知</FormLabel></FormItem>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -302,24 +332,13 @@ export function BasicInfoForm() {
                     onValueChange={field.onChange}
                     value={field.value}
                     defaultValue={field.value}
-                    className="flex flex-wrap gap-x-4 gap-y-2"
+                    className="flex flex-wrap gap-x-3 gap-y-2"
                   >
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="unmarried" /></FormControl>
-                      <FormLabel className="font-normal">未婚</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="married" /></FormControl>
-                      <FormLabel className="font-normal">已婚</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="divorced" /></FormControl>
-                      <FormLabel className="font-normal">离婚</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="widowed" /></FormControl>
-                      <FormLabel className="font-normal">丧偶</FormLabel>
-                    </FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal text-sm">未婚</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal text-sm">已婚</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="divorced" /></FormControl><FormLabel className="font-normal text-sm">离婚</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="widowed" /></FormControl><FormLabel className="font-normal text-sm">丧偶</FormLabel></FormItem>
+                     <FormItem className="flex items-center space-x-1.5"><FormControl><RadioGroupItem value="other" /></FormControl><FormLabel className="font-normal text-sm">其他</FormLabel></FormItem>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -328,6 +347,7 @@ export function BasicInfoForm() {
           />
         </div>
 
+        {/* Row 5: Occupation, Education Level */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -355,14 +375,7 @@ export function BasicInfoForm() {
                       </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                      <SelectItem value="primary_school">小学</SelectItem>
-                      <SelectItem value="junior_high_school">初中</SelectItem>
-                      <SelectItem value="senior_high_school">高中/中专</SelectItem>
-                      <SelectItem value="college">大专</SelectItem>
-                      <SelectItem value="bachelor">本科</SelectItem>
-                      <SelectItem value="master">硕士</SelectItem>
-                      <SelectItem value="doctorate">博士</SelectItem>
-                      <SelectItem value="other">其他</SelectItem>
+                      {educationLevelOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -370,8 +383,87 @@ export function BasicInfoForm() {
             )}
           />
         </div>
+
+        {/* Row 6: Record Number, Admission Date, Record Date (Read-only for patient) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="recordNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>病案号</FormLabel>
+                <FormControl><Input {...field} disabled /></FormControl>
+                <FormDescription className="text-xs">由医疗机构管理</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="admissionDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>入院日期</FormLabel>
+                <FormControl><Input type="date" value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} disabled /></FormControl>
+                <FormDescription className="text-xs">由医疗机构管理</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="recordDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>记录日期</FormLabel>
+                <FormControl><Input type="date" value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''} disabled /></FormControl>
+                 <FormDescription className="text-xs">由医疗机构管理</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 7: Informant, Reliability (Read-only for patient) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="informant"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>病史陈述者</FormLabel>
+                <FormControl><Input {...field} disabled /></FormControl>
+                <FormDescription className="text-xs">由医疗机构记录</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="reliability"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>可靠程度</FormLabel>
+                 <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled>
+                  <FormControl>
+                      <SelectTrigger>
+                          <SelectValue placeholder="选择可靠程度" />
+                      </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                      <SelectItem value="reliable">可靠</SelectItem>
+                      <SelectItem value="partially_reliable">部分可靠</SelectItem>
+                      <SelectItem value="unreliable">不可靠</SelectItem>
+                  </SelectContent>
+                </Select>
+                 <FormDescription className="text-xs">由医疗机构评估</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         
-        <Button type="submit">保存更新</Button>
+        <Button type="submit" className="mt-8">保存更新</Button>
       </form>
     </Form>
   );
