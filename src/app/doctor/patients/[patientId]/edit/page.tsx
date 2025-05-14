@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -46,6 +47,9 @@ const mockPatientsList: DoctorPatient[] = [
         bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
         contactHistory: ["油烟"],
+        contactHistory_oy: "是",
+        contactHistory_dust: "否",
+        contactHistory_toxic: "不详",
         dietaryHabits_breakfastDays: '7天',
         dietaryHabits_lateSnackDays: '1-2天',
         dietaryHabits_badHabits: ['吃饭过快', '吃得过饱'],
@@ -73,14 +77,9 @@ const mockPatientsList: DoctorPatient[] = [
         drinking_type: '啤酒',
         drinking_amountPerDay: '<2两',
         drinking_years: '5-15年',
-        otherMedicalInfo: "长期服用降压药。",
-        healthGoals: ["控制血糖, 防止并发症"],
-        operationHistory_text: "2010年阑尾炎切除术", 
-        bloodTransfusionHistory_details: "无",
-        contactHistory_oy: "是", 
-        mentalHealth_majorEvents: "否",
-        mentalHealth_impactOnLife: "有一点",
-        mentalHealth_stressLevel: "较明显",
+        mentalHealth_majorEvents: '否',
+        mentalHealth_impactOnLife: '有一点',
+        mentalHealth_stressLevel: '较明显',
         mentalHealth_sas_anxiety: "小部分时间有",
         mentalHealth_sas_fear: "没有或很少有时间有",
         mentalHealth_sas_panic: "小部分时间有",
@@ -98,6 +97,10 @@ const mockPatientsList: DoctorPatient[] = [
         mentalHealth_sas_stomachPain: "小部分时间有",
         mentalHealth_sas_frequentUrination: "没有或很少有时间有",
         mentalHealth_sas_sweating: "小部分时间有",
+        otherMedicalInfo: "长期服用降压药。",
+        healthGoals: ["控制血糖, 防止并发症"],
+        operationHistory_text: "2010年阑尾炎切除术", 
+        bloodTransfusionHistory_details: "无",
         adherence_selfAssessmentBody: "满意",
         adherence_selfAssessmentMind: "还算关心",
         adherence_priorityProblems: ["控制血糖", "减轻头晕"],
@@ -229,3 +232,4 @@ export default function EditPatientProfilePage() {
     </div>
   );
 }
+

@@ -7,13 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, UserCircle, FileText, LineChart as LineChartIcon, ClipboardList, Edit3, Check, X, Heart, AlertTriangle, TestTube, Stethoscope, Syringe, Wind, Utensils, Dumbbell, Cigarette, Wine, Brain, Info, Pill, Bed } from "lucide-react"; // Added Info, Pill, Bed
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, DietaryIntakeOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption } from "@/lib/types";
+import type { DoctorPatient, DetailedPatientProfile, Gender, MaritalStatus, BloodType, FamilyMedicalHistoryEntry, YesNoOption, FrequencyOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, DietaryIntakeOption } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { format, parseISO, isValid } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils"; // Added missing import
 
 // Mock data fetching function (replace with actual data fetching)
 const mockPatientsList: DoctorPatient[] = [
@@ -50,6 +51,9 @@ const mockPatientsList: DoctorPatient[] = [
         bloodTransfusionHistory: "2005年因外伤输血200ml",
         medicationCategories: ["降压药", "降糖药"],
         contactHistory: ["油烟"],
+        contactHistory_oy: "是",
+        contactHistory_dust: "否",
+        contactHistory_toxic: "不详",
         dietaryHabits_breakfastDays: '7天',
         dietaryHabits_lateSnackDays: '1-2天',
         dietaryHabits_badHabits: ['吃饭过快', '吃得过饱'],
@@ -101,19 +105,6 @@ const mockPatientsList: DoctorPatient[] = [
         healthGoals: ["控制血糖, 防止并发症"],
         operationHistory_text: "2010年阑尾炎切除术", 
         bloodTransfusionHistory_details: "无",
-        contactHistory_oy: "是", 
-        adherence_selfAssessmentBody: "满意",
-        adherence_selfAssessmentMind: "还算关心",
-        adherence_priorityProblems: ["控制血糖", "减轻头晕"],
-        adherence_doctorAdviceCompliance: "执行一部分",
-        adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
-        sleep_adequacy: "一般",
-        otherInfo_medicationsUsed: "拜阿司匹林 100mg qd",
-        otherInfo_contactPreference_method: "微信",
-        otherInfo_contactPreference_frequency: "每周一次",
-        otherInfo_contactPreference_time: "下午",
-        otherInfo_suggestions: "希望App能提供更详细的食谱推荐。",
-        otherInfo_serviceSatisfaction: "较好",
       },
       healthDataSummary: "血糖近期偏高，血压控制尚可，需关注。",
       reports: [
@@ -262,7 +253,7 @@ export default function DoctorPatientDetailPage() {
     );
   }
 
-  const dp = patient.detailedProfile; // Alias for detailedProfile
+  const dp = patient.detailedProfile; 
 
   return (
     <div className="space-y-4 p-1 md:p-4 lg:p-6">
@@ -522,7 +513,6 @@ export default function DoctorPatientDetailPage() {
               
               <Separator />
               <h4 className="font-semibold pt-2">个人史与生活习惯 (旧版文本录入):</h4>
-              {dp?.contactHistory_oy && <p><strong>油烟接触(旧):</strong> {dp.contactHistory_oy}</p>}
               {dp?.personalHistory_smokingHistory && <p><strong>吸烟史(旧):</strong> {dp.personalHistory_smokingHistory}</p>}
               {dp?.personalHistory_drinkingHistory && <p><strong>饮酒史(旧):</strong> {dp.personalHistory_drinkingHistory}</p>}
               
@@ -581,6 +571,4 @@ export default function DoctorPatientDetailPage() {
     </div>
   );
 }
-
-
     
