@@ -1,29 +1,30 @@
-
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit3, UserCircle } from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation"; // useRouter for back button
-import { useState, useEffect } from "react"; // For managing patient data state
-import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types"; // Import types
-import { DoctorPatientProfileForm } from "@/components/doctor/patient-profile/DoctorPatientProfileForm"; // Import the new form
-import { Skeleton } from "@/components/ui/skeleton"; // For loading state
+import { ArrowLeft, UserCircle } from "lucide-react"; // Removed Edit3 as editing is handled by the form
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import type { DoctorPatient, DetailedPatientProfile } from "@/lib/types";
+import { DoctorPatientProfileForm } from "@/components/doctor/patient-profile/DoctorPatientProfileForm";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Mock data fetching function (replace with actual data fetching)
 const getPatientDetails = (patientId: string): DoctorPatient | null => {
-  // In a real app, fetch patient data from a DB or API
   const mockPatientsList: DoctorPatient[] = [
     { 
       id: "pat001", name: "张三", age: 45, gender: "male", diagnosis: "高血压, 2型糖尿病", lastVisit: "2024-05-01",
       contact: "13800138001",
       detailedProfile: {
         recordNumber: "MR00123",
+        name: "张三", // Ensure name is part of detailedProfile if form expects it
+        gender: "male",
+        age: 45,
         maritalStatus: "married",
         occupation: "工程师",
         nationality: "汉族",
         birthplace: "北京",
+        address: "北京市朝阳区幸福路123号", // Ensure address is part of detailedProfile
         admissionDate: "2024-04-20T00:00:00.000Z",
         recordDate: "2024-04-20T00:00:00.000Z",
         informant: "患者本人",
@@ -44,8 +45,20 @@ const getPatientDetails = (patientId: string): DoctorPatient | null => {
         chiefPhysician: "王主任",
       }
     },
-    { id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002", detailedProfile: { chiefComplaint: "胸闷、气短一月" } },
-    { id: "pat003", name: "王五", age: 50, gender: "male", diagnosis: "高血脂", lastVisit: "2024-04-22", contact: "13700137003", detailedProfile: { chiefComplaint: "体检发现血脂异常" } },
+    { 
+      id: "pat002", name: "李四", age: 62, gender: "female", diagnosis: "冠心病", lastVisit: "2024-05-10", contact: "13900139002", 
+      detailedProfile: { 
+        name: "李四", gender: "female", age: 62, address: "上海市浦东新区健康路789号",
+        chiefComplaint: "胸闷、气短一月" 
+      } 
+    },
+    { 
+      id: "pat003", name: "王五", age: 50, gender: "male", diagnosis: "高血脂", lastVisit: "2024-04-22", contact: "13700137003", 
+      detailedProfile: { 
+        name: "王五", gender: "male", age: 50, address: "广东省深圳市南山区科技园路101号",
+        chiefComplaint: "体检发现血脂异常" 
+      } 
+    },
   ];
   return mockPatientsList.find(p => p.id === patientId) || null;
 };
@@ -70,18 +83,22 @@ export default function DoctorPatientDetailPage() {
 
   const handleSaveProfile = (updatedProfileData: DetailedPatientProfile) => {
     if (patient) {
-      const updatedPatient = {
-        ...patient,
-        // Update main patient fields if they are part of the form and can change
+      const updatedPatientData: DoctorPatient = {
+        ...patient, // Spread existing patient data
         name: updatedProfileData.name || patient.name, 
         gender: updatedProfileData.gender || patient.gender,
-        age: updatedProfileData.age || patient.age,
-        contact: updatedProfileData.address || patient.contact, // Assuming address in form maps to contact
-        detailedProfile: updatedProfileData,
+        age: updatedProfileData.age !== undefined ? updatedProfileData.age : patient.age, // Ensure age is updated correctly
+        contact: updatedProfileData.address || patient.contact, // Assuming form's address maps to patient's contact
+        // Update other top-level patient fields if they are part of the form
+        detailedProfile: {
+          ...patient.detailedProfile, // Spread existing detailed profile
+          ...updatedProfileData, // Override with new data
+        },
       };
-      setPatient(updatedPatient);
+      setPatient(updatedPatientData);
       // Here you would also send the data to your backend API
-      console.log("Updated patient data:", updatedPatient);
+      console.log("Updated patient data:", updatedPatientData);
+      // Add toast notification for successful save
     }
   };
 
@@ -126,7 +143,7 @@ export default function DoctorPatientDetailPage() {
           <UserCircle className="mr-2 h-6 w-6 md:h-7 md:w-7 text-primary flex-shrink-0" />
           病人档案: {patient.name}
         </h1>
-        {/* Edit button is now part of the DoctorPatientProfileForm */}
+        {/* Edit button is now part of the DoctorPatientProfileForm logic */}
       </div>
 
       <DoctorPatientProfileForm patient={patient} onSave={handleSaveProfile} />
