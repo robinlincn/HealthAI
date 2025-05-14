@@ -10,7 +10,7 @@ import {
   Settings,
   Send,
   SlidersHorizontal,
-  Cog, // General settings icon
+  Cog, 
   MonitorPlay,
   UsersRound,
   Clock,
@@ -18,18 +18,9 @@ import {
   LayoutDashboard,
   Shield,
   Network,
-  DatabaseBackup, // Added for Backup
-  PlugZap,      // Added for Integrations
-  Settings2,    // Kept for general System Settings
-  // Removed unused icons to keep imports clean
-  // ListChecks, 
-  // ListOrdered, 
-  // ListTodo, 
-  // Activity, 
-  // KeyRound, 
-  // Palette, 
-  // BellRing, 
-  // ServerCog 
+  DatabaseBackup, 
+  PlugZap,      
+  Settings2,    
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -45,7 +36,7 @@ const baseSaasPath = '/saas-admin';
 export const saasNavLinks: SaasNavItem[] = [
   {
     title: '仪表盘',
-    href: `${baseSaasPath}`, // Root of SAAS admin
+    href: `${baseSaasPath}`, 
     icon: LayoutDashboard,
   },
   {
@@ -111,36 +102,36 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '系统管理',
     href: `${baseSaasPath}/system-management`, 
-    icon: Settings,
+    icon: Settings, // Main group icon
     label: '系统配置',
     children: [
       {
-        title: '用户管理', 
+        title: 'SAAS平台用户', // Changed from '用户管理' for clarity
         href: `${baseSaasPath}/system-management/user-management`,
         icon: UsersRound, 
       },
       {
-        title: '权限管理',
+        title: '角色与权限', // Changed from '权限管理'
         href: `${baseSaasPath}/system-management/permission-management`,
         icon: Shield,
       },
       {
-        title: 'API管理',
+        title: 'API接口管理', // Changed from 'API管理'
         href: `${baseSaasPath}/system-management/api-management`,
         icon: Network, 
       },
       {
-        title: '数据备份与恢复', // New
-        href: `${baseSaasPath}/system-management/backup`,
+        title: '数据备份与恢复',
+        href: `${baseSaasPath}/system-management/backup`, // Corrected path
         icon: DatabaseBackup,
       },
       {
-        title: '集成与扩展', // New
-        href: `${baseSaasPath}/system-management/integrations`,
+        title: '外部服务集成', // Changed from '集成与扩展'
+        href: `${baseSaasPath}/system-management/integrations`, // Corrected path
         icon: PlugZap,
       },
       {
-        title: '系统设置',
+        title: '平台参数设置', // Changed from '系统设置'
         href: `${baseSaasPath}/system-management/system-settings`,
         icon: Settings2, 
       },
@@ -149,8 +140,8 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '系统监控',
     href: `${baseSaasPath}/system-monitoring`, 
-    icon: MonitorPlay,
-    label: '系统配置',
+    icon: MonitorPlay, // Main group icon
+    label: '系统运维', // New label for this group
     children: [
        {
         title: '外部系统状态',
@@ -158,12 +149,12 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: Power, 
       },
       {
-        title: '在线用户',
+        title: '在线用户列表', // Changed from '在线用户'
         href: `${baseSaasPath}/system-monitoring/online-users`,
         icon: Users, 
       },
       {
-        title: '定时任务',
+        title: '后台定时任务', // Changed from '定时任务'
         href: `${baseSaasPath}/system-monitoring/scheduled-tasks`,
         icon: Clock,
       },
