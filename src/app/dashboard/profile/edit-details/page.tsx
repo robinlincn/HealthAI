@@ -12,19 +12,21 @@ import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryF
 import { ContactHistoryForm } from '@/components/profile/ContactHistoryForm';
 import { DietaryHabitsForm, type DietaryHabitsFormValues } from '@/components/profile/DietaryHabitsForm';
 import { DietaryIntakeForm, type DietaryIntakeFormValues } from '@/components/profile/DietaryIntakeForm';
+import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/ExerciseForm'; // Added ExerciseForm
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
-  Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
+  CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
   MessagesSquare, Lightbulb, ThumbsUp, ChevronLeft, ChevronRight, 
-  ScrollText, ListChecks, MessageCircleQuestion, NotebookText, HelpCircle, Cog, Wind 
+  ScrollText, ListChecks, MessageCircleQuestion, NotebookText, HelpCircle, Cog, Wind, ShieldQuestion, SprayCan
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption } from "@/lib/types"; 
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption } from "@/lib/types"; 
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Ensure ScrollBar is imported if used
+
 
 // Mock data for various profile sections
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
@@ -63,6 +65,14 @@ const mockDietaryIntakeData: DietaryIntakeFormValues = {
   dietaryIntake_water: '6-9杯',
 };
 
+const mockExerciseData: ExerciseFormValues = {
+  exercise_workHours: '5-8小时',
+  exercise_sedentaryHours: '5-8小时',
+  exercise_weeklyFrequency: '偶尔（1-2次/周）',
+  exercise_durationPerSession: '30-60分钟',
+  exercise_intensity: '中度运动',
+};
+
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
@@ -74,7 +84,7 @@ const tabItems = [
     { value: "medicationHistory", label: "用药史", icon: Pill },
     { value: "contactHistory", label: "接触史", icon: Wind }, 
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
-    { value: "dietaryIntake", label: "膳食摄入", icon: Utensils }, 
+    { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot }, 
     { value: "exercise", label: "运动锻炼", icon: Dumbbell },
     { value: "smokingStatus", label: "吸烟情况", icon: Cigarette },
     { value: "drinkingStatus", label: "饮酒情况", icon: Wine },
@@ -120,6 +130,7 @@ export default function EditProfileDetailsPage() {
   const [contactHistoryData, setContactHistoryData] = React.useState<string[]>(mockContactHistory);
   const [dietaryHabitsData, setDietaryHabitsData] = React.useState<DietaryHabitsFormValues>(mockDietaryHabitsData);
   const [dietaryIntakeData, setDietaryIntakeData] = React.useState<DietaryIntakeFormValues>(mockDietaryIntakeData);
+  const [exerciseData, setExerciseData] = React.useState<ExerciseFormValues>(mockExerciseData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -166,6 +177,11 @@ export default function EditProfileDetailsPage() {
   const handleSaveDietaryIntake = (data: DietaryIntakeFormValues) => {
     setDietaryIntakeData(data);
     toast({ title: "膳食摄入已保存", description: "您的膳食摄入信息已更新。" });
+  };
+
+  const handleSaveExerciseData = (data: ExerciseFormValues) => { // Added handler for exercise data
+    setExerciseData(data);
+    toast({ title: "运动锻炼信息已保存", description: "您的运动锻炼信息已更新。" });
   };
 
   const checkScrollability = React.useCallback(() => {
@@ -320,9 +336,16 @@ export default function EditProfileDetailsPage() {
           />
         </TabsContent>
 
+        <TabsContent value="exercise">
+          <ExerciseForm 
+            initialData={exerciseData}
+            onSave={handleSaveExerciseData}
+          />
+        </TabsContent>
+
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
-            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", "dietaryIntake"
+            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", "dietaryIntake", "exercise"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
@@ -332,3 +355,6 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
+
+
+    

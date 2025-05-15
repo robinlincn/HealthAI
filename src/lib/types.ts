@@ -16,10 +16,34 @@ export type BloodType = "A" | "B" | "O" | "AB" | "unknown";
 export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "other";
 export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable";
 
+// Specific option types for reusability and clarity
+export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天';
+export type DietaryIntakeOption = '不吃' | '<1两' | '1-2两' | '2-4碗' | '2-5两' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
+
+export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
+export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
+export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时';
+export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
+
+export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
+export type DrinkingStatusOption = '从不' | '偶尔' | '戒酒' | '饮酒';
+export type AlcoholTypeOption = '白酒' | '黄酒' | '红酒' | '啤酒' | '其他';
+export type YesNoOption = '是' | '否' | '不详';
+export type SASOption = '没有或很少有时间有' | '小部分时间有' | '相当多时间有' | '绝大部分或全部时间都有';
+export type AdherenceBodyOption = '很满意' | '满意' | '尚可' | '不太好' | '很糟糕';
+export type AdherenceMindOption = '很重视' | '还算关心' | '不太在意' | '无所谓';
+export type AdherenceComplianceOption = '完全执行' | '执行一部分' | '完全不执行';
+export type SleepAdequacyOption = '充足' | '一般' | '不足' | '严重不足';
+export type ContactPreferenceMethod = '电话' | '微信' | '短信' | '邮件' | '其他';
+export type ContactPreferenceFrequency = '每周两次' | '每周一次' | '两周一次' | '根据实际情况需要' | '其他';
+export type ContactPreferenceTime = '上午' | '下午' | '晚上7点后' | '其他';
+export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满意';
+
+
 export interface UserProfile { // Patient-side profile
   name: string;
   gender: Gender;
-  dob?: string; // ISO Date string
+  dob?: string; 
   address?: string;
   
   hadPreviousCheckup?: boolean;
@@ -245,23 +269,6 @@ export interface DoctorPatient {
   detailedProfile?: DetailedPatientProfile;
 }
 
-export type DietaryIntakeOption = '不吃' | '<1两' | '1-2两' | '2-4碗' | '2-5两' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
-export type YesNoOption = '是' | '否' | '不详';
-export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时' | '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）' | '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
-export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
-export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
-export type DrinkingStatusOption = '从不' | '偶尔' | '戒酒' | '饮酒';
-export type AlcoholTypeOption = '白酒' | '黄酒' | '红酒' | '啤酒' | '其他';
-export type SASOption = '没有或很少有时间有' | '小部分时间有' | '相当多时间有' | '绝大部分或全部时间都有';
-export type AdherenceBodyOption = '很满意' | '满意' | '尚可' | '不太好' | '很糟糕';
-export type AdherenceMindOption = '很重视' | '还算关心' | '不太在意' | '无所谓';
-export type AdherenceComplianceOption = '完全执行' | '执行一部分' | '完全不执行';
-export type SleepAdequacyOption = '充足' | '一般' | '不足' | '严重不足';
-export type ContactPreferenceMethod = '电话' | '微信' | '短信' | '邮件' | '其他';
-export type ContactPreferenceFrequency = '每周两次' | '每周一次' | '两周一次' | '根据实际情况需要' | '其他';
-export type ContactPreferenceTime = '上午' | '下午' | '晚上7点后' | '其他';
-export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满意';
-
 
 export interface DetailedPatientProfile { 
   recordNumber?: string;
@@ -274,6 +281,12 @@ export interface DetailedPatientProfile {
   nationality?: string;
   birthplace?: string;
   address?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  bloodType?: BloodType;
+  educationLevel?: string;
+  hadPreviousCheckup?: boolean;
+  agreesToIntervention?: boolean;
   admissionDate?: string; 
   recordDate?: string; 
   informant?: string;
@@ -330,10 +343,10 @@ export interface DetailedPatientProfile {
   dietaryIntake_fruits?: DietaryIntakeOption;
   dietaryIntake_water?: DietaryIntakeOption;
 
-  exercise_workHours?: FrequencyOption;
-  exercise_sedentaryHours?: FrequencyOption;
-  exercise_weeklyFrequency?: FrequencyOption;
-  exercise_durationPerSession?: FrequencyOption;
+  exercise_workHours?: ExerciseWorkHoursOption;
+  exercise_sedentaryHours?: ExerciseWorkHoursOption;
+  exercise_weeklyFrequency?: ExerciseWeeklyFrequencyOption;
+  exercise_durationPerSession?: ExerciseDurationOption;
   exercise_intensity?: ExerciseIntensityOption;
 
   smoking_status?: SmokingStatusOption;
@@ -585,5 +598,8 @@ export interface SaasOutboundCallTask {
 }
 
     
+
+    
+
 
     
