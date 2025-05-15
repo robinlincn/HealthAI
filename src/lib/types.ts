@@ -299,30 +299,6 @@ export interface DetailedPatientProfile {
 
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
 
-  physicalExam_temperature?: string;
-  physicalExam_pulseRate?: string;
-  physicalExam_respiratoryRate?: string;
-  physicalExam_bloodPressure?: string;
-  physicalExam_height?: string;
-  physicalExam_weight?: string;
-  physicalExam_generalAppearance?: string;
-  physicalExam_skinAndMucosa?: string;
-
-  labAuxiliaryExams?: string;
-  initialDiagnosis?: string;
-  treatmentPlanOpinion?: string;
-
-  attendingPhysician?: string;
-  chiefPhysician?: string;
-  recordingPhysician?: string;
-
-  contactPhone?: string;
-  contactEmail?: string;
-  bloodType?: BloodType;
-  educationLevel?: string;
-  hadPreviousCheckup?: boolean;
-  agreesToIntervention?: boolean;
-
   currentSymptoms?: string[];
   allergies?: string[];
   otherAllergyText?: string;
@@ -611,4 +587,3 @@ export interface SaasOutboundCallTask {
     
 
     
-

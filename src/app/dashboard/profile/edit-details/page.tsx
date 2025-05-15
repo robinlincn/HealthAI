@@ -9,20 +9,21 @@ import { AllergyForm } from "@/components/profile/AllergyForm";
 import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm";
 import { BloodTransfusionForm } from "@/components/profile/BloodTransfusionForm";
 import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryForm";
-import { ContactHistoryForm } from "@/components/profile/ContactHistoryForm";
-import { DietaryHabitsForm } from '@/components/profile/DietaryHabitsForm'; // Import new form
+import { ContactHistoryForm } from '@/components/profile/ContactHistoryForm';
+import { DietaryHabitsForm, type DietaryHabitsFormValues } from '@/components/profile/DietaryHabitsForm';
+import { DietaryIntakeForm, type DietaryIntakeFormValues } from '@/components/profile/DietaryIntakeForm';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
-  CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
+  Utensils, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
   MessagesSquare, Lightbulb, ThumbsUp, ChevronLeft, ChevronRight, 
-  ScrollText, ListChecks, MessageCircleQuestion, NotebookText, HelpCircle, Cog, Wind, Utensils
+  ScrollText, ListChecks, MessageCircleQuestion, NotebookText, HelpCircle, Cog, Wind 
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption } from "@/lib/types"; 
+import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption } from "@/lib/types"; 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 // Mock data for various profile sections
@@ -42,12 +43,24 @@ const mockBloodTransfusionHistory: string = "2005年因车祸输血400ml，无�
 const mockMedicationCategories: string[] = ["降压药", "降糖药"];
 const mockContactHistory: string[] = ["油烟", "粉烟尘"];
 
-const mockDietaryHabitsData: UserProfile['dietaryHabits'] = {
+const mockDietaryHabitsData: DietaryHabitsFormValues = {
   dietaryHabits_breakfastDays: "7天",
   dietaryHabits_lateSnackDays: "1-2天",
   dietaryHabits_badHabits: ["吃饭过快"],
   dietaryHabits_preferences: ["咸", "辣"],
   dietaryHabits_foodTypePreferences: ["油炸食品"],
+};
+
+const mockDietaryIntakeData: DietaryIntakeFormValues = {
+  dietaryIntake_staple: '2-4碗',
+  dietaryIntake_meat: '1-2两',
+  dietaryIntake_fish: '<1两',
+  dietaryIntake_eggs: '1-2个',
+  dietaryIntake_dairy: '1-2杯',
+  dietaryIntake_soy: '0.5-1两',
+  dietaryIntake_vegetables: '6-10两',
+  dietaryIntake_fruits: '1-4两',
+  dietaryIntake_water: '6-9杯',
 };
 
 
@@ -61,7 +74,7 @@ const tabItems = [
     { value: "medicationHistory", label: "用药史", icon: Pill },
     { value: "contactHistory", label: "接触史", icon: Wind }, 
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
-    { value: "dietaryIntake", label: "膳食摄入", icon: Utensils }, // Changed from CookingPot
+    { value: "dietaryIntake", label: "膳食摄入", icon: Utensils }, 
     { value: "exercise", label: "运动锻炼", icon: Dumbbell },
     { value: "smokingStatus", label: "吸烟情况", icon: Cigarette },
     { value: "drinkingStatus", label: "饮酒情况", icon: Wine },
@@ -105,7 +118,8 @@ export default function EditProfileDetailsPage() {
   const [bloodTransfusionHistoryData, setBloodTransfusionHistoryData] = React.useState<string>(mockBloodTransfusionHistory);
   const [medicationCategoriesData, setMedicationCategoriesData] = React.useState<string[]>(mockMedicationCategories);
   const [contactHistoryData, setContactHistoryData] = React.useState<string[]>(mockContactHistory);
-  const [dietaryHabitsData, setDietaryHabitsData] = React.useState<UserProfile['dietaryHabits']>(mockDietaryHabitsData);
+  const [dietaryHabitsData, setDietaryHabitsData] = React.useState<DietaryHabitsFormValues>(mockDietaryHabitsData);
+  const [dietaryIntakeData, setDietaryIntakeData] = React.useState<DietaryIntakeFormValues>(mockDietaryIntakeData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -144,11 +158,15 @@ export default function EditProfileDetailsPage() {
     toast({ title: "接触史已保存", description: "您的接触史信息已更新。" });
   };
 
-  const handleSaveDietaryHabits = (data: UserProfile['dietaryHabits']) => {
+  const handleSaveDietaryHabits = (data: DietaryHabitsFormValues) => {
     setDietaryHabitsData(data);
     toast({ title: "饮食习惯已保存", description: "您的饮食习惯信息已更新。" });
   };
 
+  const handleSaveDietaryIntake = (data: DietaryIntakeFormValues) => {
+    setDietaryIntakeData(data);
+    toast({ title: "膳食摄入已保存", description: "您的膳食摄入信息已更新。" });
+  };
 
   const checkScrollability = React.useCallback(() => {
     const container = scrollContainerRef.current;
@@ -205,7 +223,7 @@ export default function EditProfileDetailsPage() {
 
           <div
             ref={scrollContainerRef}
-            className="flex-grow overflow-x-auto whitespace-nowrap py-1 scroll-smooth no-scrollbar px-10" // Added px-10 for arrow spacing
+            className="flex-grow overflow-x-auto whitespace-nowrap py-1 scroll-smooth no-scrollbar px-10" 
           >
             <style jsx global>{`
               .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -295,9 +313,16 @@ export default function EditProfileDetailsPage() {
           />
         </TabsContent>
 
+        <TabsContent value="dietaryIntake">
+          <DietaryIntakeForm 
+            initialData={dietaryIntakeData}
+            onSave={handleSaveDietaryIntake}
+          />
+        </TabsContent>
+
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
-            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits"
+            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", "dietaryIntake"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
@@ -307,4 +332,3 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
-
