@@ -5,17 +5,18 @@ import * as React from 'react';
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
-import { AllergyForm } from "@/components/profile/AllergyForm"; // Import new AllergyForm
+import { AllergyForm } from "@/components/profile/AllergyForm";
+import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm"; // Import new form
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   UserCircle, ShieldAlert, FileText, Users, ClipboardList, Stethoscope, 
-  Droplets, Pill, Apple, Utensils, Dumbbell, Cigarette, Wine, Brain, 
+  Droplets, Pill, Apple, CookingPot, Dumbbell, Cigarette, Wine, Brain, 
   CheckSquare, Bed, Info, MessagesSquare, Lightbulb, ThumbsUp, CalendarHeart, 
-  Activity, ShieldQuestion, Syringe, SprayCan, CookingPot, Heart, Wind,
+  Activity, ShieldQuestion, Syringe, SprayCan, Heart, Wind,
   ChevronLeft, ChevronRight, HandHeart, ListChecks, MessageCircleQuestion,
-  NotebookText, HelpCircle, Cog, Ban // Added Ban for Allergy
+  NotebookText, HelpCircle, Cog, Ban, Drama // Added Drama for Surgery
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
@@ -34,13 +35,14 @@ const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
 const mockCurrentSymptoms: string[] = ["头晕", "心慌"]; 
 const mockAllergies: string[] = ["青霉素", "其他"];
 const mockOtherAllergyText: string = "芒果";
+const mockOperationHistory: string[] = ["心脏（含心脏介入）"]; // Mock data for operation history
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
     { value: "familyHistory", label: "家族病史", icon: HandHeart },
     { value: "currentSymptoms", label: "现有症状", icon: Activity },
-    { value: "allergies", label: "过敏史", icon: Ban }, // Changed icon
-    { value: "operationHistory", label: "手术史", icon: Stethoscope },
+    { value: "allergies", label: "过敏史", icon: Ban },
+    { value: "operationHistory", label: "手术史", icon: Drama }, // Changed icon
     { value: "bloodTransfusion", label: "输血史", icon: Droplets },
     { value: "medicationHistory", label: "用药史", icon: Pill },
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
@@ -84,6 +86,7 @@ export default function EditProfileDetailsPage() {
   const [currentSymptomsData, setCurrentSymptomsData] = React.useState<string[]>(mockCurrentSymptoms);
   const [allergiesData, setAllergiesData] = React.useState<string[]>(mockAllergies);
   const [otherAllergyTextData, setOtherAllergyTextData] = React.useState<string>(mockOtherAllergyText);
+  const [operationHistoryData, setOperationHistoryData] = React.useState<string[]>(mockOperationHistory);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -104,8 +107,13 @@ export default function EditProfileDetailsPage() {
     console.log("Saving allergies from page:", data);
     setAllergiesData(data.allergies || []);
     setOtherAllergyTextData(data.otherAllergyText || "");
-    // Toast is handled within AllergyForm
   };
+
+  const handleSaveOperationHistory = (operations: string[]) => {
+    console.log("Saving operation history from page:", operations);
+    setOperationHistoryData(operations);
+  };
+
 
   const checkScrollability = React.useCallback(() => {
     const container = scrollContainerRef.current;
@@ -217,7 +225,14 @@ export default function EditProfileDetailsPage() {
           />
         </TabsContent>
 
-        {tabItems.filter(tab => !["basicInfo", "familyHistory", "currentSymptoms", "allergies"].includes(tab.value)).map((tab) => (
+        <TabsContent value="operationHistory">
+          <OperationHistoryForm 
+            initialOperationHistory={operationHistoryData} 
+            onSave={handleSaveOperationHistory} 
+          />
+        </TabsContent>
+
+        {tabItems.filter(tab => !["basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory"].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
           </TabsContent>
@@ -226,5 +241,3 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
-
-    

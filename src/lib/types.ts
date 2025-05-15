@@ -45,8 +45,9 @@ export interface UserProfile { // Patient-side profile
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   currentSymptoms?: string[];
   allergies?: string[];
-  otherAllergyText?: string; // For custom allergy text if "其他" is selected
-  operationHistory?: string[];
+  otherAllergyText?: string; 
+  operationHistory?: string[]; // Added for operation history
+  // ... other fields from DetailedPatientProfile that patient can edit will go here
   bloodTransfusionHistory?: string;
   medicationHistoryText?: string; // Simplified medication history for patient input
   // lifestyle
@@ -134,6 +135,7 @@ export interface MedicalHistory { // This is for patient-side form, might need t
   otherAllergyText?: string;
   currentSymptoms?: string[];
   medicationHistory?: MedicationEntry[];
+  operationHistory?: string[]; // Added for patient-side editing if different from doctor's view
   otherMedicalInfo?: string;
   healthGoals?: string[];
 }
@@ -282,7 +284,7 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   pastIllnesses?: string[];
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
-  operationHistory?: string[];
+  operationHistory?: string[]; // Ensure this is string[] for consistency
   traumaHistory?: string;
   bloodTransfusionHistory?: string;
 
