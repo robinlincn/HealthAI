@@ -30,6 +30,8 @@ export type DrinkingStatusOption = '从不' | '偶尔' | '戒酒' | '饮酒';
 export type AlcoholTypeOption = '白酒' | '黄酒' | '红酒' | '啤酒' | '其他';
 export type YesNoOption = '是' | '否' | '不详';
 export type SASOption = '没有或很少有时间有' | '小部分时间有' | '相当多时间有' | '绝大部分或全部时间都有';
+
+// New types for Adherence Behavior
 export type AdherenceBodyOption = '很满意' | '满意' | '尚可' | '不太好' | '很糟糕';
 export type AdherenceMindOption = '很重视' | '还算关心' | '不太在意' | '无所谓';
 export type AdherenceComplianceOption = '完全执行' | '执行一部分' | '完全不执行';
@@ -38,7 +40,7 @@ export type ContactPreferenceMethod = '电话' | '微信' | '短信' | '邮件' 
 export type ContactPreferenceFrequency = '每周两次' | '每周一次' | '两周一次' | '根据实际情况需要' | '其他';
 export type ContactPreferenceTime = '上午' | '下午' | '晚上7点后' | '其他';
 export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满意';
-export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '很大'; // Added for mental health Q2 & Q3
+export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '很大';
 
 
 export interface UserProfile { // Patient-side profile
@@ -107,30 +109,49 @@ export interface UserProfile { // Patient-side profile
   drinking_amountPerDay?: string;
   drinking_years?: string;
   
-  mentalHealth?: Partial<Pick<DetailedPatientProfile,
-    'mentalHealth_majorEvents' | 'mentalHealth_impactOnLife' | 'mentalHealth_stressLevel' |
-    'mentalHealth_sas_anxiety' | 'mentalHealth_sas_fear' | 'mentalHealth_sas_panic' | 
-    'mentalHealth_sas_goingCrazy' | 'mentalHealth_sas_misfortune' | 'mentalHealth_sas_trembling' |
-    'mentalHealth_sas_bodyPain' | 'mentalHealth_sas_fatigue' | 'mentalHealth_sas_restlessness' |
-    'mentalHealth_sas_palpitations' | 'mentalHealth_sas_dizziness' | 'mentalHealth_sas_fainting' |
-    'mentalHealth_sas_breathingDifficulty' | 'mentalHealth_sas_paresthesia' | 'mentalHealth_sas_stomachPain' |
-    'mentalHealth_sas_frequentUrination' | 'mentalHealth_sas_sweating'
-  >>;
-  adherence?: Partial<Pick<DetailedPatientProfile,
-    'adherence_selfAssessmentBody' | 'adherence_selfAssessmentMind' | 'adherence_priorityProblems' |
-    'adherence_doctorAdviceCompliance' | 'adherence_healthPromotionMethods' | 'adherence_otherHealthPromotion'
-  >>;
-  sleep?: Partial<Pick<DetailedPatientProfile, 'sleep_adequacy'>>;
-  otherInfo?: Partial<Pick<DetailedPatientProfile,
-    'otherInfo_medicationsUsed' | 'otherInfo_contactPreference_method' | 'otherInfo_contactPreference_method_other' |
-    'otherInfo_contactPreference_frequency' | 'otherInfo_contactPreference_frequency_other' |
-    'otherInfo_contactPreference_time' | 'otherInfo_contactPreference_time_other' |
-    'otherInfo_suggestions' | 'otherInfo_serviceSatisfaction'
-  >>;
-  communicationProgress?: string; 
-  suggestionsForCenter?: string; 
-  serviceSatisfaction?: ServiceSatisfactionOption; 
-  medicationHistoryText?: string; 
+  mentalHealth_majorEvents?: YesNoOption;
+  mentalHealth_impactOnLife?: ImpactLevelOption;
+  mentalHealth_stressLevel?: ImpactLevelOption;
+  mentalHealth_sas_anxiety?: SASOption;
+  mentalHealth_sas_fear?: SASOption;
+  mentalHealth_sas_panic?: SASOption;
+  mentalHealth_sas_goingCrazy?: SASOption;
+  mentalHealth_sas_misfortune?: SASOption;
+  mentalHealth_sas_trembling?: SASOption;
+  mentalHealth_sas_bodyPain?: SASOption;
+  mentalHealth_sas_fatigue?: SASOption;
+  mentalHealth_sas_restlessness?: SASOption;
+  mentalHealth_sas_palpitations?: SASOption;
+  mentalHealth_sas_dizziness?: SASOption;
+  mentalHealth_sas_fainting?: SASOption;
+  mentalHealth_sas_breathingDifficulty?: SASOption;
+  mentalHealth_sas_paresthesia?: SASOption;
+  mentalHealth_sas_stomachPain?: SASOption;
+  mentalHealth_sas_frequentUrination?: SASOption;
+  mentalHealth_sas_sweating?: SASOption;
+
+  // Adherence Behavior fields
+  adherence_selfAssessmentBody?: AdherenceBodyOption;
+  adherence_selfAssessmentMind?: AdherenceMindOption;
+  adherence_priorityProblems?: string[]; // Array of up to 4 strings
+  adherence_doctorAdviceCompliance?: AdherenceComplianceOption;
+  adherence_healthPromotionMethods?: string[];
+  adherence_otherHealthPromotion?: string;
+
+  // For backward compatibility with DetailedPatientProfile if it's the source
+  pastIllnesses?: string[];
+  infectiousDiseases?: string[];
+  vaccinationHistory?: string;
+  traumaHistory?: string;
+  personalHistory_birthPlaceAndResidence?: string;
+  personalHistory_livingConditions?: string;
+  personalHistory_smokingHistory?: string; 
+  personalHistory_drinkingHistory?: string; 
+  personalHistory_drugAbuseHistory?: string;
+  personalHistory_menstrualAndObstetric?: string;
+  medicationHistory?: MedicationEntry[]; 
+  otherMedicalInfo?: string; 
+  healthGoals?: string[]; 
 }
 
 export interface EmergencyContact {
@@ -153,7 +174,7 @@ export interface MedicationEntry {
   notes?: string;
 }
 
-export interface MedicalHistory { // This seems like a duplicate or older version of DetailedPatientProfile parts. Consolidating into DetailedPatientProfile.
+export interface MedicalHistory { 
   pastMedicalHistoryText?: string;
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   allergies?: string[];
@@ -357,8 +378,8 @@ export interface DetailedPatientProfile {
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string; // Allow string for custom type
-  drinking_type_other?: string; // For when "其他" is selected for drinking_type
+  drinking_type?: AlcoholTypeOption | string; 
+  drinking_type_other?: string; 
   drinking_amountPerDay?: string;
   drinking_years?: string;
 
@@ -598,3 +619,5 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
+
+    

@@ -2,15 +2,16 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Ensure this is at the top
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
-import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
+import { EmergencyContacts } from "@/components/profile/EmergencyContacts"; // Assuming this will be added under a "More" or "Settings" tab eventually
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
+import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
 import { AllergyForm } from "@/components/profile/AllergyForm";
 import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm";
-import { BloodTransfusionForm } from "@/components/profile/BloodTransfusionForm";
-import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryForm";
+import { BloodTransfusionForm } from '@/components/profile/BloodTransfusionForm';
+import { MedicationCategoryForm } from '@/components/profile/MedicationCategoryForm';
 import { ContactHistoryForm } from '@/components/profile/ContactHistoryForm';
 import { DietaryHabitsForm, type DietaryHabitsFormValues } from '@/components/profile/DietaryHabitsForm';
 import { DietaryIntakeForm, type DietaryIntakeFormValues } from '@/components/profile/DietaryIntakeForm';
@@ -18,6 +19,7 @@ import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/Exer
 import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/profile/SmokingStatusForm';
 import { DrinkingStatusForm, type DrinkingStatusFormValues } from '@/components/profile/DrinkingStatusForm';
 import { MentalHealthForm, type MentalHealthFormValues } from '@/components/profile/MentalHealthForm';
+import { AdherenceBehaviorForm, type AdherenceBehaviorFormValues } from '@/components/profile/AdherenceBehaviorForm';
 
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +33,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, LucideIcon, YesNoOption, ImpactLevelOption } from "@/lib/types"; 
 
 // Mock data for various profile sections
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
@@ -98,22 +99,15 @@ const mockMentalHealthData: MentalHealthFormValues = {
   mentalHealth_impactOnLife: "有一点",
   mentalHealth_stressLevel: "较明显",
   mentalHealth_sas_anxiety: "小部分时间有",
-  mentalHealth_sas_fear: "没有或很少有时间有",
-  mentalHealth_sas_panic: "小部分时间有",
-  mentalHealth_sas_goingCrazy: "没有或很少有时间有",
-  mentalHealth_sas_misfortune: "没有或很少有时间有",
-  mentalHealth_sas_trembling: "小部分时间有",
-  mentalHealth_sas_bodyPain: "相当多时间有",
-  mentalHealth_sas_fatigue: "相当多时间有",
-  mentalHealth_sas_restlessness: "小部分时间有",
-  mentalHealth_sas_palpitations: "小部分时间有",
-  mentalHealth_sas_dizziness: "相当多时间有",
-  mentalHealth_sas_fainting: "没有或很少有时间有",
-  mentalHealth_sas_breathingDifficulty: "小部分时间有",
-  mentalHealth_sas_paresthesia: "没有或很少有时间有",
-  mentalHealth_sas_stomachPain: "小部分时间有",
-  mentalHealth_sas_frequentUrination: "没有或很少有时间有",
-  mentalHealth_sas_sweating: "小部分时间有",
+};
+
+const mockAdherenceData: AdherenceBehaviorFormValues = {
+    adherence_selfAssessmentBody: "满意",
+    adherence_selfAssessmentMind: "还算关心",
+    adherence_priorityProblems: ["控制血糖", "改善睡眠", "", ""],
+    adherence_doctorAdviceCompliance: "执行一部分",
+    adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+    adherence_otherHealthPromotion: "",
 };
 
 
@@ -178,6 +172,7 @@ export default function EditProfileDetailsPage() {
   const [smokingStatusData, setSmokingStatusData] = React.useState<SmokingStatusFormValues>(mockSmokingStatusData);
   const [drinkingStatusData, setDrinkingStatusData] = React.useState<DrinkingStatusFormValues>(mockDrinkingStatusData);
   const [mentalHealthData, setMentalHealthData] = React.useState<MentalHealthFormValues>(mockMentalHealthData);
+  const [adherenceData, setAdherenceData] = React.useState<AdherenceBehaviorFormValues>(mockAdherenceData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -245,6 +240,12 @@ export default function EditProfileDetailsPage() {
     setMentalHealthData(data);
     toast({ title: "心理健康信息已保存", description: "您的心理健康评估数据已更新。" });
   };
+  
+  const handleSaveAdherenceBehavior = (data: AdherenceBehaviorFormValues) => {
+    setAdherenceData(data);
+    toast({ title: "遵医行为信息已保存", description: "您的遵医行为信息已更新。" });
+  };
+
 
   const checkScrollability = React.useCallback(() => {
     const container = scrollContainerRef.current;
@@ -425,11 +426,17 @@ export default function EditProfileDetailsPage() {
             onSave={handleSaveMentalHealth}
           />
         </TabsContent>
+        
+        <TabsContent value="adherence">
+           <AdherenceBehaviorForm initialData={adherenceData} onSave={handleSaveAdherenceBehavior} />
+        </TabsContent>
+
 
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
             "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", 
-            "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus", "mentalHealth"
+            "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus", "mentalHealth",
+            "adherence"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
@@ -439,4 +446,5 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
+
     
