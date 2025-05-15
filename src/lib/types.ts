@@ -34,7 +34,7 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields usually managed by institution, but patient might view/confirm
+  // Fields usually managed by institution, but patient can view if present
   recordNumber?: string; 
   admissionDate?: string; // ISO Date string
   recordDate?: string; // ISO Date string
@@ -46,10 +46,11 @@ export interface UserProfile { // Patient-side profile
   currentSymptoms?: string[];
   allergies?: string[];
   otherAllergyText?: string; 
-  operationHistory?: string[]; // Added for operation history
-  // ... other fields from DetailedPatientProfile that patient can edit will go here
-  bloodTransfusionHistory?: string;
+  operationHistory?: string[]; 
+  bloodTransfusionHistory?: string; 
+  medicationCategories?: string[]; // Added for medication categories
   medicationHistoryText?: string; // Simplified medication history for patient input
+
   // lifestyle
   dietaryHabits?: Partial<Pick<DetailedPatientProfile, 
     'dietaryHabits_breakfastDays' | 
@@ -103,9 +104,9 @@ export interface UserProfile { // Patient-side profile
     'otherInfo_contactPreference_time' | 'otherInfo_contactPreference_time_other' |
     'otherInfo_suggestions' | 'otherInfo_serviceSatisfaction'
   >>;
-  communicationProgress?: string; // For "沟通健康进展"
-  suggestionsForCenter?: string; // For "您对本中心的建议"
-  serviceSatisfaction?: ServiceSatisfactionOption; // For "您对我中心的服务" (already in otherInfo, might be redundant or a primary field)
+  communicationProgress?: string; 
+  suggestionsForCenter?: string; 
+  serviceSatisfaction?: ServiceSatisfactionOption; 
 }
 
 export interface EmergencyContact {
@@ -134,8 +135,10 @@ export interface MedicalHistory { // This is for patient-side form, might need t
   allergies?: string[];
   otherAllergyText?: string;
   currentSymptoms?: string[];
+  medicationCategories?: string[]; // Added for medication categories
   medicationHistory?: MedicationEntry[];
-  operationHistory?: string[]; // Added for patient-side editing if different from doctor's view
+  operationHistory?: string[]; 
+  bloodTransfusionHistory?: string; 
   otherMedicalInfo?: string;
   healthGoals?: string[];
 }
@@ -164,17 +167,17 @@ export interface Consultation {
   patientName: string;
   doctorName?: string;
   doctorId?: string;
-  date: string; // Formatted date string for display
-  timestamp: Timestamp | Date; // Firestore Timestamp or Date object
+  date: string; 
+  timestamp: Timestamp | Date; 
   question: string;
   status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
   reply?: string;
-  doctorReplyTimestamp?: Timestamp | Date; // Firestore Timestamp or Date object
+  doctorReplyTimestamp?: Timestamp | Date; 
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
 }
 
 
-export interface Medication { // General Medication type, matches MedicationEntry for now
+export interface Medication { 
   id: string;
   name: string;
   dosage: string;
@@ -221,8 +224,8 @@ export interface Appointment {
   id: string;
   patientName: string;
   patientId?: string;
-  date: Date; // Date object for calendar
-  time: string; // HH:mm format
+  date: Date; 
+  time: string; 
   reason?: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
@@ -234,7 +237,7 @@ export interface DoctorPatient {
   age: number;
   gender: Gender;
   diagnosis: string;
-  lastVisit: string; // ISO Date string
+  lastVisit: string; 
   avatarUrl?: string;
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
@@ -243,7 +246,7 @@ export interface DoctorPatient {
   detailedProfile?: DetailedPatientProfile;
 }
 
-export type DietaryIntakeOption = '不吃' | '<1两' | '1-2两' | '2-4碗' | '2-5两' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<2两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
+export type DietaryIntakeOption = '不吃' | '<1两' | '1-2两' | '2-4碗' | '2-5两' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
 export type YesNoOption = '是' | '否' | '不详';
 export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时' | '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）' | '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
@@ -261,19 +264,19 @@ export type ContactPreferenceTime = '上午' | '下午' | '晚上7点后' | '其
 export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满意';
 
 
-export interface DetailedPatientProfile { // This is the comprehensive profile, primarily for Doctor's side
+export interface DetailedPatientProfile { 
   recordNumber?: string;
   name: string;
   gender?: Gender;
-  age?: number; // Calculated from dob typically
-  dob?: string; // ISO Date string
+  age?: number; 
+  dob?: string; 
   maritalStatus?: MaritalStatus;
   occupation?: string;
   nationality?: string;
   birthplace?: string;
   address?: string;
-  admissionDate?: string; // ISO Date string
-  recordDate?: string; // ISO Date string
+  admissionDate?: string; 
+  recordDate?: string; 
   informant?: string;
   reliability?: ReliabilityOption;
 
@@ -284,14 +287,14 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   pastIllnesses?: string[];
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
-  operationHistory?: string[]; // Ensure this is string[] for consistency
+  operationHistory?: string[]; 
   traumaHistory?: string;
-  bloodTransfusionHistory?: string;
+  bloodTransfusionHistory?: string; 
 
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
-  personalHistory_smokingHistory?: string; // Legacy text field
-  personalHistory_drinkingHistory?: string; // Legacy text field
+  personalHistory_smokingHistory?: string; 
+  personalHistory_drinkingHistory?: string; 
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string;
 
@@ -314,7 +317,6 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   chiefPhysician?: string;
   recordingPhysician?: string;
 
-  // Fields that are common and patient can edit/view
   contactPhone?: string;
   contactEmail?: string;
   bloodType?: BloodType;
@@ -325,11 +327,10 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   currentSymptoms?: string[];
   allergies?: string[];
   otherAllergyText?: string;
-  medicationHistory?: MedicationEntry[]; // Detailed list of medications
-  medicationCategories?: string[]; // Broad categories of medication types
+  medicationHistory?: MedicationEntry[]; 
+  medicationCategories?: string[]; // Used for checkbox selection of medication types
   contactHistory?: string[];
 
-  // Detailed lifestyle questions
   contactHistory_oy?: YesNoOption;
   contactHistory_dust?: YesNoOption;
   contactHistory_toxic?: YesNoOption;
@@ -366,7 +367,7 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string; // Allow '其他'
+  drinking_type?: AlcoholTypeOption | string; 
   drinking_type_other?: string;
   drinking_amountPerDay?: string;
   drinking_years?: string;
@@ -402,17 +403,17 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   sleep_adequacy?: SleepAdequacyOption;
 
   otherInfo_medicationsUsed?: string;
-  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; // Allow '其他'
+  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; 
   otherInfo_contactPreference_method_other?: string;
-  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string; // Allow '其他'
+  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string; 
   otherInfo_contactPreference_frequency_other?: string;
-  otherInfo_contactPreference_time?: ContactPreferenceTime | string; // Allow '其他'
+  otherInfo_contactPreference_time?: ContactPreferenceTime | string; 
   otherInfo_contactPreference_time_other?: string;
   otherInfo_suggestions?: string;
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
 
-  otherMedicalInfo?: string; // General other medical info text
-  healthGoals?: string[]; // Patient's health goals
+  otherMedicalInfo?: string; 
+  healthGoals?: string[]; 
 }
 
 

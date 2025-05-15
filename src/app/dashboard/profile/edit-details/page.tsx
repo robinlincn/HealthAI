@@ -6,24 +6,24 @@ import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
 import { AllergyForm } from "@/components/profile/AllergyForm";
-import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm"; // Import new form
+import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm";
+import { BloodTransfusionForm } from "@/components/profile/BloodTransfusionForm";
+import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryForm"; // Import new form
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
-  UserCircle, ShieldAlert, FileText, Users, ClipboardList, Stethoscope, 
-  Droplets, Pill, Apple, CookingPot, Dumbbell, Cigarette, Wine, Brain, 
-  CheckSquare, Bed, Info, MessagesSquare, Lightbulb, ThumbsUp, CalendarHeart, 
-  Activity, ShieldQuestion, Syringe, SprayCan, Heart, Wind,
-  ChevronLeft, ChevronRight, HandHeart, ListChecks, MessageCircleQuestion,
-  NotebookText, HelpCircle, Cog, Ban, Drama // Added Drama for Surgery
+  UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
+  CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
+  MessagesSquare, Lightbulb, ThumbsUp, ChevronLeft, ChevronRight, 
+  ScrollText, ListChecks, MessageCircleQuestion, NotebookText, HelpCircle, Cog, Wind // Added Wind
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types"; 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-// Mock data for family history (can be fetched or from a store)
+// Mock data for various profile sections
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
   { relative: "self", conditions: ["高血压"] },
   { relative: "father", conditions: ["糖尿病", "高血压"] },
@@ -35,16 +35,18 @@ const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
 const mockCurrentSymptoms: string[] = ["头晕", "心慌"]; 
 const mockAllergies: string[] = ["青霉素", "其他"];
 const mockOtherAllergyText: string = "芒果";
-const mockOperationHistory: string[] = ["心脏（含心脏介入）"]; // Mock data for operation history
+const mockOperationHistory: string[] = ["心脏（含心脏介入）"]; 
+const mockBloodTransfusionHistory: string = "2005年因车祸输血400ml，无不良反应。";
+const mockMedicationCategories: string[] = ["降压药", "降糖药"]; // Mock data for medication categories
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
     { value: "familyHistory", label: "家族病史", icon: HandHeart },
     { value: "currentSymptoms", label: "现有症状", icon: Activity },
     { value: "allergies", label: "过敏史", icon: Ban },
-    { value: "operationHistory", label: "手术史", icon: Drama }, // Changed icon
+    { value: "operationHistory", label: "手术史", icon: Drama }, 
     { value: "bloodTransfusion", label: "输血史", icon: Droplets },
-    { value: "medicationHistory", label: "用药史", icon: Pill },
+    { value: "medicationHistory", label: "用药史", icon: Pill }, // Tab for medication history categories
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
     { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot },
     { value: "exercise", label: "运动锻炼", icon: Dumbbell },
@@ -82,38 +84,45 @@ export default function EditProfileDetailsPage() {
   const SCROLL_AMOUNT = 200;
   const { toast } = useToast();
 
+  // States for various profile sections
   const [familyHistoryData, setFamilyHistoryData] = React.useState<FamilyMedicalHistoryEntry[]>(mockFamilyHistory);
   const [currentSymptomsData, setCurrentSymptomsData] = React.useState<string[]>(mockCurrentSymptoms);
   const [allergiesData, setAllergiesData] = React.useState<string[]>(mockAllergies);
   const [otherAllergyTextData, setOtherAllergyTextData] = React.useState<string>(mockOtherAllergyText);
   const [operationHistoryData, setOperationHistoryData] = React.useState<string[]>(mockOperationHistory);
+  const [bloodTransfusionHistoryData, setBloodTransfusionHistoryData] = React.useState<string>(mockBloodTransfusionHistory);
+  const [medicationCategoriesData, setMedicationCategoriesData] = React.useState<string[]>(mockMedicationCategories);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
-    console.log("Saving family history from page:", data);
     setFamilyHistoryData(data); 
-    toast({
-      title: "家族病史已保存",
-      description: "您的家族病史信息已在编辑页面更新。",
-    });
+    toast({ title: "家族病史已保存", description: "您的家族病史信息已在编辑页面更新。" });
   };
 
   const handleSaveCurrentSymptoms = (symptoms: string[]) => {
-    console.log("Saving current symptoms from page:", symptoms);
     setCurrentSymptomsData(symptoms);
+     toast({ title: "症状信息已保存", description: "您的现有不适症状已更新。" });
   };
 
   const handleSaveAllergies = (data: { allergies?: string[]; otherAllergyText?: string }) => {
-    console.log("Saving allergies from page:", data);
     setAllergiesData(data.allergies || []);
     setOtherAllergyTextData(data.otherAllergyText || "");
+     toast({ title: "过敏史已保存", description: "您的过敏史信息已更新。" });
   };
 
   const handleSaveOperationHistory = (operations: string[]) => {
-    console.log("Saving operation history from page:", operations);
     setOperationHistoryData(operations);
+    toast({ title: "手术史已保存", description: "您的手术史信息已更新。" });
   };
 
+  const handleSaveBloodTransfusionHistory = (historyText?: string) => {
+    setBloodTransfusionHistoryData(historyText || "");
+  };
+  
+  const handleSaveMedicationCategories = (categories: string[]) => {
+    setMedicationCategoriesData(categories);
+    toast({ title: "用药史已保存", description: "您的用药史（类别）信息已更新。" });
+  };
 
   const checkScrollability = React.useCallback(() => {
     const container = scrollContainerRef.current;
@@ -132,7 +141,7 @@ export default function EditProfileDetailsPage() {
       window.addEventListener('resize', checkScrollability);
       
       const observer = new MutationObserver(checkScrollability);
-      observer.observe(container, { childList: true, subtree: true });
+      observer.observe(container, { childList: true, subtree: true, characterData: true });
 
       return () => {
         container.removeEventListener('scroll', checkScrollability);
@@ -232,7 +241,23 @@ export default function EditProfileDetailsPage() {
           />
         </TabsContent>
 
-        {tabItems.filter(tab => !["basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory"].includes(tab.value)).map((tab) => (
+        <TabsContent value="bloodTransfusion">
+          <BloodTransfusionForm 
+            initialHistoryText={bloodTransfusionHistoryData}
+            onSave={handleSaveBloodTransfusionHistory}
+          />
+        </TabsContent>
+
+        <TabsContent value="medicationHistory">
+          <MedicationCategoryForm 
+            initialMedicationCategories={medicationCategoriesData}
+            onSave={handleSaveMedicationCategories}
+          />
+        </TabsContent>
+
+        {tabItems.filter(tab => ![
+            "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", "bloodTransfusion", "medicationHistory"
+        ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
           </TabsContent>
