@@ -48,8 +48,9 @@ export interface UserProfile { // Patient-side profile
   otherAllergyText?: string; 
   operationHistory?: string[]; 
   bloodTransfusionHistory?: string; 
-  medicationCategories?: string[]; // Added for medication categories
-  medicationHistoryText?: string; // Simplified medication history for patient input
+  medicationCategories?: string[];
+  contactHistory?: string[]; // Added contact history
+  medicationHistoryText?: string; 
 
   // lifestyle
   dietaryHabits?: Partial<Pick<DetailedPatientProfile, 
@@ -135,7 +136,8 @@ export interface MedicalHistory { // This is for patient-side form, might need t
   allergies?: string[];
   otherAllergyText?: string;
   currentSymptoms?: string[];
-  medicationCategories?: string[]; // Added for medication categories
+  medicationCategories?: string[]; 
+  contactHistory?: string[]; // Added contact history
   medicationHistory?: MedicationEntry[];
   operationHistory?: string[]; 
   bloodTransfusionHistory?: string; 
@@ -328,8 +330,8 @@ export interface DetailedPatientProfile {
   allergies?: string[];
   otherAllergyText?: string;
   medicationHistory?: MedicationEntry[]; 
-  medicationCategories?: string[]; // Used for checkbox selection of medication types
-  contactHistory?: string[];
+  medicationCategories?: string[]; 
+  contactHistory?: string[]; // Added contact history
 
   contactHistory_oy?: YesNoOption;
   contactHistory_dust?: YesNoOption;

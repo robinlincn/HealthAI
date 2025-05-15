@@ -8,7 +8,8 @@ import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
 import { AllergyForm } from "@/components/profile/AllergyForm";
 import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm";
 import { BloodTransfusionForm } from "@/components/profile/BloodTransfusionForm";
-import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryForm"; // Import new form
+import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryForm";
+import { ContactHistoryForm } from "@/components/profile/ContactHistoryForm"; // Import new form
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import {
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types"; 
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Keep ScrollArea for the tabs if needed
 
 // Mock data for various profile sections
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
@@ -37,7 +38,8 @@ const mockAllergies: string[] = ["青霉素", "其他"];
 const mockOtherAllergyText: string = "芒果";
 const mockOperationHistory: string[] = ["心脏（含心脏介入）"]; 
 const mockBloodTransfusionHistory: string = "2005年因车祸输血400ml，无不良反应。";
-const mockMedicationCategories: string[] = ["降压药", "降糖药"]; // Mock data for medication categories
+const mockMedicationCategories: string[] = ["降压药", "降糖药"];
+const mockContactHistory: string[] = ["油烟", "粉尘"]; // Mock data for contact history
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
@@ -46,7 +48,8 @@ const tabItems = [
     { value: "allergies", label: "过敏史", icon: Ban },
     { value: "operationHistory", label: "手术史", icon: Drama }, 
     { value: "bloodTransfusion", label: "输血史", icon: Droplets },
-    { value: "medicationHistory", label: "用药史", icon: Pill }, // Tab for medication history categories
+    { value: "medicationHistory", label: "用药史", icon: Pill },
+    { value: "contactHistory", label: "接触史", icon: Wind }, // New tab
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
     { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot },
     { value: "exercise", label: "运动锻炼", icon: Dumbbell },
@@ -92,6 +95,7 @@ export default function EditProfileDetailsPage() {
   const [operationHistoryData, setOperationHistoryData] = React.useState<string[]>(mockOperationHistory);
   const [bloodTransfusionHistoryData, setBloodTransfusionHistoryData] = React.useState<string>(mockBloodTransfusionHistory);
   const [medicationCategoriesData, setMedicationCategoriesData] = React.useState<string[]>(mockMedicationCategories);
+  const [contactHistoryData, setContactHistoryData] = React.useState<string[]>(mockContactHistory);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -117,11 +121,17 @@ export default function EditProfileDetailsPage() {
 
   const handleSaveBloodTransfusionHistory = (historyText?: string) => {
     setBloodTransfusionHistoryData(historyText || "");
+    toast({ title: "输血史已保存", description: "您的输血史信息已更新。" });
   };
   
   const handleSaveMedicationCategories = (categories: string[]) => {
     setMedicationCategoriesData(categories);
     toast({ title: "用药史已保存", description: "您的用药史（类别）信息已更新。" });
+  };
+
+  const handleSaveContactHistory = (history: string[]) => {
+    setContactHistoryData(history);
+    toast({ title: "接触史已保存", description: "您的接触史信息已更新。" });
   };
 
   const checkScrollability = React.useCallback(() => {
@@ -254,9 +264,16 @@ export default function EditProfileDetailsPage() {
             onSave={handleSaveMedicationCategories}
           />
         </TabsContent>
+        
+        <TabsContent value="contactHistory">
+          <ContactHistoryForm 
+            initialContactHistory={contactHistoryData}
+            onSave={handleSaveContactHistory}
+          />
+        </TabsContent>
 
         {tabItems.filter(tab => ![
-            "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", "bloodTransfusion", "medicationHistory"
+            "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", "bloodTransfusion", "medicationHistory", "contactHistory"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
@@ -266,3 +283,4 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
+
