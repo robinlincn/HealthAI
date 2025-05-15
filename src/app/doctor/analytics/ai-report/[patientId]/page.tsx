@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -189,7 +190,7 @@ export default function DetailedAiReportPage() {
               <CardTitle className="text-lg flex items-center"><AlertTriangle className="mr-2 h-5 w-5 text-destructive"/>风险评估与主要关注点</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="flex items-center"><strong>总体风险等级:</strong> <Badge variant={getRiskBadgeVariant(reportData.riskLevel)} className="ml-2 text-base px-2 py-0.5">{reportData.riskLevel}</Badge></p>
+              <div className="flex items-center"><strong>总体风险等级:</strong> <Badge variant={getRiskBadgeVariant(reportData.riskLevel)} className="ml-2 text-base px-2 py-0.5">{reportData.riskLevel}</Badge></div>
               {reportData.primaryConcern && <p><strong>主要关注:</strong> {reportData.primaryConcern}</p>}
               <p className="text-xs text-muted-foreground">预测日期: {format(parseISO(reportData.predictionDate), "yyyy年MM月dd日")}</p>
             </CardContent>
