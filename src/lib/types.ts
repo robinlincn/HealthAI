@@ -22,7 +22,7 @@ export type DietaryIntakeOption = '不吃' | '<1两' | '1-2两' | '2-4碗' | '2-
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时'; // Corrected option
+export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -73,38 +73,39 @@ export interface UserProfile { // Patient-side profile
   contactHistory?: string[];
 
   // lifestyle
-  dietaryHabits?: Partial<Pick<DetailedPatientProfile, 
-    'dietaryHabits_breakfastDays' | 
-    'dietaryHabits_lateSnackDays' | 
-    'dietaryHabits_badHabits' | 
-    'dietaryHabits_preferences' | 
-    'dietaryHabits_foodTypePreferences'
-  >>;
-  dietaryIntake?: Partial<Pick<DetailedPatientProfile,
-    'dietaryIntake_staple' | 'dietaryIntake_meat' | 'dietaryIntake_fish' | 'dietaryIntake_eggs' |
-    'dietaryIntake_dairy' | 'dietaryIntake_soy' | 'dietaryIntake_vegetables' | 'dietaryIntake_fruits' |
-    'dietaryIntake_water'
-  >>;
-  exercise?: Partial<Pick<DetailedPatientProfile, 
-    'exercise_workHours' | 
-    'exercise_sedentaryHours' | 
-    'exercise_weeklyFrequency' | 
-    'exercise_durationPerSession' | 
-    'exercise_intensity'
-  >>;
-  smoking?: Partial<Pick<DetailedPatientProfile, 
-    'smoking_status' | 
-    'smoking_cigarettesPerDay' | 
-    'smoking_years' | 
-    'smoking_passiveDays'
-  >>;
-  drinking?: Partial<Pick<DetailedPatientProfile,
-    'drinking_status' |
-    'drinking_type' |
-    'drinking_type_other' |
-    'drinking_amountPerDay' |
-    'drinking_years'
-  >>;
+  dietaryHabits_breakfastDays?: FrequencyOption;
+  dietaryHabits_lateSnackDays?: FrequencyOption;
+  dietaryHabits_badHabits?: string[];
+  dietaryHabits_preferences?: string[];
+  dietaryHabits_foodTypePreferences?: string[];
+  
+  dietaryIntake_staple?: DietaryIntakeOption;
+  dietaryIntake_meat?: DietaryIntakeOption;
+  dietaryIntake_fish?: DietaryIntakeOption;
+  dietaryIntake_eggs?: DietaryIntakeOption;
+  dietaryIntake_dairy?: DietaryIntakeOption;
+  dietaryIntake_soy?: DietaryIntakeOption;
+  dietaryIntake_vegetables?: DietaryIntakeOption;
+  dietaryIntake_fruits?: DietaryIntakeOption;
+  dietaryIntake_water?: DietaryIntakeOption;
+
+  exercise_workHours?: ExerciseWorkHoursOption;
+  exercise_sedentaryHours?: ExerciseWorkHoursOption;
+  exercise_weeklyFrequency?: ExerciseWeeklyFrequencyOption;
+  exercise_durationPerSession?: ExerciseDurationOption;
+  exercise_intensity?: ExerciseIntensityOption;
+
+  smoking_status?: SmokingStatusOption;
+  smoking_cigarettesPerDay?: string;
+  smoking_years?: string;
+  smoking_passiveDays?: FrequencyOption;
+
+  drinking_status?: DrinkingStatusOption;
+  drinking_type?: AlcoholTypeOption | string;
+  drinking_type_other?: string;
+  drinking_amountPerDay?: string;
+  drinking_years?: string;
+  
   mentalHealth?: Partial<Pick<DetailedPatientProfile,
     'mentalHealth_majorEvents' | 'mentalHealth_impactOnLife' | 'mentalHealth_stressLevel' |
     'mentalHealth_sas_anxiety' | 'mentalHealth_sas_fear' | 'mentalHealth_sas_panic' | 
@@ -151,7 +152,7 @@ export interface MedicationEntry {
   notes?: string;
 }
 
-export interface MedicalHistory { 
+export interface MedicalHistory { // This seems like a duplicate or older version of DetailedPatientProfile parts. Consolidating into DetailedPatientProfile.
   pastMedicalHistoryText?: string;
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   allergies?: string[];
@@ -355,8 +356,8 @@ export interface DetailedPatientProfile {
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string; 
-  drinking_type_other?: string;
+  drinking_type?: AlcoholTypeOption | string; // Allow string for custom type
+  drinking_type_other?: string; // For when "其他" is selected for drinking_type
   drinking_amountPerDay?: string;
   drinking_years?: string;
 
@@ -596,10 +597,3 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
-
-    
-
-    
-
-
-    

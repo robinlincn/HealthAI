@@ -3,6 +3,8 @@
 
 import * as React from 'react';
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
+import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
+import { MedicalHistoryForm } from '@/components/profile/MedicalHistoryForm';
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
 import { AllergyForm } from "@/components/profile/AllergyForm";
@@ -13,10 +15,11 @@ import { ContactHistoryForm } from '@/components/profile/ContactHistoryForm';
 import { DietaryHabitsForm, type DietaryHabitsFormValues } from '@/components/profile/DietaryHabitsForm';
 import { DietaryIntakeForm, type DietaryIntakeFormValues } from '@/components/profile/DietaryIntakeForm';
 import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/ExerciseForm';
-import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/profile/SmokingStatusForm'; // Added
+import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/profile/SmokingStatusForm';
+import { DrinkingStatusForm, type DrinkingStatusFormValues } from '@/components/profile/DrinkingStatusForm';
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
   CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
@@ -25,7 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption } from "@/lib/types"; 
+import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption } from "@/lib/types"; 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; 
 
 
@@ -79,6 +82,14 @@ const mockSmokingStatusData: SmokingStatusFormValues = {
     smoking_cigarettesPerDay: undefined,
     smoking_years: undefined,
     smoking_passiveDays: '没有',
+};
+
+const mockDrinkingStatusData: DrinkingStatusFormValues = {
+    drinking_status: '偶尔',
+    drinking_type: '啤酒',
+    drinking_type_other: '',
+    drinking_amountPerDay: '<2两',
+    drinking_years: '<5年',
 };
 
 
@@ -141,6 +152,7 @@ export default function EditProfileDetailsPage() {
   const [dietaryIntakeData, setDietaryIntakeData] = React.useState<DietaryIntakeFormValues>(mockDietaryIntakeData);
   const [exerciseData, setExerciseData] = React.useState<ExerciseFormValues>(mockExerciseData);
   const [smokingStatusData, setSmokingStatusData] = React.useState<SmokingStatusFormValues>(mockSmokingStatusData);
+  const [drinkingStatusData, setDrinkingStatusData] = React.useState<DrinkingStatusFormValues>(mockDrinkingStatusData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -197,6 +209,11 @@ export default function EditProfileDetailsPage() {
   const handleSaveSmokingStatus = (data: SmokingStatusFormValues) => {
     setSmokingStatusData(data);
     toast({ title: "吸烟情况已保存", description: "您的吸烟情况信息已更新。" });
+  };
+  
+  const handleSaveDrinkingStatus = (data: DrinkingStatusFormValues) => {
+    setDrinkingStatusData(data);
+    toast({ title: "饮酒情况已保存", description: "您的饮酒情况信息已更新。" });
   };
 
   const checkScrollability = React.useCallback(() => {
@@ -364,11 +381,18 @@ export default function EditProfileDetailsPage() {
             onSave={handleSaveSmokingStatus}
           />
         </TabsContent>
+        
+        <TabsContent value="drinkingStatus">
+          <DrinkingStatusForm
+            initialData={drinkingStatusData}
+            onSave={handleSaveDrinkingStatus}
+          />
+        </TabsContent>
 
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
             "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", 
-            "dietaryIntake", "exercise", "smokingStatus"
+            "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
@@ -378,6 +402,3 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
-
-
-    
