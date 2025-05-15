@@ -17,12 +17,12 @@ export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "
 export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable";
 
 // Specific option types for reusability and clarity
-export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天';
+export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时' | '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
 export type DietaryIntakeOption = '不吃' | '<1碗' | '1-2碗' | '2-4碗' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时'; // Corrected ~ to - for consistency if intended
+export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时'; // Corrected ~ to - for consistency if intended
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -60,7 +60,7 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields often managed by institution, but visible to patient
+  // Fields often managed by institution, but visible to patient (potentially read-only)
   recordNumber?: string; 
   admissionDate?: string | Date; 
   recordDate?: string | Date; 
@@ -614,22 +614,27 @@ export interface SaasSopService {
   lastCallTimestamp?: string;
   callCount?: number;
   errorCount?: number;
-  parameters?: string;
+  parameters?: string; // JSON string for additional parameters
 }
 
 export interface SaasOutboundCallTask {
   id: string;
   name: string;
   targetType: 'customer_segment' | 'employee_group' | 'custom_list' | 'individual_patient';
-  targetDetails: string;
+  targetDetails: string; // Could be segment ID, group ID, list name, patient ID
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
   creationDate: string;
-  scheduledTime?: string;
-  scriptId?: string;
-  assignedTo?: string;
+  scheduledTime?: string; // ISO date string
+  scriptId?: string; // For Coze/Dify or other script
+  assignedTo?: string; // Employee ID for manual tasks
   callCount?: number;
   successCount?: number;
   notes?: string;
 }
 
+export interface SaasLlmSettings {
+  apiKey: string;
+  apiEndpoint: string;
+  modelName: string;
+}
     

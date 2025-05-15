@@ -20,7 +20,8 @@ import {
   Network,
   DatabaseBackup, 
   PlugZap,      
-  Settings2,    
+  Settings2,
+  BrainCog, // Added icon for LLM Settings
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -106,32 +107,37 @@ export const saasNavLinks: SaasNavItem[] = [
     label: '系统配置',
     children: [
       {
-        title: 'SAAS平台用户', // Changed from '用户管理' for clarity
+        title: 'SAAS平台用户',
         href: `${baseSaasPath}/system-management/user-management`,
         icon: UsersRound, 
       },
       {
-        title: '角色与权限', // Changed from '权限管理'
+        title: '角色与权限',
         href: `${baseSaasPath}/system-management/permission-management`,
         icon: Shield,
       },
       {
-        title: 'API接口管理', // Changed from 'API管理'
+        title: 'API接口管理',
         href: `${baseSaasPath}/system-management/api-management`,
         icon: Network, 
       },
       {
+        title: 'AI模型设置', // New LLM Settings link
+        href: `${baseSaasPath}/system-management/llm-settings`,
+        icon: BrainCog,
+      },
+      {
         title: '数据备份与恢复',
-        href: `${baseSaasPath}/system-management/backup`, // Corrected path
+        href: `${baseSaasPath}/system-management/backup`,
         icon: DatabaseBackup,
       },
       {
-        title: '外部服务集成', // Changed from '集成与扩展'
-        href: `${baseSaasPath}/system-management/integrations`, // Corrected path
+        title: '外部服务集成',
+        href: `${baseSaasPath}/system-management/integrations`,
         icon: PlugZap,
       },
       {
-        title: '平台参数设置', // Changed from '系统设置'
+        title: '平台参数设置',
         href: `${baseSaasPath}/system-management/system-settings`,
         icon: Settings2, 
       },
@@ -140,8 +146,8 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '系统监控',
     href: `${baseSaasPath}/system-monitoring`, 
-    icon: MonitorPlay, // Main group icon
-    label: '系统运维', // New label for this group
+    icon: MonitorPlay, 
+    label: '系统运维', 
     children: [
        {
         title: '外部系统状态',
@@ -149,15 +155,16 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: Power, 
       },
       {
-        title: '在线用户列表', // Changed from '在线用户'
+        title: '在线用户列表',
         href: `${baseSaasPath}/system-monitoring/online-users`,
         icon: Users, 
       },
       {
-        title: '后台定时任务', // Changed from '定时任务'
+        title: '后台定时任务',
         href: `${baseSaasPath}/system-monitoring/scheduled-tasks`,
         icon: Clock,
       },
     ],
   },
 ];
+
