@@ -16,7 +16,6 @@ export type BloodType = "A" | "B" | "O" | "AB" | "unknown";
 export type MaritalStatus = "unmarried" | "married" | "divorced" | "widowed" | "other";
 export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable";
 
-
 export interface UserProfile { // Patient-side profile
   name: string;
   gender: Gender;
@@ -34,14 +33,12 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields usually managed by institution, but patient can view if present
   recordNumber?: string; 
-  admissionDate?: string; // ISO Date string
-  recordDate?: string; // ISO Date string
+  admissionDate?: string; 
+  recordDate?: string; 
   informant?: string;
   reliability?: ReliabilityOption;
 
-  // Patient-editable detailed profile sections
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   currentSymptoms?: string[];
   allergies?: string[];
@@ -49,8 +46,7 @@ export interface UserProfile { // Patient-side profile
   operationHistory?: string[]; 
   bloodTransfusionHistory?: string; 
   medicationCategories?: string[];
-  contactHistory?: string[]; // Added contact history
-  medicationHistoryText?: string; 
+  contactHistory?: string[];
 
   // lifestyle
   dietaryHabits?: Partial<Pick<DetailedPatientProfile, 
@@ -108,6 +104,7 @@ export interface UserProfile { // Patient-side profile
   communicationProgress?: string; 
   suggestionsForCenter?: string; 
   serviceSatisfaction?: ServiceSatisfactionOption; 
+  medicationHistoryText?: string; 
 }
 
 export interface EmergencyContact {
@@ -130,14 +127,14 @@ export interface MedicationEntry {
   notes?: string;
 }
 
-export interface MedicalHistory { // This is for patient-side form, might need to align with DetailedPatientProfile
+export interface MedicalHistory { 
   pastMedicalHistoryText?: string;
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   allergies?: string[];
   otherAllergyText?: string;
   currentSymptoms?: string[];
   medicationCategories?: string[]; 
-  contactHistory?: string[]; // Added contact history
+  contactHistory?: string[]; 
   medicationHistory?: MedicationEntry[];
   operationHistory?: string[]; 
   bloodTransfusionHistory?: string; 
@@ -331,7 +328,7 @@ export interface DetailedPatientProfile {
   otherAllergyText?: string;
   medicationHistory?: MedicationEntry[]; 
   medicationCategories?: string[]; 
-  contactHistory?: string[]; // Added contact history
+  contactHistory?: string[];
 
   contactHistory_oy?: YesNoOption;
   contactHistory_dust?: YesNoOption;
@@ -614,3 +611,4 @@ export interface SaasOutboundCallTask {
     
 
     
+
