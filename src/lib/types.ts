@@ -22,21 +22,27 @@ export interface UserProfile { // Patient-side profile
   gender: Gender;
   dob?: string; // ISO Date string
   address?: string;
+  
+  hadPreviousCheckup?: boolean;
+  agreesToIntervention?: boolean;
+  
+  contactPhone: string;
+  contactEmail?: string;
+  
   bloodType?: BloodType;
   maritalStatus?: MaritalStatus;
   occupation?: string;
   educationLevel?: string;
-  contactPhone: string;
-  contactEmail?: string;
-  hadPreviousCheckup?: boolean;
-  agreesToIntervention?: boolean;
 
-  // Fields for consistency with doctor view, mostly read-only for patient
+  // Fields usually managed by institution, patient may view but not edit directly
   recordNumber?: string;
   admissionDate?: string; // ISO Date string
   recordDate?: string; // ISO Date string
   informant?: string;
   reliability?: ReliabilityOption;
+
+  // Added for consistency with doctor's view and for patient to potentially edit/view
+  familyMedicalHistory?: FamilyMedicalHistoryEntry[];
 }
 
 export interface EmergencyContact {
@@ -535,3 +541,5 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
+
+    

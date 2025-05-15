@@ -3,8 +3,7 @@
 
 import * as React from 'react';
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
-import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
-import { ReportList } from "@/components/reports/ReportList";
+import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor"; // Import the new component
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,6 +15,17 @@ import {
   ChevronLeft, ChevronRight
 } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import type { FamilyMedicalHistoryEntry } from "@/lib/types";
+
+// Mock data for family history (can be fetched or from a store)
+const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
+  { relative: "self", conditions: ["高血压"] },
+  { relative: "father", conditions: ["糖尿病", "高血压"] },
+  { relative: "mother", conditions: [] },
+  { relative: "paternal_grandparents", conditions: ["冠心病"] },
+  { relative: "maternal_grandparents", conditions: [] },
+];
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
@@ -25,7 +35,6 @@ const tabItems = [
     { value: "operationHistory", label: "手术史", icon: Stethoscope },
     { value: "bloodTransfusion", label: "输血史", icon: Syringe },
     { value: "medicationHistory", label: "用药史", icon: Pill },
-    { value: "contactHistory", label: "接触史", icon: SprayCan },
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
     { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot },
     { value: "exercise", label: "运动锻炼", icon: Dumbbell },
@@ -38,14 +47,17 @@ const tabItems = [
     { value: "communication", label: "沟通进展", icon: MessagesSquare },
     { value: "suggestions", label: "您的建议", icon: Lightbulb },
     { value: "serviceSatisfaction", label: "服务满意度", icon: ThumbsUp },
-    { value: "emergencyContacts", label: "紧急联系", icon: ShieldAlert },
-    { value: "uploadedReports", label: "已上传报告", icon: FileText },
+    // { value: "emergencyContacts", label: "紧急联系", icon: ShieldAlert }, // Assuming this might be a separate component/page
+    // { value: "uploadedReports", label: "已上传报告", icon: FileText }, // Assuming this might be a separate component/page
   ];
 
-const renderPlaceholderContent = (title: string) => (
+const renderPlaceholderContent = (title: string, Icon?: LucideIcon) => (
     <Card className="shadow-sm mt-4">
       <CardHeader className="p-4">
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-base flex items-center">
+          {Icon && <Icon className="mr-2 h-4 w-4 text-muted-foreground" />}
+          {title}
+        </CardTitle>
         <CardDescription className="text-xs">此模块用于记录您的 {title.toLowerCase()} 相关信息。</CardDescription>
       </CardHeader>
       <CardContent className="p-4 text-center text-muted-foreground">
@@ -59,13 +71,25 @@ export default function EditProfileDetailsPage() {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(false);
-  const SCROLL_AMOUNT = 200; // Pixels to scroll with each click
+  const SCROLL_AMOUNT = 200;
+  const { toast } = useToast();
+
+  const [familyHistoryData, setFamilyHistoryData] = React.useState<FamilyMedicalHistoryEntry[]>(mockFamilyHistory);
+
+  const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
+    console.log("Saving family history from page:", data);
+    setFamilyHistoryData(data); // Update local state (in real app, send to backend)
+    toast({
+      title: "家族病史已保存",
+      description: "您的家族病史信息已在编辑页面更新。",
+    });
+  };
+
 
   const checkScrollability = React.useCallback(() => {
     const container = scrollContainerRef.current;
     if (container) {
       const { scrollLeft, scrollWidth, clientWidth } = container;
-      // Add a small tolerance (e.g., 1-5px) for scrollWidth comparison due to subpixel rendering
       setCanScrollLeft(scrollLeft > 5); 
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
     }
@@ -74,19 +98,12 @@ export default function EditProfileDetailsPage() {
   React.useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
-      checkScrollability(); // Initial check
+      checkScrollability(); 
       container.addEventListener('scroll', checkScrollability, { passive: true });
       window.addEventListener('resize', checkScrollability);
       
-      // Observe changes in TabsList children that might affect scrollWidth
       const observer = new MutationObserver(checkScrollability);
-      const tabsListElement = container.querySelector('.tabs-list-inner'); // Add a class to TabsList for specific targeting if needed
-      if (tabsListElement) {
-        observer.observe(tabsListElement, { childList: true, subtree: true });
-      } else {
-        observer.observe(container, { childList: true, subtree: true }); // Fallback to container
-      }
-
+      observer.observe(container, { childList: true, subtree: true });
 
       return () => {
         container.removeEventListener('scroll', checkScrollability);
@@ -114,11 +131,8 @@ export default function EditProfileDetailsPage() {
             variant="ghost"
             size="icon"
             onClick={() => handleScrollClick('left')}
-            className={React.useMemo(() => 
-              `absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/70 p-0 shadow-md hover:bg-muted transition-opacity duration-200 
-              ${canScrollLeft ? 'opacity-75 hover:opacity-100' : 'opacity-0 pointer-events-none'}`, 
-              [canScrollLeft]
-            )}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/70 p-0 shadow-md hover:bg-muted transition-opacity duration-200 
+              ${canScrollLeft ? 'opacity-75 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
             aria-label="Scroll left"
             disabled={!canScrollLeft}
           >
@@ -127,19 +141,13 @@ export default function EditProfileDetailsPage() {
 
           <div
             ref={scrollContainerRef}
-            className="flex-grow overflow-x-auto whitespace-nowrap py-1 scroll-smooth no-scrollbar mx-8" // Added mx-8 for arrow spacing
+            className="flex-grow overflow-x-auto whitespace-nowrap py-1 scroll-smooth no-scrollbar px-10"
           >
-            {/* Added style tag for scrollbar hiding for Webkit as no-scrollbar might not be enough */}
             <style jsx global>{`
-              .no-scrollbar::-webkit-scrollbar {
-                display: none;
-              }
-              .no-scrollbar {
-                -ms-overflow-style: none;  /* IE and Edge */
-                scrollbar-width: none;  /* Firefox */
-              }
+              .no-scrollbar::-webkit-scrollbar { display: none; }
+              .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
-            <TabsList className="tabs-list-inner inline-flex h-auto items-center justify-start rounded-md bg-muted p-1 text-muted-foreground space-x-1">
+            <TabsList className="inline-flex h-auto items-center justify-start rounded-md bg-muted p-1 text-muted-foreground space-x-1">
               {tabItems.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -160,11 +168,8 @@ export default function EditProfileDetailsPage() {
             variant="ghost"
             size="icon"
             onClick={() => handleScrollClick('right')}
-            className={React.useMemo(() => 
-              `absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/70 p-0 shadow-md hover:bg-muted transition-opacity duration-200 
-              ${canScrollRight ? 'opacity-75 hover:opacity-100' : 'opacity-0 pointer-events-none'}`,
-              [canScrollRight]
-            )}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/70 p-0 shadow-md hover:bg-muted transition-opacity duration-200 
+              ${canScrollRight ? 'opacity-75 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
             aria-label="Scroll right"
             disabled={!canScrollRight}
           >
@@ -184,12 +189,18 @@ export default function EditProfileDetailsPage() {
           </Card>
         </TabsContent>
         
-        {tabItems.filter(tab => tab.value !== "basicInfo").map((tab) => (
+        <TabsContent value="familyHistory">
+           <FamilyHistoryEditor initialData={familyHistoryData} onSave={handleSaveFamilyHistory} />
+        </TabsContent>
+
+        {tabItems.filter(tab => !["basicInfo", "familyHistory"].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
-            {renderPlaceholderContent(tab.label)}
+            {renderPlaceholderContent(tab.label, tab.icon)}
           </TabsContent>
         ))}
       </Tabs>
     </div>
   );
 }
+
+    
