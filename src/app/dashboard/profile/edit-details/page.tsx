@@ -2,10 +2,21 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Corrected: Ensure Card components are imported
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { 
+  UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
+  CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
+  MessagesSquare, Lightbulb, ThumbsUp, ChevronLeft, ChevronRight, 
+  Wind, MessageCircleQuestion, NotebookText, HelpCircle, Cog, ShieldQuestion, SprayCan
+} from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
-import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
 import { AllergyForm } from "@/components/profile/AllergyForm";
 import { OperationHistoryForm } from "@/components/profile/OperationHistoryForm";
@@ -23,101 +34,10 @@ import { SleepForm, type SleepFormValues } from '@/components/profile/SleepForm'
 import { OtherMedicationsForm, type OtherMedicationsFormValues } from '@/components/profile/OtherMedicationsForm';
 import { SuggestionsForm, type SuggestionsFormValues } from '@/components/profile/SuggestionsForm';
 import { ServiceSatisfactionForm, type ServiceSatisfactionFormValues } from '@/components/profile/ServiceSatisfactionForm';
+import { ContactPreferenceForm, type ContactPreferenceFormValues } from '@/components/profile/ContactPreferenceForm';
 
 
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { 
-  UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
-  CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
-  MessagesSquare, Lightbulb, ThumbsUp, ChevronLeft, ChevronRight, 
-  ScrollText, ListChecks, MessageCircleQuestion, NotebookText, HelpCircle, Cog, Wind, ShieldQuestion, SprayCan
-} from "lucide-react";
-import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
-
-// Mock data for various profile sections
-const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
-  { relative: "self", conditions: ["高血压"] },
-  { relative: "father", conditions: ["糖尿病", "高血压"] },
-  { relative: "mother", conditions: [] },
-  { relative: "paternal_grandparents", conditions: [] },
-  { relative: "maternal_grandparents", conditions: [] },
-];
-
-const mockCurrentSymptoms: string[] = ["头晕", "心慌"]; 
-const mockAllergies: string[] = ["青霉素", "其他"];
-const mockOtherAllergyText: string = "芒果";
-const mockOperationHistory: string[] = ["心脏（含心脏介入）"]; 
-const mockBloodTransfusionHistory: string = "2005年因车祸输血400ml，无不良反应。";
-const mockMedicationCategories: string[] = ["降压药", "降糖药"];
-const mockContactHistory: string[] = ["油烟", "粉烟尘"];
-
-const mockDietaryHabitsData: DietaryHabitsFormValues = {
-  dietaryHabits_breakfastDays: "7天",
-  dietaryHabits_lateSnackDays: "1-2天",
-  dietaryHabits_badHabits: ["吃饭过快"],
-  dietaryHabits_preferences: ["咸", "辣"],
-  dietaryHabits_foodTypePreferences: ["油炸食品"],
-};
-
-const mockDietaryIntakeData: DietaryIntakeFormValues = {
-  dietaryIntake_staple: '2-4碗',
-  dietaryIntake_meat: '1-2两',
-  dietaryIntake_fish: '<1两',
-  dietaryIntake_eggs: '1-2个',
-  dietaryIntake_dairy: '1-2杯',
-  dietaryIntake_soy: '0.5-1两',
-  dietaryIntake_vegetables: '6-10两',
-  dietaryIntake_fruits: '1-4两',
-  dietaryIntake_water: '6-9杯',
-};
-
-const mockExerciseData: ExerciseFormValues = {
-  exercise_workHours: '5-8小时',
-  exercise_sedentaryHours: '5-8小时',
-  exercise_weeklyFrequency: '偶尔（1-2次/周）',
-  exercise_durationPerSession: '30-60分钟',
-  exercise_intensity: '中度运动',
-};
-
-const mockSmokingStatusData: SmokingStatusFormValues = {
-    smoking_status: '从不',
-    smoking_cigarettesPerDay: undefined,
-    smoking_years: undefined,
-    smoking_passiveDays: '没有',
-};
-
-const mockDrinkingStatusData: DrinkingStatusFormValues = {
-    drinking_status: '偶尔',
-    drinking_type: '啤酒',
-    drinking_type_other: '',
-    drinking_amountPerDay: '<2两',
-    drinking_years: '<5年',
-};
-
-const mockMentalHealthData: MentalHealthFormValues = {
-  mentalHealth_majorEvents: "否",
-  mentalHealth_impactOnLife: "有一点",
-  mentalHealth_stressLevel: "较明显",
-  mentalHealth_sas_anxiety: "小部分时间有",
-};
-
-const mockAdherenceData: AdherenceBehaviorFormValues = {
-    adherence_selfAssessmentBody: "满意",
-    adherence_selfAssessmentMind: "还算关心",
-    adherence_priorityProblems: ["控制血糖", "改善睡眠", "", ""],
-    adherence_doctorAdviceCompliance: "执行一部分",
-    adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
-    adherence_otherHealthPromotion: "",
-};
-
-const mockSleepData: SleepFormValues = { sleep_adequacy: "一般" };
-const mockOtherMedicationsData: OtherMedicationsFormValues = { otherInfo_medicationsUsed: "阿司匹林 100mg QD" };
-const mockSuggestionsData: SuggestionsFormValues = { otherInfo_suggestions: "希望增加更多菜谱推荐。" };
-const mockServiceSatisfactionData: ServiceSatisfactionFormValues = { otherInfo_serviceSatisfaction: "较好" };
-
+import type { UserProfile, FamilyMedicalHistoryEntry } from "@/lib/types";
 
 
 const tabItems = [
@@ -137,11 +57,70 @@ const tabItems = [
     { value: "mentalHealth", label: "心理健康", icon: Brain },
     { value: "adherence", label: "遵医行为", icon: CheckSquare },
     { value: "sleep", label: "睡眠", icon: Bed },
-    { value: "other", label: "其他", icon: Info },
-    { value: "communication", label: "沟通进展", icon: MessagesSquare },
+    { value: "other", label: "其他", icon: Info }, // For medications used
+    { value: "communication", label: "沟通进展", icon: MessagesSquare }, // For contact preferences
     { value: "suggestions", label: "您的建议", icon: Lightbulb },
     { value: "serviceSatisfaction", label: "服务满意度", icon: ThumbsUp },
   ];
+
+// Mock data for various profile sections
+const mockUserProfileData: Partial<Pick<UserProfile, 
+  'familyMedicalHistory' | 'currentSymptoms' | 'allergies' | 'otherAllergyText' | 
+  'operationHistory' | 'bloodTransfusionHistory' | 'medicationCategories' | 'contactHistory' |
+  'dietaryHabits_breakfastDays' | 'dietaryHabits_lateSnackDays' | 'dietaryHabits_badHabits' | 
+  'dietaryHabits_preferences' | 'dietaryHabits_foodTypePreferences' |
+  'dietaryIntake_staple' | 'dietaryIntake_meat' | 'dietaryIntake_fish' | 'dietaryIntake_eggs' |
+  'dietaryIntake_dairy' | 'dietaryIntake_soy' | 'dietaryIntake_vegetables' | 'dietaryIntake_fruits' | 'dietaryIntake_water' |
+  'exercise_workHours' | 'exercise_sedentaryHours' | 'exercise_weeklyFrequency' | 'exercise_durationPerSession' | 'exercise_intensity' |
+  'smoking_status' | 'smoking_cigarettesPerDay' | 'smoking_years' | 'smoking_passiveDays' |
+  'drinking_status' | 'drinking_type' | 'drinking_type_other' | 'drinking_amountPerDay' | 'drinking_years' |
+  'mentalHealth_majorEvents' | 'mentalHealth_impactOnLife' | 'mentalHealth_stressLevel' | 
+  'mentalHealth_sas_anxiety' | 'mentalHealth_sas_fear' | 'mentalHealth_sas_panic' | 'mentalHealth_sas_goingCrazy' | 
+  'mentalHealth_sas_misfortune' | 'mentalHealth_sas_trembling' | 'mentalHealth_sas_bodyPain' | 'mentalHealth_sas_fatigue' |
+  'mentalHealth_sas_restlessness' | 'mentalHealth_sas_palpitations' | 'mentalHealth_sas_dizziness' | 'mentalHealth_sas_fainting' |
+  'mentalHealth_sas_breathingDifficulty' | 'mentalHealth_sas_paresthesia' | 'mentalHealth_sas_stomachPain' | 'mentalHealth_sas_frequentUrination' |
+  'mentalHealth_sas_sweating' |
+  'adherence_selfAssessmentBody' | 'adherence_selfAssessmentMind' | 'adherence_priorityProblems' | 'adherence_doctorAdviceCompliance' |
+  'adherence_healthPromotionMethods' | 'adherence_otherHealthPromotion' |
+  'sleep_adequacy' |
+  'otherInfo_medicationsUsed' | 'otherInfo_contactPreference_method' | 'otherInfo_contactPreference_method_other' |
+  'otherInfo_contactPreference_frequency' | 'otherInfo_contactPreference_frequency_other' | 'otherInfo_contactPreference_time' |
+  'otherInfo_contactPreference_time_other' | 'otherInfo_suggestions' | 'otherInfo_serviceSatisfaction'
+>> = {
+  familyMedicalHistory: [
+    { relative: "self", conditions: ["高血压"] },
+    { relative: "father", conditions: ["糖尿病", "高血压"] },
+    { relative: "mother", conditions: [] }, { relative: "paternal_grandparents", conditions: [] }, { relative: "maternal_grandparents", conditions: [] },
+  ],
+  currentSymptoms: ["头晕", "心慌"], 
+  allergies: ["青霉素", "其他"],
+  otherAllergyText: "芒果",
+  operationHistory: ["心脏（含心脏介入）"], 
+  bloodTransfusionHistory: "2005年因车祸输血400ml，无不良反应。",
+  medicationCategories: ["降压药", "降糖药"],
+  contactHistory: ["油烟", "粉烟尘"],
+  dietaryHabits_breakfastDays: "7天",
+  dietaryHabits_lateSnackDays: "1-2天",
+  dietaryHabits_badHabits: ["吃饭过快"],
+  dietaryHabits_preferences: ["咸", "辣"],
+  dietaryHabits_foodTypePreferences: ["油炸食品"],
+  dietaryIntake_staple: '2-4碗', dietaryIntake_meat: '1-2两', dietaryIntake_fish: '<1两', dietaryIntake_eggs: '1-2个',
+  dietaryIntake_dairy: '1-2杯', dietaryIntake_soy: '0.5-1两', dietaryIntake_vegetables: '6-10两', dietaryIntake_fruits: '1-4两', dietaryIntake_water: '6-9杯',
+  exercise_workHours: '5-8小时', exercise_sedentaryHours: '5-8小时', exercise_weeklyFrequency: '偶尔（1-2次/周）',
+  exercise_durationPerSession: '30-60分钟', exercise_intensity: '中度运动',
+  smoking_status: '从不', smoking_passiveDays: '没有',
+  drinking_status: '偶尔', drinking_type: '啤酒', drinking_amountPerDay: '<2两', drinking_years: '<5年',
+  mentalHealth_majorEvents: "否", mentalHealth_impactOnLife: "有一点", mentalHealth_stressLevel: "较明显",
+  mentalHealth_sas_anxiety: "小部分时间有", // ... and so on for all SAS questions
+  adherence_selfAssessmentBody: "满意", adherence_selfAssessmentMind: "还算关心",
+  adherence_priorityProblems: ["控制血糖", "改善睡眠"], adherence_doctorAdviceCompliance: "执行一部分",
+  adherence_healthPromotionMethods: ["改变饮食习惯", "药物"],
+  sleep_adequacy: "一般",
+  otherInfo_medicationsUsed: "阿司匹林 100mg QD",
+  otherInfo_contactPreference_method: "微信", otherInfo_contactPreference_frequency: "每周一次", otherInfo_contactPreference_time: "下午",
+  otherInfo_suggestions: "希望增加更多菜谱推荐。", otherInfo_serviceSatisfaction: "较好",
+};
+
 
 const renderPlaceholderContent = (title: string, Icon?: LucideIcon) => (
     <Card className="shadow-sm mt-4">
@@ -166,27 +145,34 @@ export default function EditProfileDetailsPage() {
   const SCROLL_AMOUNT = 200;
   const { toast } = useToast();
 
-  // States for each form section
-  const [familyHistoryData, setFamilyHistoryData] = React.useState<FamilyMedicalHistoryEntry[]>(mockFamilyHistory);
-  const [currentSymptomsData, setCurrentSymptomsData] = React.useState<string[]>(mockCurrentSymptoms);
-  const [allergiesData, setAllergiesData] = React.useState<string[]>(mockAllergies);
-  const [otherAllergyTextData, setOtherAllergyTextData] = React.useState<string>(mockOtherAllergyText);
-  const [operationHistoryData, setOperationHistoryData] = React.useState<string[]>(mockOperationHistory);
-  const [bloodTransfusionHistoryData, setBloodTransfusionHistoryData] = React.useState<string>(mockBloodTransfusionHistory);
-  const [medicationCategoriesData, setMedicationCategoriesData] = React.useState<string[]>(mockMedicationCategories);
-  const [contactHistoryData, setContactHistoryData] = React.useState<string[]>(mockContactHistory);
-  const [dietaryHabitsData, setDietaryHabitsData] = React.useState<DietaryHabitsFormValues>(mockDietaryHabitsData);
-  const [dietaryIntakeData, setDietaryIntakeData] = React.useState<DietaryIntakeFormValues>(mockDietaryIntakeData);
-  const [exerciseData, setExerciseData] = React.useState<ExerciseFormValues>(mockExerciseData);
-  const [smokingStatusData, setSmokingStatusData] = React.useState<SmokingStatusFormValues>(mockSmokingStatusData);
-  const [drinkingStatusData, setDrinkingStatusData] = React.useState<DrinkingStatusFormValues>(mockDrinkingStatusData);
-  const [mentalHealthData, setMentalHealthData] = React.useState<MentalHealthFormValues>(mockMentalHealthData);
-  const [adherenceData, setAdherenceData] = React.useState<AdherenceBehaviorFormValues>(mockAdherenceData);
-  const [sleepData, setSleepData] = React.useState<SleepFormValues>(mockSleepData);
-  const [otherMedicationsData, setOtherMedicationsData] = React.useState<OtherMedicationsFormValues>(mockOtherMedicationsData);
-  const [suggestionsData, setSuggestionsData] = React.useState<SuggestionsFormValues>(mockSuggestionsData);
-  const [serviceSatisfactionData, setServiceSatisfactionData] = React.useState<ServiceSatisfactionFormValues>(mockServiceSatisfactionData);
-
+  // States for each form section - using Partial for flexibility during development
+  const [familyHistoryData, setFamilyHistoryData] = React.useState<FamilyMedicalHistoryEntry[]>(mockUserProfileData.familyMedicalHistory || []);
+  const [currentSymptomsData, setCurrentSymptomsData] = React.useState<string[]>(mockUserProfileData.currentSymptoms || []);
+  const [allergiesData, setAllergiesData] = React.useState<string[]>(mockUserProfileData.allergies || []);
+  const [otherAllergyTextData, setOtherAllergyTextData] = React.useState<string>(mockUserProfileData.otherAllergyText || "");
+  const [operationHistoryData, setOperationHistoryData] = React.useState<string[]>(mockUserProfileData.operationHistory || []);
+  const [bloodTransfusionHistoryData, setBloodTransfusionHistoryData] = React.useState<string>(mockUserProfileData.bloodTransfusionHistory || "");
+  const [medicationCategoriesData, setMedicationCategoriesData] = React.useState<string[]>(mockUserProfileData.medicationCategories || []);
+  const [contactHistoryData, setContactHistoryData] = React.useState<string[]>(mockUserProfileData.contactHistory || []);
+  const [dietaryHabitsData, setDietaryHabitsData] = React.useState<DietaryHabitsFormValues>(mockUserProfileData as DietaryHabitsFormValues);
+  const [dietaryIntakeData, setDietaryIntakeData] = React.useState<DietaryIntakeFormValues>(mockUserProfileData as DietaryIntakeFormValues);
+  const [exerciseData, setExerciseData] = React.useState<ExerciseFormValues>(mockUserProfileData as ExerciseFormValues);
+  const [smokingStatusData, setSmokingStatusData] = React.useState<SmokingStatusFormValues>(mockUserProfileData as SmokingStatusFormValues);
+  const [drinkingStatusData, setDrinkingStatusData] = React.useState<DrinkingStatusFormValues>(mockUserProfileData as DrinkingStatusFormValues);
+  const [mentalHealthData, setMentalHealthData] = React.useState<MentalHealthFormValues>(mockUserProfileData as MentalHealthFormValues);
+  const [adherenceData, setAdherenceData] = React.useState<AdherenceBehaviorFormValues>(mockUserProfileData as AdherenceBehaviorFormValues);
+  const [sleepData, setSleepData] = React.useState<SleepFormValues>(mockUserProfileData as SleepFormValues);
+  const [otherMedicationsData, setOtherMedicationsData] = React.useState<OtherMedicationsFormValues>({otherInfo_medicationsUsed: mockUserProfileData.otherInfo_medicationsUsed || ""});
+  const [contactPreferenceData, setContactPreferenceData] = React.useState<ContactPreferenceFormValues>({
+    otherInfo_contactPreference_method: mockUserProfileData.otherInfo_contactPreference_method,
+    otherInfo_contactPreference_method_other: mockUserProfileData.otherInfo_contactPreference_method_other,
+    otherInfo_contactPreference_frequency: mockUserProfileData.otherInfo_contactPreference_frequency,
+    otherInfo_contactPreference_frequency_other: mockUserProfileData.otherInfo_contactPreference_frequency_other,
+    otherInfo_contactPreference_time: mockUserProfileData.otherInfo_contactPreference_time,
+    otherInfo_contactPreference_time_other: mockUserProfileData.otherInfo_contactPreference_time_other,
+  });
+  const [suggestionsData, setSuggestionsData] = React.useState<SuggestionsFormValues>({otherInfo_suggestions: mockUserProfileData.otherInfo_suggestions || ""});
+  const [serviceSatisfactionData, setServiceSatisfactionData] = React.useState<ServiceSatisfactionFormValues>({otherInfo_serviceSatisfaction: mockUserProfileData.otherInfo_serviceSatisfaction});
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
     setFamilyHistoryData(data); 
@@ -268,7 +254,10 @@ export default function EditProfileDetailsPage() {
     setOtherMedicationsData(data);
     toast({ title: "其他药物信息已保存", description: "您的药物使用信息已更新。" });
   };
-
+  const handleSaveContactPreferences = (data: ContactPreferenceFormValues) => {
+    setContactPreferenceData(data);
+    toast({ title: "联系偏好已保存", description: "您的联系偏好设置已更新。" });
+  };
   const handleSaveSuggestions = (data: SuggestionsFormValues) => {
     setSuggestionsData(data);
     toast({ title: "建议已保存", description: "您对本中心的建议已提交。" });
@@ -472,6 +461,10 @@ export default function EditProfileDetailsPage() {
           <OtherMedicationsForm initialData={otherMedicationsData} onSave={handleSaveOtherMedications} />
         </TabsContent>
         
+        <TabsContent value="communication">
+          <ContactPreferenceForm initialData={contactPreferenceData} onSave={handleSaveContactPreferences} />
+        </TabsContent>
+        
         <TabsContent value="suggestions">
           <SuggestionsForm initialData={suggestionsData} onSave={handleSaveSuggestions} />
         </TabsContent>
@@ -479,18 +472,7 @@ export default function EditProfileDetailsPage() {
         <TabsContent value="serviceSatisfaction">
           <ServiceSatisfactionForm initialData={serviceSatisfactionData} onSave={handleSaveServiceSatisfaction} />
         </TabsContent>
-
-
-        {tabItems.filter(tab => ![
-            "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
-            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", 
-            "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus", "mentalHealth",
-            "adherence", "sleep", "other", "suggestions", "serviceSatisfaction"
-        ].includes(tab.value)).map((tab) => (
-          <TabsContent key={tab.value} value={tab.value}>
-            {renderPlaceholderContent(tab.label, tab.icon)}
-          </TabsContent>
-        ))}
+        
       </Tabs>
     </div>
   );

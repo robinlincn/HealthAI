@@ -22,7 +22,7 @@ export type DietaryIntakeOption = '不吃' | '<1碗' | '1-2碗' | '2-4碗' | '4-
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
+export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时'; // Corrected ~ to - for consistency if intended
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -46,7 +46,7 @@ export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '�
 export interface UserProfile { // Patient-side profile
   name: string;
   gender: Gender;
-  dob?: string; 
+  dob?: string | Date; 
   address?: string;
   
   hadPreviousCheckup?: boolean;
@@ -62,8 +62,8 @@ export interface UserProfile { // Patient-side profile
 
   // Fields often managed by institution, but visible to patient
   recordNumber?: string; 
-  admissionDate?: string; 
-  recordDate?: string; 
+  admissionDate?: string | Date; 
+  recordDate?: string | Date; 
   informant?: string;
   reliability?: ReliabilityOption;
 
