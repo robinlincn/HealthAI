@@ -5,21 +5,22 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { Users, Search, Briefcase, LogOut, Filter } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
-import type { SaasEnterprise } from '@/lib/types'; // Assuming SaasEnterprise type
+import type { SaasEnterprise } from '@/lib/types'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from '@/hooks/use-toast';
 
 
 interface OnlineUser {
   id: string;
   name: string;
   email: string;
-  enterpriseId?: string; // If user belongs to an enterprise
-  role: 'saas_admin' | 'enterprise_admin' | 'doctor' | 'patient'; // Example roles
-  lastActivity: string; // ISO date string
+  enterpriseId?: string; 
+  role: 'saas_admin' | 'enterprise_admin' | 'doctor' | 'patient'; 
+  lastActivity: string; 
   ipAddress?: string;
 }
 
@@ -28,9 +29,9 @@ const mockOnlineUsers: OnlineUser[] = [
   { id: 'user-ent-001', name: '张三院长', email: 'zhang@hospitala.com', enterpriseId: 'ent-001', role: 'enterprise_admin', lastActivity: new Date(Date.now() - 1000 * 60 * 5).toISOString(), ipAddress: '10.0.0.5' },
   { id: 'user-doc-001', name: '王明医生', email: 'wm@hospitala.com', enterpriseId: 'ent-001', role: 'doctor', lastActivity: new Date(Date.now() - 1000 * 60 * 2).toISOString(), ipAddress: '10.0.0.15' },
   { id: 'user-pat-001', name: '刘备 (病人)', email: 'liubei@patient.com', enterpriseId: 'ent-001', role: 'patient', lastActivity: new Date(Date.now() - 1000 * 60 * 10).toISOString(), ipAddress: '203.0.113.45' },
+  { id: 'user-doc-002', name: '李芳医生', email: 'lf@healthb.com', enterpriseId: 'ent-002', role: 'doctor', lastActivity: new Date(Date.now() - 1000 * 60 * 15).toISOString(), ipAddress: '172.16.0.10' },
 ];
 
-// Mock enterprises for context
 const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-001', name: '示例医院A', contactPerson: '张三', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
   { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
@@ -41,11 +42,11 @@ export default function OnlineUsersPage() {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | OnlineUser['role']>('all');
+  const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
-    // Simulate fetching online users
     setOnlineUsers(mockOnlineUsers);
   }, []);
 
@@ -62,6 +63,13 @@ export default function OnlineUsersPage() {
       patient: '病人'
     };
     return map[role] || role;
+  };
+
+  const handleForceLogout = (userId: string, userName: string) => {
+    if (window.confirm(`确定要强制用户 "${userName}" 下线吗？`)) {
+      setOnlineUsers(prev => prev.filter(u => u.id !== userId));
+      toast({ title: "操作成功 (模拟)", description: `用户 "${userName}"已被强制下线。` });
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -155,7 +163,7 @@ export default function OnlineUsersPage() {
                     <TableCell>{format(parseISO(user.lastActivity), 'yyyy-MM-dd HH:mm:ss')}</TableCell>
                     <TableCell>{user.ipAddress || '-'}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" disabled>
+                      <Button variant="ghost" size="sm" onClick={() => handleForceLogout(user.id, user.name)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                         <LogOut className="mr-1 h-3 w-3" /> 强制下线
                       </Button>
                     </TableCell>
@@ -163,8 +171,11 @@ export default function OnlineUsersPage() {
                 ))}
               </TableBody>
               {filteredUsers.length === 0 && (
-                <caption className="p-4 text-center text-sm text-muted-foreground">无匹配的在线用户。</caption>
+                <TableCaption>无匹配的在线用户。</TableCaption>
               )}
+               {filteredUsers.length > 5 && (
+                    <TableCaption>共 {filteredUsers.length} 位在线用户。</TableCaption>
+               )}
             </Table>
           </div>
         </CardContent>
@@ -172,4 +183,3 @@ export default function OnlineUsersPage() {
     </div>
   );
 }
-

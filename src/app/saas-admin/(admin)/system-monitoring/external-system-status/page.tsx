@@ -28,7 +28,7 @@ const mockExternalServices: ExternalService[] = [
 
 export default function ExternalSystemStatusPage() {
   const [services, setServices] = useState<ExternalService[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({}); // Track loading state per service
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
@@ -38,7 +38,7 @@ export default function ExternalSystemStatusPage() {
   }, []);
   
   const fetchServiceStatus = (serviceId: string) => {
-    setIsLoading(true);
+    setIsLoading(prev => ({ ...prev, [serviceId]: true }));
     // Simulate API call
     setTimeout(() => {
         setServices(prevServices => prevServices.map(s => {
@@ -50,7 +50,7 @@ export default function ExternalSystemStatusPage() {
             }
             return s;
         }));
-        setIsLoading(false);
+        setIsLoading(prev => ({ ...prev, [serviceId]: false }));
         toast({ title: "状态已刷新", description: `服务 ${services.find(s=>s.id===serviceId)?.name} 状态已更新。`});
     }, 1000);
   };
@@ -104,8 +104,8 @@ export default function ExternalSystemStatusPage() {
                                 </p>
                             </CardContent>
                             <CardContent className="pt-0">
-                                <Button variant="outline" size="sm" onClick={() => fetchServiceStatus(service.id)} disabled={isLoading} className="w-full text-xs">
-                                    <RefreshCw className={`mr-2 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`}/> 刷新状态
+                                <Button variant="outline" size="sm" onClick={() => fetchServiceStatus(service.id)} disabled={isLoading[service.id]} className="w-full text-xs">
+                                    <RefreshCw className={`mr-2 h-3 w-3 ${isLoading[service.id] ? 'animate-spin' : ''}`}/> 刷新状态
                                 </Button>
                             </CardContent>
                         </Card>
@@ -126,4 +126,3 @@ export default function ExternalSystemStatusPage() {
     </div>
   );
 }
-

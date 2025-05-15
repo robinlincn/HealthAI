@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, PlusCircle, Search, Filter, Play, Pause, Edit, Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { Clock, PlusCircle, Search, Filter, Play, Pause, Edit, Trash2, CheckCircle, XCircle, AlertTriangle, ListChecks } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -28,12 +28,14 @@ const mockScheduledTasks: ScheduledTask[] = [
   { id: 'task-report', name: '月度运营报告', type: 'report_generation', cronExpression: '0 3 1 * *', status: 'enabled', nextRun: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1, 3, 0, 0).toISOString(), description: '生成上个月的平台运营和客户使用报告。'},
   { id: 'task-notify', name: '服务到期提醒', type: 'notification_push', cronExpression: '0 9 * * 1-5', status: 'disabled', description: '每周工作日提醒即将到期的企业服务。'},
   { id: 'task-cleanup', name: '临时文件清理', type: 'system_cleanup', cronExpression: '0 0 * * 0', status: 'running', lastRun: new Date(Date.now() - 1000*60*5).toISOString(), description: '每周日清理过期的临时文件和日志。'},
+  { id: 'task-error-example', name: '错误任务示例', type: 'system_cleanup', cronExpression: '0 1 * * *', status: 'error', lastRun: new Date(Date.now() - 1000*60*60*2).toISOString(), description: '演示一个出错的任务。'},
 ];
 
 export default function ScheduledTasksPage() {
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | ScheduledTask['status']>('all');
+  const [filterType, setFilterType] = useState<'all' | ScheduledTask['type']>('all');
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
@@ -44,9 +46,12 @@ export default function ScheduledTasksPage() {
 
   const handleToggleStatus = (taskId: string) => {
     setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: task.status === 'enabled' ? 'disabled' : 'enabled' } : task
+      task.id === taskId ? { ...task, status: task.status === 'enabled' ? 'disabled' : (task.status === 'disabled' ? 'enabled' : task.status) } : task
     ));
-    toast({ title: "任务状态已更新" });
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      toast({ title: "任务状态已更新", description: `任务 "${task.name}" 状态已切换。` });
+    }
   };
   
   const handleRunNow = (taskId: string) => {
@@ -54,9 +59,10 @@ export default function ScheduledTasksPage() {
     if (task) {
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'running', lastRun: new Date().toISOString() } : t));
         toast({ title: "任务执行中", description: `任务 "${task.name}" 已开始执行 (模拟)。`});
-        setTimeout(() => { // Simulate task completion
-            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'enabled' } : t)); // Reset to enabled or show actual result
-            toast({ title: "任务执行完成", description: `任务 "${task.name}" 执行完毕。`});
+        setTimeout(() => { 
+            const success = Math.random() > 0.2; // Simulate success/failure
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: success ? 'enabled' : 'error', lastRun: new Date().toISOString() } : t)); 
+            toast({ title: "任务执行完成", description: `任务 "${task.name}" 执行${success ? '成功' : '失败'}。`});
         }, 3000);
     }
   };
@@ -71,12 +77,23 @@ export default function ScheduledTasksPage() {
     }
   };
 
+  const getTaskTypeLabel = (type: ScheduledTask['type']) => {
+    const map = {
+        'data_backup': '数据备份',
+        'report_generation': '报告生成',
+        'notification_push': '通知推送',
+        'system_cleanup': '系统清理'
+    };
+    return map[type] || type;
+  }
+
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => 
       task.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterStatus === 'all' || task.status === filterStatus)
+      (filterStatus === 'all' || task.status === filterStatus) &&
+      (filterType === 'all' || task.type === filterType)
     );
-  }, [tasks, searchTerm, filterStatus]);
+  }, [tasks, searchTerm, filterStatus, filterType]);
 
   if (!isClient) {
      return (
@@ -111,6 +128,19 @@ export default function ScheduledTasksPage() {
                 />
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
+                <Select value={filterType} onValueChange={(value) => setFilterType(value as 'all' | ScheduledTask['type'])}>
+                    <SelectTrigger className="w-full sm:w-[160px]">
+                        <ListChecks className="mr-2 h-4 w-4"/>
+                        <SelectValue placeholder="筛选类型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">所有类型</SelectItem>
+                        <SelectItem value="data_backup">数据备份</SelectItem>
+                        <SelectItem value="report_generation">报告生成</SelectItem>
+                        <SelectItem value="notification_push">通知推送</SelectItem>
+                        <SelectItem value="system_cleanup">系统清理</SelectItem>
+                    </SelectContent>
+                </Select>
                 <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as 'all' | ScheduledTask['status'])}>
                     <SelectTrigger className="w-full sm:w-[160px]">
                         <Filter className="mr-2 h-4 w-4"/>
@@ -124,7 +154,7 @@ export default function ScheduledTasksPage() {
                         <SelectItem value="error">错误</SelectItem>
                     </SelectContent>
                 </Select>
-                <Button disabled className="w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> 新建任务 (开发中)</Button>
+                <Button disabled className="w-full sm:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> 新建任务</Button>
             </div>
           </div>
           
@@ -144,8 +174,8 @@ export default function ScheduledTasksPage() {
               <TableBody>
                 {filteredTasks.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell className="font-medium">{task.name}</TableCell>
-                    <TableCell>{task.type}</TableCell>
+                    <TableCell className="font-medium" title={task.description}>{task.name}</TableCell>
+                    <TableCell>{getTaskTypeLabel(task.type)}</TableCell>
                     <TableCell className="font-mono text-xs">{task.cronExpression}</TableCell>
                     <TableCell>{getStatusBadge(task.status)}</TableCell>
                     <TableCell>{task.lastRun ? format(parseISO(task.lastRun), 'yyyy-MM-dd HH:mm') : '-'}</TableCell>
@@ -171,9 +201,12 @@ export default function ScheduledTasksPage() {
                {filteredTasks.length === 0 && (
                     <TableCaption>未找到匹配的定时任务。</TableCaption>
                )}
+               {filteredTasks.length > 3 && (
+                    <TableCaption>共 {filteredTasks.length} 条定时任务。</TableCaption>
+               )}
             </Table>
           </div>
-           <CardFooter className="pt-4">
+           <CardFooter className="pt-4 px-0">
                 <p className="text-xs text-muted-foreground">任务编辑、删除和日志查看功能正在建设中。</p>
            </CardFooter>
         </CardContent>
@@ -181,4 +214,3 @@ export default function ScheduledTasksPage() {
     </div>
   );
 }
-
