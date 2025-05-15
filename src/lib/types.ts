@@ -18,11 +18,11 @@ export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable"
 
 // Specific option types for reusability and clarity
 export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天';
-export type DietaryIntakeOption = '不吃' | '<1两' | '1-2碗' | '2-4碗' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
+export type DietaryIntakeOption = '不吃' | '<1碗' | '1-2碗' | '2-4碗' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时';
+export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -60,6 +60,7 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
+  // Fields often managed by institution, but visible to patient
   recordNumber?: string; 
   admissionDate?: string; 
   recordDate?: string; 
@@ -130,13 +131,24 @@ export interface UserProfile { // Patient-side profile
   mentalHealth_sas_frequentUrination?: SASOption;
   mentalHealth_sas_sweating?: SASOption;
 
-  // Adherence Behavior fields
   adherence_selfAssessmentBody?: AdherenceBodyOption;
   adherence_selfAssessmentMind?: AdherenceMindOption;
-  adherence_priorityProblems?: string[]; // Array of up to 4 strings
+  adherence_priorityProblems?: string[]; 
   adherence_doctorAdviceCompliance?: AdherenceComplianceOption;
   adherence_healthPromotionMethods?: string[];
   adherence_otherHealthPromotion?: string;
+
+  sleep_adequacy?: SleepAdequacyOption;
+
+  otherInfo_medicationsUsed?: string;
+  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; 
+  otherInfo_contactPreference_method_other?: string;
+  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string; 
+  otherInfo_contactPreference_frequency_other?: string;
+  otherInfo_contactPreference_time?: ContactPreferenceTime | string; 
+  otherInfo_contactPreference_time_other?: string;
+  otherInfo_suggestions?: string;
+  otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
 
   // For backward compatibility with DetailedPatientProfile if it's the source
   pastIllnesses?: string[];

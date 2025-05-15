@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
-import { EmergencyContacts } from "@/components/profile/EmergencyContacts"; // Assuming this will be added under a "More" or "Settings" tab eventually
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
 import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
@@ -20,6 +19,10 @@ import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/pr
 import { DrinkingStatusForm, type DrinkingStatusFormValues } from '@/components/profile/DrinkingStatusForm';
 import { MentalHealthForm, type MentalHealthFormValues } from '@/components/profile/MentalHealthForm';
 import { AdherenceBehaviorForm, type AdherenceBehaviorFormValues } from '@/components/profile/AdherenceBehaviorForm';
+import { SleepForm, type SleepFormValues } from '@/components/profile/SleepForm';
+import { OtherMedicationsForm, type OtherMedicationsFormValues } from '@/components/profile/OtherMedicationsForm';
+import { SuggestionsForm, type SuggestionsFormValues } from '@/components/profile/SuggestionsForm';
+import { ServiceSatisfactionForm, type ServiceSatisfactionFormValues } from '@/components/profile/ServiceSatisfactionForm';
 
 
 import { Button } from "@/components/ui/button";
@@ -110,6 +113,12 @@ const mockAdherenceData: AdherenceBehaviorFormValues = {
     adherence_otherHealthPromotion: "",
 };
 
+const mockSleepData: SleepFormValues = { sleep_adequacy: "一般" };
+const mockOtherMedicationsData: OtherMedicationsFormValues = { otherInfo_medicationsUsed: "阿司匹林 100mg QD" };
+const mockSuggestionsData: SuggestionsFormValues = { otherInfo_suggestions: "希望增加更多菜谱推荐。" };
+const mockServiceSatisfactionData: ServiceSatisfactionFormValues = { otherInfo_serviceSatisfaction: "较好" };
+
+
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
@@ -128,7 +137,7 @@ const tabItems = [
     { value: "mentalHealth", label: "心理健康", icon: Brain },
     { value: "adherence", label: "遵医行为", icon: CheckSquare },
     { value: "sleep", label: "睡眠", icon: Bed },
-    { value: "otherInfo", label: "其他", icon: Info },
+    { value: "other", label: "其他", icon: Info },
     { value: "communication", label: "沟通进展", icon: MessagesSquare },
     { value: "suggestions", label: "您的建议", icon: Lightbulb },
     { value: "serviceSatisfaction", label: "服务满意度", icon: ThumbsUp },
@@ -173,6 +182,10 @@ export default function EditProfileDetailsPage() {
   const [drinkingStatusData, setDrinkingStatusData] = React.useState<DrinkingStatusFormValues>(mockDrinkingStatusData);
   const [mentalHealthData, setMentalHealthData] = React.useState<MentalHealthFormValues>(mockMentalHealthData);
   const [adherenceData, setAdherenceData] = React.useState<AdherenceBehaviorFormValues>(mockAdherenceData);
+  const [sleepData, setSleepData] = React.useState<SleepFormValues>(mockSleepData);
+  const [otherMedicationsData, setOtherMedicationsData] = React.useState<OtherMedicationsFormValues>(mockOtherMedicationsData);
+  const [suggestionsData, setSuggestionsData] = React.useState<SuggestionsFormValues>(mockSuggestionsData);
+  const [serviceSatisfactionData, setServiceSatisfactionData] = React.useState<ServiceSatisfactionFormValues>(mockServiceSatisfactionData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -244,6 +257,26 @@ export default function EditProfileDetailsPage() {
   const handleSaveAdherenceBehavior = (data: AdherenceBehaviorFormValues) => {
     setAdherenceData(data);
     toast({ title: "遵医行为信息已保存", description: "您的遵医行为信息已更新。" });
+  };
+
+  const handleSaveSleep = (data: SleepFormValues) => {
+    setSleepData(data);
+    toast({ title: "睡眠信息已保存", description: "您的睡眠信息已更新。" });
+  };
+
+  const handleSaveOtherMedications = (data: OtherMedicationsFormValues) => {
+    setOtherMedicationsData(data);
+    toast({ title: "其他药物信息已保存", description: "您的药物使用信息已更新。" });
+  };
+
+  const handleSaveSuggestions = (data: SuggestionsFormValues) => {
+    setSuggestionsData(data);
+    toast({ title: "建议已保存", description: "您对本中心的建议已提交。" });
+  };
+  
+  const handleSaveServiceSatisfaction = (data: ServiceSatisfactionFormValues) => {
+    setServiceSatisfactionData(data);
+    toast({ title: "服务满意度已保存", description: "感谢您的评价。" });
   };
 
 
@@ -431,12 +464,28 @@ export default function EditProfileDetailsPage() {
            <AdherenceBehaviorForm initialData={adherenceData} onSave={handleSaveAdherenceBehavior} />
         </TabsContent>
 
+        <TabsContent value="sleep">
+          <SleepForm initialData={sleepData} onSave={handleSaveSleep} />
+        </TabsContent>
+
+        <TabsContent value="other">
+          <OtherMedicationsForm initialData={otherMedicationsData} onSave={handleSaveOtherMedications} />
+        </TabsContent>
+        
+        <TabsContent value="suggestions">
+          <SuggestionsForm initialData={suggestionsData} onSave={handleSaveSuggestions} />
+        </TabsContent>
+
+        <TabsContent value="serviceSatisfaction">
+          <ServiceSatisfactionForm initialData={serviceSatisfactionData} onSave={handleSaveServiceSatisfaction} />
+        </TabsContent>
+
 
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
             "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", 
             "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus", "mentalHealth",
-            "adherence"
+            "adherence", "sleep", "other", "suggestions", "serviceSatisfaction"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
@@ -446,5 +495,3 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
-
-    
