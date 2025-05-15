@@ -5,7 +5,6 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Ensure this is at the top
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
-import { MedicalHistoryForm } from '@/components/profile/MedicalHistoryForm';
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
 import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
 import { AllergyForm } from "@/components/profile/AllergyForm";
@@ -18,6 +17,7 @@ import { DietaryIntakeForm, type DietaryIntakeFormValues } from '@/components/pr
 import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/ExerciseForm';
 import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/profile/SmokingStatusForm';
 import { DrinkingStatusForm, type DrinkingStatusFormValues } from '@/components/profile/DrinkingStatusForm';
+import { MentalHealthForm, type MentalHealthFormValues } from '@/components/profile/MentalHealthForm';
 
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, LucideIcon } from "@/lib/types"; 
+import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, LucideIcon, YesNoOption, ImpactLevelOption } from "@/lib/types"; 
 
 // Mock data for various profile sections
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
@@ -93,6 +93,29 @@ const mockDrinkingStatusData: DrinkingStatusFormValues = {
     drinking_years: '<5年',
 };
 
+const mockMentalHealthData: MentalHealthFormValues = {
+  mentalHealth_majorEvents: "否",
+  mentalHealth_impactOnLife: "有一点",
+  mentalHealth_stressLevel: "较明显",
+  mentalHealth_sas_anxiety: "小部分时间有",
+  mentalHealth_sas_fear: "没有或很少有时间有",
+  mentalHealth_sas_panic: "小部分时间有",
+  mentalHealth_sas_goingCrazy: "没有或很少有时间有",
+  mentalHealth_sas_misfortune: "没有或很少有时间有",
+  mentalHealth_sas_trembling: "小部分时间有",
+  mentalHealth_sas_bodyPain: "相当多时间有",
+  mentalHealth_sas_fatigue: "相当多时间有",
+  mentalHealth_sas_restlessness: "小部分时间有",
+  mentalHealth_sas_palpitations: "小部分时间有",
+  mentalHealth_sas_dizziness: "相当多时间有",
+  mentalHealth_sas_fainting: "没有或很少有时间有",
+  mentalHealth_sas_breathingDifficulty: "小部分时间有",
+  mentalHealth_sas_paresthesia: "没有或很少有时间有",
+  mentalHealth_sas_stomachPain: "小部分时间有",
+  mentalHealth_sas_frequentUrination: "没有或很少有时间有",
+  mentalHealth_sas_sweating: "小部分时间有",
+};
+
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
@@ -111,7 +134,7 @@ const tabItems = [
     { value: "mentalHealth", label: "心理健康", icon: Brain },
     { value: "adherence", label: "遵医行为", icon: CheckSquare },
     { value: "sleep", label: "睡眠", icon: Bed },
-    { value: "otherInfo", label: "其他信息", icon: Info },
+    { value: "otherInfo", label: "其他", icon: Info },
     { value: "communication", label: "沟通进展", icon: MessagesSquare },
     { value: "suggestions", label: "您的建议", icon: Lightbulb },
     { value: "serviceSatisfaction", label: "服务满意度", icon: ThumbsUp },
@@ -154,6 +177,7 @@ export default function EditProfileDetailsPage() {
   const [exerciseData, setExerciseData] = React.useState<ExerciseFormValues>(mockExerciseData);
   const [smokingStatusData, setSmokingStatusData] = React.useState<SmokingStatusFormValues>(mockSmokingStatusData);
   const [drinkingStatusData, setDrinkingStatusData] = React.useState<DrinkingStatusFormValues>(mockDrinkingStatusData);
+  const [mentalHealthData, setMentalHealthData] = React.useState<MentalHealthFormValues>(mockMentalHealthData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -215,6 +239,11 @@ export default function EditProfileDetailsPage() {
   const handleSaveDrinkingStatus = (data: DrinkingStatusFormValues) => {
     setDrinkingStatusData(data);
     toast({ title: "饮酒情况已保存", description: "您的饮酒情况信息已更新。" });
+  };
+
+  const handleSaveMentalHealth = (data: MentalHealthFormValues) => {
+    setMentalHealthData(data);
+    toast({ title: "心理健康信息已保存", description: "您的心理健康评估数据已更新。" });
   };
 
   const checkScrollability = React.useCallback(() => {
@@ -389,11 +418,18 @@ export default function EditProfileDetailsPage() {
             onSave={handleSaveDrinkingStatus}
           />
         </TabsContent>
+        
+        <TabsContent value="mentalHealth">
+          <MentalHealthForm
+            initialData={mentalHealthData}
+            onSave={handleSaveMentalHealth}
+          />
+        </TabsContent>
 
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
             "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", 
-            "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus"
+            "dietaryIntake", "exercise", "smokingStatus", "drinkingStatus", "mentalHealth"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}

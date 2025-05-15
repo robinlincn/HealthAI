@@ -18,11 +18,11 @@ export type ReliabilityOption = "reliable" | "partially_reliable" | "unreliable"
 
 // Specific option types for reusability and clarity
 export type FrequencyOption = '没有' | '1-2天' | '3-4天' | '5-6天' | '7天';
-export type DietaryIntakeOption = '不吃' | '<1两' | '1-2两' | '2-4碗' | '2-5两' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
+export type DietaryIntakeOption = '不吃' | '<1两' | '1-2碗' | '2-4碗' | '4-6碗' | '6-10两' | '10-15两' | '≥15两' | '≥5两' | '<1个' | '1-2个' | '2-3个' | '≥3个' | '<1杯' | '1-2杯' | '2-3杯' | '≥3杯' | '<0.5两' | '0.5-1两' | '≥2两' | '<2两' | '1-4两' | '4-8两' | '8-12两' | '≥12两' | '<3杯' | '3-6杯' | '6-9杯' | '9-12杯' | '≥12杯' | '≥6碗';
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
+export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时';
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -38,12 +38,13 @@ export type ContactPreferenceMethod = '电话' | '微信' | '短信' | '邮件' 
 export type ContactPreferenceFrequency = '每周两次' | '每周一次' | '两周一次' | '根据实际情况需要' | '其他';
 export type ContactPreferenceTime = '上午' | '下午' | '晚上7点后' | '其他';
 export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满意';
+export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '很大'; // Added for mental health Q2 & Q3
 
 
 export interface UserProfile { // Patient-side profile
   name: string;
   gender: Gender;
-  dob?: string; // Storing as string 'yyyy-MM-dd' for form compatibility, will parse to Date
+  dob?: string; 
   address?: string;
   
   hadPreviousCheckup?: boolean;
@@ -362,8 +363,8 @@ export interface DetailedPatientProfile {
   drinking_years?: string;
 
   mentalHealth_majorEvents?: YesNoOption;
-  mentalHealth_impactOnLife?: '几乎没有' | '有一点' | '较明显' | '很大';
-  mentalHealth_stressLevel?: '几乎没有' | '有一点' | '较明显' | '很大';
+  mentalHealth_impactOnLife?: ImpactLevelOption;
+  mentalHealth_stressLevel?: ImpactLevelOption;
   mentalHealth_sas_anxiety?: SASOption;
   mentalHealth_sas_fear?: SASOption;
   mentalHealth_sas_panic?: SASOption;
