@@ -34,15 +34,76 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields usually managed by institution, patient may view but not edit directly
+  // Fields usually managed by institution, but patient might view
   recordNumber?: string;
   admissionDate?: string; // ISO Date string
   recordDate?: string; // ISO Date string
   informant?: string;
   reliability?: ReliabilityOption;
 
-  // Added for consistency with doctor's view and for patient to potentially edit/view
+  // Patient-editable detailed profile sections
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
+  currentSymptoms?: string[];
+  allergies?: string[];
+  operationHistory?: string[];
+  bloodTransfusionHistory?: string;
+  medicationHistoryText?: string; // Simplified medication history for patient input
+  // lifestyle
+  dietaryHabits?: Partial<Pick<DetailedPatientProfile, 
+    'dietaryHabits_breakfastDays' | 
+    'dietaryHabits_lateSnackDays' | 
+    'dietaryHabits_badHabits' | 
+    'dietaryHabits_preferences' | 
+    'dietaryHabits_foodTypePreferences'
+  >>;
+  dietaryIntake?: Partial<Pick<DetailedPatientProfile,
+    'dietaryIntake_staple' | 'dietaryIntake_meat' | 'dietaryIntake_fish' | 'dietaryIntake_eggs' |
+    'dietaryIntake_dairy' | 'dietaryIntake_soy' | 'dietaryIntake_vegetables' | 'dietaryIntake_fruits' |
+    'dietaryIntake_water'
+  >>;
+  exercise?: Partial<Pick<DetailedPatientProfile, 
+    'exercise_workHours' | 
+    'exercise_sedentaryHours' | 
+    'exercise_weeklyFrequency' | 
+    'exercise_durationPerSession' | 
+    'exercise_intensity'
+  >>;
+  smoking?: Partial<Pick<DetailedPatientProfile, 
+    'smoking_status' | 
+    'smoking_cigarettesPerDay' | 
+    'smoking_years' | 
+    'smoking_passiveDays'
+  >>;
+  drinking?: Partial<Pick<DetailedPatientProfile,
+    'drinking_status' |
+    'drinking_type' |
+    'drinking_type_other' |
+    'drinking_amountPerDay' |
+    'drinking_years'
+  >>;
+  mentalHealth?: Partial<Pick<DetailedPatientProfile,
+    'mentalHealth_majorEvents' | 'mentalHealth_impactOnLife' | 'mentalHealth_stressLevel' |
+    'mentalHealth_sas_anxiety' | 'mentalHealth_sas_fear' | 'mentalHealth_sas_panic' | 
+    'mentalHealth_sas_goingCrazy' | 'mentalHealth_sas_misfortune' | 'mentalHealth_sas_trembling' |
+    'mentalHealth_sas_bodyPain' | 'mentalHealth_sas_fatigue' | 'mentalHealth_sas_restlessness' |
+    'mentalHealth_sas_palpitations' | 'mentalHealth_sas_dizziness' | 'mentalHealth_sas_fainting' |
+    'mentalHealth_sas_breathingDifficulty' | 'mentalHealth_sas_paresthesia' | 'mentalHealth_sas_stomachPain' |
+    'mentalHealth_sas_frequentUrination' | 'mentalHealth_sas_sweating'
+  >>;
+  adherence?: Partial<Pick<DetailedPatientProfile,
+    'adherence_selfAssessmentBody' | 'adherence_selfAssessmentMind' | 'adherence_priorityProblems' |
+    'adherence_doctorAdviceCompliance' | 'adherence_healthPromotionMethods' | 'adherence_otherHealthPromotion'
+  >>;
+  sleep?: Partial<Pick<DetailedPatientProfile, 'sleep_adequacy'>>;
+  otherInfo?: Partial<Pick<DetailedPatientProfile,
+    'otherInfo_medicationsUsed' | 'otherInfo_contactPreference_method' | 'otherInfo_contactPreference_method_other' |
+    'otherInfo_contactPreference_frequency' | 'otherInfo_contactPreference_frequency_other' |
+    'otherInfo_contactPreference_time' | 'otherInfo_contactPreference_time_other' |
+    'otherInfo_suggestions' | 'otherInfo_serviceSatisfaction'
+  >>;
+  communicationProgress?: string; // For "沟通健康进展"
+  suggestionsForCenter?: string; // For "您对本中心的建议"
+  serviceSatisfaction?: ServiceSatisfactionOption; // For "您对我中心的服务" (already in otherInfo, might be redundant or a primary field)
 }
 
 export interface EmergencyContact {
@@ -225,8 +286,8 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
 
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
-  personalHistory_smokingHistory?: string;
-  personalHistory_drinkingHistory?: string;
+  personalHistory_smokingHistory?: string; // Legacy text field
+  personalHistory_drinkingHistory?: string; // Legacy text field
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string;
 
@@ -300,7 +361,7 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   smoking_passiveDays?: FrequencyOption;
 
   drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string;
+  drinking_type?: AlcoholTypeOption | string; // Allow '其他'
   drinking_type_other?: string;
   drinking_amountPerDay?: string;
   drinking_years?: string;
@@ -336,17 +397,17 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
   sleep_adequacy?: SleepAdequacyOption;
 
   otherInfo_medicationsUsed?: string;
-  otherInfo_contactPreference_method?: ContactPreferenceMethod | string;
+  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; // Allow '其他'
   otherInfo_contactPreference_method_other?: string;
-  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string;
+  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string; // Allow '其他'
   otherInfo_contactPreference_frequency_other?: string;
-  otherInfo_contactPreference_time?: ContactPreferenceTime | string;
+  otherInfo_contactPreference_time?: ContactPreferenceTime | string; // Allow '其他'
   otherInfo_contactPreference_time_other?: string;
   otherInfo_suggestions?: string;
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
 
-  otherMedicalInfo?: string;
-  healthGoals?: string[];
+  otherMedicalInfo?: string; // General other medical info text
+  healthGoals?: string[]; // Patient's health goals
 }
 
 
