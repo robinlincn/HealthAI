@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Ensure this is at the top
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
 import { MedicalHistoryForm } from '@/components/profile/MedicalHistoryForm';
@@ -18,8 +19,10 @@ import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/Exer
 import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/profile/SmokingStatusForm';
 import { DrinkingStatusForm, type DrinkingStatusFormValues } from '@/components/profile/DrinkingStatusForm';
 
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { 
   UserCircle, HandHeart, Activity, Ban, Drama, Droplets, Pill, Apple, 
   CookingPot, Dumbbell, Cigarette, Wine, Brain, CheckSquare, Bed, Info, 
@@ -28,9 +31,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption } from "@/lib/types"; 
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; 
-
+import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption, DrinkingStatusOption, AlcoholTypeOption, SASOption, AdherenceBodyOption, AdherenceMindOption, AdherenceComplianceOption, SleepAdequacyOption, ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, LucideIcon } from "@/lib/types"; 
 
 // Mock data for various profile sections
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
@@ -402,3 +403,4 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
+    
