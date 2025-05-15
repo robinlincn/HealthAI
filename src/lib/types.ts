@@ -34,8 +34,8 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields usually managed by institution, but patient might view
-  recordNumber?: string;
+  // Fields usually managed by institution, but patient might view/confirm
+  recordNumber?: string; 
   admissionDate?: string; // ISO Date string
   recordDate?: string; // ISO Date string
   informant?: string;
@@ -45,6 +45,7 @@ export interface UserProfile { // Patient-side profile
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   currentSymptoms?: string[];
   allergies?: string[];
+  otherAllergyText?: string; // For custom allergy text if "其他" is selected
   operationHistory?: string[];
   bloodTransfusionHistory?: string;
   medicationHistoryText?: string; // Simplified medication history for patient input
@@ -130,6 +131,7 @@ export interface MedicalHistory { // This is for patient-side form, might need t
   pastMedicalHistoryText?: string;
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   allergies?: string[];
+  otherAllergyText?: string;
   currentSymptoms?: string[];
   medicationHistory?: MedicationEntry[];
   otherMedicalInfo?: string;
@@ -320,6 +322,7 @@ export interface DetailedPatientProfile { // This is the comprehensive profile, 
 
   currentSymptoms?: string[];
   allergies?: string[];
+  otherAllergyText?: string;
   medicationHistory?: MedicationEntry[]; // Detailed list of medications
   medicationCategories?: string[]; // Broad categories of medication types
   contactHistory?: string[];
@@ -602,5 +605,7 @@ export interface SaasOutboundCallTask {
   successCount?: number;
   notes?: string;
 }
+
+    
 
     

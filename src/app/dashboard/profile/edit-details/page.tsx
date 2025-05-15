@@ -4,7 +4,8 @@
 import * as React from 'react';
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { FamilyHistoryEditor } from "@/components/profile/FamilyHistoryEditor";
-import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm"; // Import new component
+import { CurrentSymptomsForm } from "@/components/profile/CurrentSymptomsForm";
+import { AllergyForm } from "@/components/profile/AllergyForm"; // Import new AllergyForm
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,13 +15,12 @@ import {
   CheckSquare, Bed, Info, MessagesSquare, Lightbulb, ThumbsUp, CalendarHeart, 
   Activity, ShieldQuestion, Syringe, SprayCan, CookingPot, Heart, Wind,
   ChevronLeft, ChevronRight, HandHeart, ListChecks, MessageCircleQuestion,
-  NotebookText, HelpCircle, Cog
+  NotebookText, HelpCircle, Cog, Ban // Added Ban for Allergy
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types"; // Ensure UserProfile is imported
+import type { FamilyMedicalHistoryEntry, UserProfile } from "@/lib/types"; 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-
 
 // Mock data for family history (can be fetched or from a store)
 const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
@@ -31,18 +31,20 @@ const mockFamilyHistory: FamilyMedicalHistoryEntry[] = [
   { relative: "maternal_grandparents", conditions: [] },
 ];
 
-const mockCurrentSymptoms: string[] = ["头晕", "心慌"]; // Example initial symptoms
+const mockCurrentSymptoms: string[] = ["头晕", "心慌"]; 
+const mockAllergies: string[] = ["青霉素", "其他"];
+const mockOtherAllergyText: string = "芒果";
 
 const tabItems = [
     { value: "basicInfo", label: "基本信息", icon: UserCircle },
-    { value: "familyHistory", label: "家族病史", icon: HandHeart }, // Changed from Heart
+    { value: "familyHistory", label: "家族病史", icon: HandHeart },
     { value: "currentSymptoms", label: "现有症状", icon: Activity },
-    { value: "allergies", label: "过敏史", icon: ShieldQuestion },
+    { value: "allergies", label: "过敏史", icon: Ban }, // Changed icon
     { value: "operationHistory", label: "手术史", icon: Stethoscope },
-    { value: "bloodTransfusion", label: "输血史", icon: Droplets }, // Changed from Syringe
+    { value: "bloodTransfusion", label: "输血史", icon: Droplets },
     { value: "medicationHistory", label: "用药史", icon: Pill },
     { value: "dietaryHabits", label: "饮食习惯", icon: Apple },
-    { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot }, // Changed from Utensils
+    { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot },
     { value: "exercise", label: "运动锻炼", icon: Dumbbell },
     { value: "smokingStatus", label: "吸烟情况", icon: Cigarette },
     { value: "drinkingStatus", label: "饮酒情况", icon: Wine },
@@ -78,10 +80,11 @@ export default function EditProfileDetailsPage() {
   const SCROLL_AMOUNT = 200;
   const { toast } = useToast();
 
-  // State for different profile sections
   const [familyHistoryData, setFamilyHistoryData] = React.useState<FamilyMedicalHistoryEntry[]>(mockFamilyHistory);
   const [currentSymptomsData, setCurrentSymptomsData] = React.useState<string[]>(mockCurrentSymptoms);
-  // Add more states here for other sections as they are implemented
+  const [allergiesData, setAllergiesData] = React.useState<string[]>(mockAllergies);
+  const [otherAllergyTextData, setOtherAllergyTextData] = React.useState<string>(mockOtherAllergyText);
+
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
     console.log("Saving family history from page:", data);
@@ -95,9 +98,14 @@ export default function EditProfileDetailsPage() {
   const handleSaveCurrentSymptoms = (symptoms: string[]) => {
     console.log("Saving current symptoms from page:", symptoms);
     setCurrentSymptomsData(symptoms);
-    // Toast is handled within CurrentSymptomsForm for this section
   };
 
+  const handleSaveAllergies = (data: { allergies?: string[]; otherAllergyText?: string }) => {
+    console.log("Saving allergies from page:", data);
+    setAllergiesData(data.allergies || []);
+    setOtherAllergyTextData(data.otherAllergyText || "");
+    // Toast is handled within AllergyForm
+  };
 
   const checkScrollability = React.useCallback(() => {
     const container = scrollContainerRef.current;
@@ -190,15 +198,7 @@ export default function EditProfileDetailsPage() {
         </div>
 
         <TabsContent value="basicInfo">
-          <Card className="shadow-sm mt-4">
-            <CardHeader className="p-4">
-              <CardTitle className="text-base">基本信息</CardTitle>
-              <CardDescription className="text-xs">管理您的姓名、联系方式等个人信息。</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4">
-              <BasicInfoForm />
-            </CardContent>
-          </Card>
+          <BasicInfoForm />
         </TabsContent>
         
         <TabsContent value="familyHistory">
@@ -209,7 +209,15 @@ export default function EditProfileDetailsPage() {
           <CurrentSymptomsForm initialSymptoms={currentSymptomsData} onSave={handleSaveCurrentSymptoms} />
         </TabsContent>
 
-        {tabItems.filter(tab => !["basicInfo", "familyHistory", "currentSymptoms"].includes(tab.value)).map((tab) => (
+        <TabsContent value="allergies">
+          <AllergyForm 
+            initialAllergies={allergiesData} 
+            initialOtherAllergyText={otherAllergyTextData}
+            onSave={handleSaveAllergies} 
+          />
+        </TabsContent>
+
+        {tabItems.filter(tab => !["basicInfo", "familyHistory", "currentSymptoms", "allergies"].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
           </TabsContent>
@@ -218,3 +226,5 @@ export default function EditProfileDetailsPage() {
     </div>
   );
 }
+
+    
