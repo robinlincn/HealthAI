@@ -12,7 +12,8 @@ import { MedicationCategoryForm } from "@/components/profile/MedicationCategoryF
 import { ContactHistoryForm } from '@/components/profile/ContactHistoryForm';
 import { DietaryHabitsForm, type DietaryHabitsFormValues } from '@/components/profile/DietaryHabitsForm';
 import { DietaryIntakeForm, type DietaryIntakeFormValues } from '@/components/profile/DietaryIntakeForm';
-import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/ExerciseForm'; // Added ExerciseForm
+import { ExerciseForm, type ExerciseFormValues } from '@/components/profile/ExerciseForm';
+import { SmokingStatusForm, type SmokingStatusFormValues } from '@/components/profile/SmokingStatusForm'; // Added
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,8 +25,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption } from "@/lib/types"; 
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Ensure ScrollBar is imported if used
+import type { FamilyMedicalHistoryEntry, UserProfile, FrequencyOption, DietaryIntakeOption, ExerciseWorkHoursOption, ExerciseWeeklyFrequencyOption, ExerciseDurationOption, ExerciseIntensityOption, SmokingStatusOption } from "@/lib/types"; 
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; 
 
 
 // Mock data for various profile sections
@@ -71,6 +72,13 @@ const mockExerciseData: ExerciseFormValues = {
   exercise_weeklyFrequency: '偶尔（1-2次/周）',
   exercise_durationPerSession: '30-60分钟',
   exercise_intensity: '中度运动',
+};
+
+const mockSmokingStatusData: SmokingStatusFormValues = {
+    smoking_status: '从不',
+    smoking_cigarettesPerDay: undefined,
+    smoking_years: undefined,
+    smoking_passiveDays: '没有',
 };
 
 
@@ -120,6 +128,7 @@ export default function EditProfileDetailsPage() {
   const SCROLL_AMOUNT = 200;
   const { toast } = useToast();
 
+  // States for each form section
   const [familyHistoryData, setFamilyHistoryData] = React.useState<FamilyMedicalHistoryEntry[]>(mockFamilyHistory);
   const [currentSymptomsData, setCurrentSymptomsData] = React.useState<string[]>(mockCurrentSymptoms);
   const [allergiesData, setAllergiesData] = React.useState<string[]>(mockAllergies);
@@ -131,6 +140,7 @@ export default function EditProfileDetailsPage() {
   const [dietaryHabitsData, setDietaryHabitsData] = React.useState<DietaryHabitsFormValues>(mockDietaryHabitsData);
   const [dietaryIntakeData, setDietaryIntakeData] = React.useState<DietaryIntakeFormValues>(mockDietaryIntakeData);
   const [exerciseData, setExerciseData] = React.useState<ExerciseFormValues>(mockExerciseData);
+  const [smokingStatusData, setSmokingStatusData] = React.useState<SmokingStatusFormValues>(mockSmokingStatusData);
 
 
   const handleSaveFamilyHistory = (data: FamilyMedicalHistoryEntry[]) => {
@@ -179,9 +189,14 @@ export default function EditProfileDetailsPage() {
     toast({ title: "膳食摄入已保存", description: "您的膳食摄入信息已更新。" });
   };
 
-  const handleSaveExerciseData = (data: ExerciseFormValues) => { // Added handler for exercise data
+  const handleSaveExerciseData = (data: ExerciseFormValues) => { 
     setExerciseData(data);
     toast({ title: "运动锻炼信息已保存", description: "您的运动锻炼信息已更新。" });
+  };
+
+  const handleSaveSmokingStatus = (data: SmokingStatusFormValues) => {
+    setSmokingStatusData(data);
+    toast({ title: "吸烟情况已保存", description: "您的吸烟情况信息已更新。" });
   };
 
   const checkScrollability = React.useCallback(() => {
@@ -342,10 +357,18 @@ export default function EditProfileDetailsPage() {
             onSave={handleSaveExerciseData}
           />
         </TabsContent>
+        
+        <TabsContent value="smokingStatus">
+          <SmokingStatusForm
+            initialData={smokingStatusData}
+            onSave={handleSaveSmokingStatus}
+          />
+        </TabsContent>
 
         {tabItems.filter(tab => ![
             "basicInfo", "familyHistory", "currentSymptoms", "allergies", "operationHistory", 
-            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", "dietaryIntake", "exercise"
+            "bloodTransfusion", "medicationHistory", "contactHistory", "dietaryHabits", 
+            "dietaryIntake", "exercise", "smokingStatus"
         ].includes(tab.value)).map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {renderPlaceholderContent(tab.label, tab.icon)}
