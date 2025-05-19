@@ -45,14 +45,14 @@ export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '�
 
 export interface UserProfile { // Patient-side profile
   name: string;
-  gender: Gender;
+  gender?: Gender; // Made optional to align with form
   dob?: string | Date; 
   address?: string;
   
   hadPreviousCheckup?: boolean;
   agreesToIntervention?: boolean;
   
-  contactPhone: string;
+  contactPhone?: string; // Made optional based on form
   contactEmail?: string;
   
   bloodType?: BloodType;
@@ -60,7 +60,7 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields often managed by institution, but visible to patient (potentially read-only)
+  // Fields often managed by institution, visible to patient as read-only
   recordNumber?: string; 
   admissionDate?: string | Date; 
   recordDate?: string | Date; 
@@ -186,19 +186,12 @@ export interface MedicationEntry {
   notes?: string;
 }
 
-export interface MedicalHistory { 
-  pastMedicalHistoryText?: string;
-  familyMedicalHistory?: FamilyMedicalHistoryEntry[];
-  allergies?: string[];
-  otherAllergyText?: string;
-  currentSymptoms?: string[];
-  medicationCategories?: string[]; 
-  contactHistory?: string[]; 
-  medicationHistory?: MedicationEntry[];
-  operationHistory?: string[]; 
-  bloodTransfusionHistory?: string; 
-  otherMedicalInfo?: string;
-  healthGoals?: string[];
+export interface DetailedPatientProfile extends UserProfile { // DetailedPatientProfile can extend UserProfile or have its own distinct set
+  // Fields specific to doctor's view or more detailed institutional records
+  chiefComplaint?: string;
+  historyOfPresentIllness?: string;
+  pastMedicalHistoryDetails?: string; // More detailed text for past history
+  // Other fields from the large form if not covered by UserProfile
 }
 
 
@@ -310,141 +303,6 @@ export interface DoctorPatient {
 }
 
 
-export interface DetailedPatientProfile { 
-  recordNumber?: string;
-  name: string;
-  gender?: Gender;
-  age?: number; 
-  dob?: string; 
-  maritalStatus?: MaritalStatus;
-  occupation?: string;
-  nationality?: string;
-  birthplace?: string;
-  address?: string;
-  contactPhone?: string;
-  contactEmail?: string;
-  bloodType?: BloodType;
-  educationLevel?: string;
-  hadPreviousCheckup?: boolean;
-  agreesToIntervention?: boolean;
-  admissionDate?: string; 
-  recordDate?: string; 
-  informant?: string;
-  reliability?: ReliabilityOption;
-
-  chiefComplaint?: string;
-  historyOfPresentIllness?: string;
-
-  pastMedicalHistoryDetails?: string;
-  pastIllnesses?: string[];
-  infectiousDiseases?: string[];
-  vaccinationHistory?: string;
-  operationHistory?: string[]; 
-  traumaHistory?: string;
-  bloodTransfusionHistory?: string; 
-
-  personalHistory_birthPlaceAndResidence?: string;
-  personalHistory_livingConditions?: string;
-  personalHistory_smokingHistory?: string; 
-  personalHistory_drinkingHistory?: string; 
-  personalHistory_drugAbuseHistory?: string;
-  personalHistory_menstrualAndObstetric?: string;
-
-  familyMedicalHistory?: FamilyMedicalHistoryEntry[];
-
-  currentSymptoms?: string[];
-  allergies?: string[];
-  otherAllergyText?: string;
-  medicationHistory?: MedicationEntry[]; 
-  medicationCategories?: string[]; 
-  contactHistory?: string[];
-
-  contactHistory_oy?: YesNoOption;
-  contactHistory_dust?: YesNoOption;
-  contactHistory_toxic?: YesNoOption;
-  contactHistory_highTemp?: YesNoOption;
-  contactHistory_lowTemp?: YesNoOption;
-  contactHistory_noise?: YesNoOption;
-  contactHistory_radiation?: YesNoOption;
-
-  dietaryHabits_breakfastDays?: FrequencyOption;
-  dietaryHabits_lateSnackDays?: FrequencyOption;
-  dietaryHabits_badHabits?: string[];
-  dietaryHabits_preferences?: string[];
-  dietaryHabits_foodTypePreferences?: string[];
-
-  dietaryIntake_staple?: DietaryIntakeOption;
-  dietaryIntake_meat?: DietaryIntakeOption;
-  dietaryIntake_fish?: DietaryIntakeOption;
-  dietaryIntake_eggs?: DietaryIntakeOption;
-  dietaryIntake_dairy?: DietaryIntakeOption;
-  dietaryIntake_soy?: DietaryIntakeOption;
-  dietaryIntake_vegetables?: DietaryIntakeOption;
-  dietaryIntake_fruits?: DietaryIntakeOption;
-  dietaryIntake_water?: DietaryIntakeOption;
-
-  exercise_workHours?: ExerciseWorkHoursOption;
-  exercise_sedentaryHours?: ExerciseWorkHoursOption;
-  exercise_weeklyFrequency?: ExerciseWeeklyFrequencyOption;
-  exercise_durationPerSession?: ExerciseDurationOption;
-  exercise_intensity?: ExerciseIntensityOption;
-
-  smoking_status?: SmokingStatusOption;
-  smoking_cigarettesPerDay?: string;
-  smoking_years?: string;
-  smoking_passiveDays?: FrequencyOption;
-
-  drinking_status?: DrinkingStatusOption;
-  drinking_type?: AlcoholTypeOption | string; 
-  drinking_type_other?: string; 
-  drinking_amountPerDay?: string;
-  drinking_years?: string;
-
-  mentalHealth_majorEvents?: YesNoOption;
-  mentalHealth_impactOnLife?: ImpactLevelOption;
-  mentalHealth_stressLevel?: ImpactLevelOption;
-  mentalHealth_sas_anxiety?: SASOption;
-  mentalHealth_sas_fear?: SASOption;
-  mentalHealth_sas_panic?: SASOption;
-  mentalHealth_sas_goingCrazy?: SASOption;
-  mentalHealth_sas_misfortune?: SASOption;
-  mentalHealth_sas_trembling?: SASOption;
-  mentalHealth_sas_bodyPain?: SASOption;
-  mentalHealth_sas_fatigue?: SASOption;
-  mentalHealth_sas_restlessness?: SASOption;
-  mentalHealth_sas_palpitations?: SASOption;
-  mentalHealth_sas_dizziness?: SASOption;
-  mentalHealth_sas_fainting?: SASOption;
-  mentalHealth_sas_breathingDifficulty?: SASOption;
-  mentalHealth_sas_paresthesia?: SASOption;
-  mentalHealth_sas_stomachPain?: SASOption;
-  mentalHealth_sas_frequentUrination?: SASOption;
-  mentalHealth_sas_sweating?: SASOption;
-
-  adherence_selfAssessmentBody?: AdherenceBodyOption;
-  adherence_selfAssessmentMind?: AdherenceMindOption;
-  adherence_priorityProblems?: string[];
-  adherence_doctorAdviceCompliance?: AdherenceComplianceOption;
-  adherence_healthPromotionMethods?: string[];
-  adherence_otherHealthPromotion?: string;
-
-  sleep_adequacy?: SleepAdequacyOption;
-
-  otherInfo_medicationsUsed?: string;
-  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; 
-  otherInfo_contactPreference_method_other?: string;
-  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string; 
-  otherInfo_contactPreference_frequency_other?: string;
-  otherInfo_contactPreference_time?: ContactPreferenceTime | string; 
-  otherInfo_contactPreference_time_other?: string;
-  otherInfo_suggestions?: string;
-  otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
-
-  otherMedicalInfo?: string; 
-  healthGoals?: string[]; 
-}
-
-
 export interface DoctorProfileDetails {
   id: string;
   name: string;
@@ -546,7 +404,7 @@ export interface SaasEmployee {
   roleTitle?: string;
   status: 'active' | 'invited' | 'disabled';
   joinDate: string;
-  creationDate?: string;
+  creationDate?: string; // Added optional creationDate
 }
 
 export interface SaasPatient {
@@ -578,6 +436,8 @@ export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
+  enterpriseName?: string; // Optional: For easier display without join
+  servicePackageName?: string; // Optional
   orderDate: string;
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
@@ -587,8 +447,6 @@ export interface SaasOrder {
   renewalDate?: string;
   invoiceNumber?: string;
   notes?: string;
-  enterpriseName?: string;
-  servicePackageName?: string;
 }
 
 export interface SaasSystemUser {
@@ -637,9 +495,26 @@ export interface SaasOutboundCallTask {
   notes?: string;
 }
 
-export interface SaasLlmSettings {
+export interface SaasLlmSettings { // Renamed from LlmSettings to avoid conflict
   apiKey: string;
   apiEndpoint: string;
   modelName: string;
 }
+
+// New type for AI Workflow API Configuration, as distinct from SaasSopService if needed,
+// or could be merged/aliased if functionality is identical.
+// For this request, creating a new specific type.
+export interface SaasAiWorkflowApiConfig {
+  id: string;
+  name: string;
+  type: 'Dify' | 'Coze' | 'Other';
+  apiEndpoint: string;
+  apiKey?: string;       // Optional API key
+  parametersJson?: string; // Optional JSON string for default parameters
+  description?: string;  // Optional description
+  creationDate: string;   // ISO date string
+  status?: 'active' | 'inactive'; // Optional status for this config entry
+}
+    
+
     
