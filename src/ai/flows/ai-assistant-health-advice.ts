@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -17,6 +18,11 @@ const AiAssistantHealthAdviceInputSchema = z.object({
   gender: z.string().describe('The user gender.'),
   age: z.number().describe('The user age.'),
   medicalHistory: z.string().describe('The user medical history.'),
+  attachmentInfo: z.object({
+    name: z.string(),
+    type: z.string(),
+    size: z.number().optional(),
+  }).optional().describe('Information about any attached file.'),
 });
 export type AiAssistantHealthAdviceInput = z.infer<
   typeof AiAssistantHealthAdviceInputSchema
@@ -48,8 +54,14 @@ const prompt = ai.definePrompt({
   User Gender: {{{gender}}}
   User Age: {{{age}}}
   User Medical History: {{{medicalHistory}}}
+  {{#if attachmentInfo}}
+  User also sent a file: {{{attachmentInfo.name}}} (Type: {{{attachmentInfo.type}}}{{#if attachmentInfo.size}}, Size: {{{attachmentInfo.size}}} bytes{{/if}}).
+  Please acknowledge this file in your response (e.g., "Regarding the file you sent..."). You are not currently equipped to open or analyze the content of these files, but you can acknowledge its presence.
+  {{/if}}
 
-  Provide clear, concise, and actionable advice.`,
+  Provide clear, concise, and actionable advice. If the question seems to imply a file was sent (even if no attachmentInfo is present in this system message), politely state you cannot view file contents but can discuss the topic generally.
+  If the user asks about analyzing content from an image, document, audio or video, explain that you cannot directly process file content, but they can describe it to you or ask questions based on their own understanding of the file.
+  `,
 });
 
 const aiAssistantHealthAdviceFlow = ai.defineFlow(
