@@ -15,7 +15,8 @@ import {
   ChevronRight,
   LogOut,
   Stethoscope,
-  FileText, // Using FileText for 健康档案
+  FileText,
+  Pill, // Added Pill icon
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +29,7 @@ const mockUser = {
 };
 
 const mockDoctor = {
-  name: "王老师",
+  name: "王医生", // Changed to match WelcomeBanner for consistency
   avatarUrl: "https://picsum.photos/seed/doctorprofilemain/80/80",
   dataAiHint: "doctor professional",
 };
@@ -40,32 +41,36 @@ const profileLinks = [
     href: "/dashboard/profile/edit-details",
   },
   {
+    title: "用药计划", // Added Medication Plan link
+    icon: Pill,
+    href: "/dashboard/medication-plan",
+  },
+  {
     title: "在线咨询",
     icon: MessageSquare,
     href: "/dashboard/consultations",
   },
   {
-    title: "我的打卡",
+    title: "我的打卡", // This likely refers to reminders or logs
     icon: CheckSquare,
-    href: "/dashboard/reminders",
+    href: "/dashboard/reminders", // Pointing to reminders page for now
   },
   {
-    title: "健康指数",
+    title: "健康指数", // This likely refers to health data overview
     icon: Activity,
     href: "/dashboard/health-data",
   },
   {
-    title: "联系我们",
+    title: "联系我们", // This likely refers to help/support
     icon: Smile,
     href: "/dashboard/help",
   },
 ];
 
 export default function ProfilePage() {
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter(); 
 
   const handleLogout = () => {
-    // In a real app, you'd clear session, tokens, etc.
     router.push("/auth/login");
   };
 
@@ -76,10 +81,11 @@ export default function ProfilePage() {
         <Image
           src="https://picsum.photos/seed/profileheader/600/240"
           alt="健康背景"
-          layout="fill"
-          objectFit="cover"
+          fill // Changed from layout="fill"
+          style={{objectFit:"cover"}} // Changed from objectFit="cover"
           className="opacity-80"
           data-ai-hint="health medical"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-1">
@@ -157,7 +163,7 @@ export default function ProfilePage() {
           <Button
             variant="ghost"
             className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive font-medium"
-            onClick={handleLogout} // Updated onClick handler
+            onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" />
             退出登录
