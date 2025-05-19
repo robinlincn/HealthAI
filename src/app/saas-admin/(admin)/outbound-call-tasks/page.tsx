@@ -23,7 +23,7 @@ const mockEnterprises: SaasEnterprise[] = [
 const mockEmployees: SaasEmployee[] = [
   { id: 'emp-001a', enterpriseId: 'ent-001', name: '王明医生', email: 'wm@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
   { id: 'emp-002b', enterpriseId: 'ent-002', name: '李芳护士', email: 'lf@healthb.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
-  { id: 'saas-admin-01', name: 'SAAS平台管理员A', email: 'admin@saas.com', enterpriseId: '', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() }, // Example SAAS admin
+  { id: 'saas-admin-01', name: 'SAAS平台管理员A', email: 'admin@saas.com', enterpriseId: '', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() }, 
 ];
 const mockPatients: SaasPatient[] = [
   { id: 'pat-saas-001', enterpriseId: 'ent-001', name: '刘备', gender: 'male', dob: '1961-07-23', primaryDisease: '高血压', contactPhone: '13012340001' },
@@ -143,9 +143,9 @@ export default function OutboundCallTasksPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-4 border p-4 rounded-md">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-grow w-full">
-              <div className="relative">
+          <div className="border p-4 rounded-md space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="relative lg:col-span-2">
                 <Label htmlFor="taskSearch" className="sr-only">搜索任务</Label>
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -187,14 +187,18 @@ export default function OutboundCallTasksPage() {
                       <SelectItem value="employee_group">员工组</SelectItem>
                   </SelectContent>
               </Select>
-              <div className="lg:col-span-2">
-                <Label htmlFor="taskDateRange" className="block text-xs font-medium mb-1 text-muted-foreground">创建日期范围</Label>
-                <DatePickerWithRange id="taskDateRange" date={dateRange} onDateChange={setDateRange} className="max-w-sm" />
-              </div>
             </div>
-            <Button onClick={handleAddTask} className="w-full sm:w-auto shrink-0">
-                <PlusCircle className="mr-2 h-4 w-4" /> 新建平台任务
-            </Button>
+            
+            <div className="w-full md:max-w-md"> {/* Date picker on its own row, with max-width */}
+              <Label htmlFor="taskDateRange" className="block text-xs font-medium mb-1 text-muted-foreground">创建日期范围</Label>
+              <DatePickerWithRange id="taskDateRange" date={dateRange} onDateChange={setDateRange} className="w-full" />
+            </div>
+            
+            <div className="flex justify-end">
+              <Button onClick={handleAddTask} className="shrink-0">
+                  <PlusCircle className="mr-2 h-4 w-4" /> 新建平台任务
+              </Button>
+            </div>
           </div>
           
           <OutboundCallTaskTable 
