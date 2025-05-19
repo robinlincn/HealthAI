@@ -16,6 +16,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 
+const NO_EMPLOYEE_SELECTED_VALUE = "__NO_EMPLOYEE_SELECTED__";
+const NO_PLATFORM_CONNECTION_VALUE = "__NO_PLATFORM_CONNECTION__";
+
 const communityGroupSchema = z.object({
   name: z.string().min(2, { message: "群名称至少需要2个字符。" }),
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
@@ -37,8 +40,8 @@ interface CommunityGroupDialogProps {
   onSubmit: (data: SaasCommunityGroup) => void;
   group?: SaasCommunityGroup | null;
   enterprises: SaasEnterprise[];
-  allEmployees: SaasEmployee[]; // All employees for dropdown filtering
-  allPatients: SaasPatient[]; // All patients for dropdown filtering
+  allEmployees: SaasEmployee[]; 
+  allPatients: SaasPatient[]; 
   platformConnections: SaasPlatformConnection[];
 }
 
@@ -56,17 +59,19 @@ export function CommunityGroupDialog({
     resolver: zodResolver(communityGroupSchema),
     defaultValues: group ? {
       ...group,
+      managingEmployeeId: group.managingEmployeeId || NO_EMPLOYEE_SELECTED_VALUE,
+      platformConnectionId: group.platformConnectionId || NO_PLATFORM_CONNECTION_VALUE,
       memberPatientIds: group.memberPatientIds || [],
       tags: group.tags?.join(', ') || '',
     } : {
       name: '',
       enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
-      managingEmployeeId: undefined,
+      managingEmployeeId: NO_EMPLOYEE_SELECTED_VALUE,
       type: 'personal_wechat_group',
       platformGroupId: '',
       description: '',
       memberPatientIds: [],
-      platformConnectionId: undefined,
+      platformConnectionId: NO_PLATFORM_CONNECTION_VALUE,
       connectionStatus: 'not_monitored',
       tags: '',
     },
@@ -84,17 +89,19 @@ export function CommunityGroupDialog({
     if (isOpen) {
         form.reset(group ? {
             ...group,
+            managingEmployeeId: group.managingEmployeeId || NO_EMPLOYEE_SELECTED_VALUE,
+            platformConnectionId: group.platformConnectionId || NO_PLATFORM_CONNECTION_VALUE,
             memberPatientIds: group.memberPatientIds || [],
             tags: group.tags?.join(', ') || '',
         } : {
             name: '',
             enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
-            managingEmployeeId: undefined,
+            managingEmployeeId: NO_EMPLOYEE_SELECTED_VALUE,
             type: 'personal_wechat_group',
             platformGroupId: '',
             description: '',
             memberPatientIds: [],
-            platformConnectionId: undefined,
+            platformConnectionId: NO_PLATFORM_CONNECTION_VALUE,
             connectionStatus: 'not_monitored',
             tags: '',
         });
@@ -109,6 +116,8 @@ export function CommunityGroupDialog({
       id: group?.id || `cg-${Date.now().toString()}`,
       creationDate: group?.creationDate || new Date().toISOString(),
       ...data,
+      managingEmployeeId: data.managingEmployeeId === NO_EMPLOYEE_SELECTED_VALUE ? undefined : data.managingEmployeeId,
+      platformConnectionId: data.platformConnectionId === NO_PLATFORM_CONNECTION_VALUE ? undefined : data.platformConnectionId,
       patientCount: data.memberPatientIds?.length || 0,
       tags: data.tags?.split(',').map(t => t.trim()).filter(t => t) || [],
     };
@@ -150,7 +159,7 @@ export function CommunityGroupDialog({
                 <FormField control={form.control} name="enterpriseId" render={({ field }) => (
                     <FormItem>
                     <FormLabel>所属企业</FormLabel>
-                    <Select onValueChange={(value) => { field.onChange(value); form.setValue('managingEmployeeId', undefined); form.setValue('memberPatientIds', []); }} value={field.value}>
+                    <Select onValueChange={(value) => { field.onChange(value); form.setValue('managingEmployeeId', NO_EMPLOYEE_SELECTED_VALUE); form.setValue('memberPatientIds', []); }} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="选择企业" /></SelectTrigger></FormControl>
                         <SelectContent>
                         {enterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
@@ -164,7 +173,7 @@ export function CommunityGroupDialog({
                     <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEnterpriseId || availableEmployees.length === 0}>
                         <FormControl><SelectTrigger><SelectValue placeholder="选择管理员工" /></SelectTrigger></FormControl>
                         <SelectContent>
-                        <SelectItem value="">未指定</SelectItem>
+                        <SelectItem value={NO_EMPLOYEE_SELECTED_VALUE}>未指定</SelectItem>
                         {availableEmployees.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
                         </SelectContent>
                     </Select><FormMessage />
@@ -181,7 +190,7 @@ export function CommunityGroupDialog({
             <FormField
               control={form.control}
               name="memberPatientIds"
-              render={({ field: currentField }) => ( // Rename field to avoid conflict with outer scope
+              render={({ field: currentField }) => ( 
                 <FormItem>
                   <FormLabel>群成员 (病人)</FormLabel>
                   <Input 
@@ -230,7 +239,7 @@ export function CommunityGroupDialog({
                     <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="选择一个平台连接" /></SelectTrigger></FormControl>
                         <SelectContent>
-                        <SelectItem value="">不关联</SelectItem>
+                        <SelectItem value={NO_PLATFORM_CONNECTION_VALUE}>不关联</SelectItem>
                         {platformConnections.filter(pc => pc.enterpriseId === selectedEnterpriseId || !pc.enterpriseId).map(pc => (<SelectItem key={pc.id} value={pc.id}>{pc.accountName} ({pc.platform})</SelectItem>))}
                         </SelectContent>
                     </Select><FormMessage />
@@ -265,4 +274,3 @@ export function CommunityGroupDialog({
     </Dialog>
   );
 }
-
