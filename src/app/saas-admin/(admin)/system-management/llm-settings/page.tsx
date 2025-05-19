@@ -2,10 +2,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"; // Added CardFooter
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BrainCog, Save, Eye, EyeOff, PlusCircle, Workflow } from "lucide-react"; // Added Workflow icon
+import { BrainCog, Save, Eye, EyeOff, PlusCircle, Workflow } from "lucide-react"; 
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -24,10 +24,9 @@ const llmSettingsSchema = z.object({
 
 type LlmSettingsFormValues = z.infer<typeof llmSettingsSchema>;
 
-const LLM_SETTINGS_STORAGE_KEY = 'saas_llm_settings_v2'; // Use a new key if schema changes
+const LLM_SETTINGS_STORAGE_KEY = 'saas_llm_settings_v2';
 const AI_WORKFLOW_CONFIGS_STORAGE_KEY = 'saas_ai_workflow_configs';
 
-// Mock initial data for AI Workflow Configurations
 const mockInitialWorkflowConfigs: SaasAiWorkflowApiConfig[] = [
   {
     id: 'wf-dify-001',
@@ -55,20 +54,17 @@ export default function LlmSettingsPage() {
   const [isClient, setIsClient] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
 
-  // State for LLM Model Config
   const llmForm = useForm<LlmSettingsFormValues>({
     resolver: zodResolver(llmSettingsSchema),
     defaultValues: { apiKey: "", apiEndpoint: "", modelName: "" },
   });
 
-  // State for AI Workflow Configs
   const [workflowConfigs, setWorkflowConfigs] = useState<SaasAiWorkflowApiConfig[]>([]);
   const [isWorkflowDialogVisible, setIsWorkflowDialogVisible] = useState(false);
   const [editingWorkflowConfig, setEditingWorkflowConfig] = useState<SaasAiWorkflowApiConfig | null>(null);
 
   useEffect(() => {
     setIsClient(true);
-    // Load LLM settings from localStorage
     const storedLlmSettings = localStorage.getItem(LLM_SETTINGS_STORAGE_KEY);
     if (storedLlmSettings) {
       try {
@@ -76,17 +72,16 @@ export default function LlmSettingsPage() {
       } catch (e) { console.error("Error parsing stored LLM settings:", e); }
     }
 
-    // Load AI Workflow configs from localStorage or use mock
     const storedWorkflowConfigs = localStorage.getItem(AI_WORKFLOW_CONFIGS_STORAGE_KEY);
     if (storedWorkflowConfigs) {
       try {
         setWorkflowConfigs(JSON.parse(storedWorkflowConfigs));
       } catch (e) { 
         console.error("Error parsing stored AI workflow configs:", e);
-        setWorkflowConfigs(mockInitialWorkflowConfigs); // Fallback to mock
+        setWorkflowConfigs(mockInitialWorkflowConfigs); 
       }
     } else {
-      setWorkflowConfigs(mockInitialWorkflowConfigs); // Initialize with mock
+      setWorkflowConfigs(mockInitialWorkflowConfigs); 
     }
   }, [llmForm]);
 
@@ -95,7 +90,6 @@ export default function LlmSettingsPage() {
     toast({ title: "LLM模型设置已保存", description: "AI大语言模型配置已成功更新。" });
   };
 
-  // AI Workflow Config handlers
   const handleAddWorkflowConfig = () => {
     setEditingWorkflowConfig(null);
     setIsWorkflowDialogVisible(true);
@@ -143,7 +137,7 @@ export default function LlmSettingsPage() {
   }
 
   return (
-    <div className="space-y-8"> {/* Increased overall spacing */}
+    <div className="space-y-8"> 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
@@ -220,4 +214,3 @@ export default function LlmSettingsPage() {
   );
 }
 
-    
