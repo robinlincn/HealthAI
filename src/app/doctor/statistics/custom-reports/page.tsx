@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,21 +9,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerWithRange } from "@/components/ui/date-picker-with-range"; 
 import { FilePieChart, Settings2, Download, TableProperties, Users, Activity, Pill, Loader2 } from "lucide-react";
 import type { DateRange } from "react-day-picker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+
+interface ReportRow {
+  metric: string;
+  value: string | number;
+}
+
+interface ReportMetadata {
+  generatedAt: string;
+  timeRange?: string;
+  diseaseType: string;
+  reportType: string;
+}
 
 export default function DoctorStatisticsCustomReportsPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
-  const [reportPreview, setReportPreview] = useState<string | null>(null);
+  const [reportData, setReportData] = useState<ReportRow[] | null>(null);
+  const [reportMetadata, setReportMetadata] = useState<ReportMetadata | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [selectedDiseaseType, setSelectedDiseaseType] = useState<string>("all");
   const [selectedReportType, setSelectedReportType] = useState<string>("patient_stats");
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const allMetrics = ['病人总数', '新增病人', '活跃病人', '平均年龄', '性别分布', '血糖达标率', '血压达标率', '常用药物', '治疗方案A使用数', '检查项目频率', '平均住院天数', '复诊率'];
-
 
   const handleMetricChange = (metric: string, checked: boolean | string) => {
     if (checked === true) {
@@ -38,25 +57,12 @@ export default function DoctorStatisticsCustomReportsPage() {
       return;
     }
     setIsLoadingPreview(true);
-    setReportPreview(null);
-    // Simulate API call or report generation logic
+    setReportData(null);
+    setReportMetadata(null);
+    
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    let reportContent = `自定义统计报告\n============================\n\n`;
-    reportContent += `报告生成时间: ${format(new Date(), "yyyy-MM-dd HH:mm:ss")}\n`;
-    if (dateRange?.from) {
-      reportContent += `时间范围: ${format(dateRange.from, "yyyy-MM-dd")}`;
-      if (dateRange.to) {
-        reportContent += ` 至 ${format(dateRange.to, "yyyy-MM-dd")}\n`;
-      } else {
-        reportContent += ` (单日)\n`;
-      }
-    } else {
-      reportContent += `时间范围: 所有时间\n`;
-    }
-    reportContent += `筛选疾病类型: ${selectedDiseaseType === "all" ? "所有疾病" : selectedDiseaseType}\n`;
-    reportContent += `报表类型: ${selectedReportType === "patient_stats" ? "病人统计" : selectedReportType === "treatment_stats" ? "治疗统计" : "活动统计"}\n`;
-    reportContent += `\n已选指标及模拟数据:\n----------------------------\n`;
+    const newReportData: ReportRow[] = [];
     selectedMetrics.forEach(metric => {
       let mockValue: string | number;
       switch(metric) {
@@ -64,35 +70,60 @@ export default function DoctorStatisticsCustomReportsPage() {
         case '新增病人': mockValue = Math.floor(Math.random() * 30); break;
         case '活跃病人': mockValue = Math.floor(Math.random() * 150) + 40; break;
         case '平均年龄': mockValue = `${(Math.random() * 30 + 40).toFixed(1)} 岁`; break;
-        case '性别分布': mockValue = `男: ${Math.floor(Math.random() * 50 + 20)}%, 女: ${Math.floor(Math.random() * 40 + 10)}%, 其他: ${Math.floor(Math.random()*5)}%`; break;
+        case '性别分布': mockValue = `男: ${Math.floor(Math.random() * 50 + 20)}%, 女: ${Math.floor(Math.random() * 40 + 10)}%`; break;
         case '血糖达标率': mockValue = `${(Math.random() * 40 + 50).toFixed(1)} %`; break;
         case '血压达标率': mockValue = `${(Math.random() * 30 + 60).toFixed(1)} %`; break;
         case '常用药物': mockValue = '二甲双胍, 硝苯地平'; break;
         case '治疗方案A使用数': mockValue = Math.floor(Math.random() * 50); break;
-        case '检查项目频率': mockValue = '血糖监测 (每日), 血压测量 (每周)'; break;
+        case '检查项目频率': mockValue = '血糖监测 (每日)'; break;
         case '平均住院天数': mockValue = `${(Math.random() * 5 + 7).toFixed(1)} 天`; break;
         case '复诊率': mockValue = `${(Math.random() * 20 + 70).toFixed(1)} %`; break;
         default: mockValue = 'N/A';
       }
-      reportContent += `- ${metric}: ${mockValue}\n`;
+      newReportData.push({ metric, value: mockValue });
     });
-    reportContent += `\n--- 报告结束 ---`;
 
-    setReportPreview(reportContent);
+    let timeRangeString = "所有时间";
+    if (dateRange?.from) {
+        timeRangeString = format(dateRange.from, "yyyy-MM-dd");
+        if (dateRange.to) {
+            timeRangeString += ` 至 ${format(dateRange.to, "yyyy-MM-dd")}`;
+        } else {
+            timeRangeString += ` (单日)`;
+        }
+    }
+
+    const newReportMetadata: ReportMetadata = {
+        generatedAt: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+        timeRange: timeRangeString,
+        diseaseType: selectedDiseaseType === "all" ? "所有疾病" : selectedDiseaseType,
+        reportType: selectedReportType === "patient_stats" ? "病人统计" : selectedReportType === "treatment_stats" ? "治疗统计" : "活动统计",
+    };
+    
+    setReportData(newReportData);
+    setReportMetadata(newReportMetadata);
     setIsLoadingPreview(false);
     toast({ title: "报告已生成", description: "自定义报告已生成并显示在预览区。" });
   };
 
   const handleExportReport = () => {
-    if (!reportPreview) {
+    if (!reportData) {
       toast({ title: "无报告可导出", description: "请先生成报告。", variant: "destructive"});
       return;
     }
-    // Simulate PDF/Excel export
     toast({ title: "导出报告 (模拟)", description: "报告正在导出...实际导出功能需后端支持。" });
-    console.log("Exporting report:", reportPreview);
+    console.log("Exporting report metadata:", reportMetadata);
+    console.log("Exporting report data:", reportData);
   };
   
+  if (!isClient) {
+    return (
+      <div className="space-y-6">
+        <Card><CardHeader><CardTitle className="text-xl">自定义统计报表</CardTitle></CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载报表配置...</p></CardContent></Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -164,7 +195,7 @@ export default function DoctorStatisticsCustomReportsPage() {
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => { setSelectedMetrics([]); setDateRange(undefined); setReportPreview(null); setSelectedDiseaseType("all"); setSelectedReportType("patient_stats"); toast({title: "配置已重置"}) }}>重置配置</Button>
+            <Button variant="outline" onClick={() => { setSelectedMetrics([]); setDateRange(undefined); setReportData(null); setReportMetadata(null); setSelectedDiseaseType("all"); setSelectedReportType("patient_stats"); toast({title: "配置已重置"}) }}>重置配置</Button>
             <Button onClick={handleGenerateReport} disabled={isLoadingPreview}>
               {isLoadingPreview ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <TableProperties className="mr-2 h-4 w-4"/>}
               {isLoadingPreview ? "生成中..." : "生成报表 (预览)"}
@@ -176,7 +207,7 @@ export default function DoctorStatisticsCustomReportsPage() {
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle>报表预览与导出</CardTitle>
-            <Button variant="secondary" onClick={handleExportReport} disabled={!reportPreview || isLoadingPreview}>
+            <Button variant="secondary" onClick={handleExportReport} disabled={!reportData || isLoadingPreview}>
                 <Download className="mr-2 h-4 w-4"/>导出报表 (Excel/PDF)
             </Button>
         </CardHeader>
@@ -187,8 +218,33 @@ export default function DoctorStatisticsCustomReportsPage() {
                         <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary"/>
                         <p className="text-muted-foreground">正在生成报表预览...</p>
                     </div>
-                ) : reportPreview ? (
-                    <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed max-h-[500px] overflow-y-auto">{reportPreview}</pre>
+                ) : reportData && reportMetadata ? (
+                    <div className="space-y-4">
+                        <div className="text-xs text-muted-foreground space-y-0.5">
+                            <p><strong>报告生成时间:</strong> {reportMetadata.generatedAt}</p>
+                            <p><strong>筛选时间范围:</strong> {reportMetadata.timeRange}</p>
+                            <p><strong>筛选疾病类型:</strong> {reportMetadata.diseaseType}</p>
+                            <p><strong>报表类型:</strong> {reportMetadata.reportType}</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[40%]">指标名称</TableHead>
+                                    <TableHead>统计值</TableHead>
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {reportData.map((row, index) => (
+                                    <TableRow key={index}>
+                                    <TableCell className="font-medium">{row.metric}</TableCell>
+                                    <TableCell>{String(row.value)}</TableCell>
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
                 ) : (
                     <p className="text-muted-foreground text-center py-10">请先配置报表参数并点击“生成报表”进行预览。</p>
                 )}
@@ -198,3 +254,4 @@ export default function DoctorStatisticsCustomReportsPage() {
     </div>
   );
 }
+
