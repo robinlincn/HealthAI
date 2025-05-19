@@ -2,8 +2,8 @@
 "use client";
 
 import { WelcomeBannerDoctor } from "@/components/doctor/WelcomeBannerDoctor";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarClock, MailWarning, Users, Megaphone, AlertTriangle, Eye } from "lucide-react"; // Added AlertTriangle, Eye
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { CalendarClock, MailWarning, Users, Megaphone, AlertTriangle, Eye } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,6 +27,7 @@ const generateMockPatientAlerts = (): PatientAlert[] => [
   { id: 'alert2', patientId: 'pat002', patientName: '李四', alertType: '血压过高', message: '多次测量收缩压 > 160 mmHg', timestamp: subDays(new Date(), 1).toISOString(), riskLevel: '中' },
   { id: 'alert3', patientId: 'pat003', patientName: '王五', alertType: '体重急剧变化', message: '一周内体重下降超过 2kg', timestamp: subDays(new Date(), 2).toISOString(), riskLevel: '高' },
   { id: 'alert4', patientId: 'pat004', patientName: '赵六', alertType: '药物未按时服用', message: '连续两天未记录降压药服用', timestamp: subDays(new Date(), 1).toISOString(), riskLevel: '中' },
+  { id: 'alert5', patientId: 'pat005', patientName: '孙七', alertType: '血糖异常', message: '夜间低血糖 < 3.9 mmol/L', timestamp: subDays(new Date(), 0.5).toISOString(), riskLevel: '高' },
 ];
 
 
@@ -48,8 +49,8 @@ export default function DoctorDashboardPage() {
 
   const getRiskBadgeVariant = (riskLevel: PatientAlert['riskLevel']) => {
     if (riskLevel === '高') return 'destructive';
-    if (riskLevel === '中') return 'default'; // Using default for medium, can be 'secondary' or other
-    return 'secondary'; // Using secondary for low
+    if (riskLevel === '中') return 'default'; 
+    return 'secondary'; 
   };
 
 
@@ -88,30 +89,32 @@ export default function DoctorDashboardPage() {
         </CardHeader>
         <CardContent>
           {patientAlerts.length > 0 ? (
-            <ScrollArea className="h-[200px] pr-3">
-              <ul className="space-y-3">
-                {patientAlerts.map(alert => (
-                  <li key={alert.id} className="p-3 border rounded-md bg-destructive/5 hover:bg-destructive/10 transition-colors">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {patientAlerts.map(alert => (
+                <Card key={alert.id} className="shadow-md hover:shadow-lg transition-shadow bg-destructive/5 rounded-lg overflow-hidden flex flex-col">
+                  <CardHeader className="p-3 pb-2 bg-destructive/10">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <Link href={`/doctor/patients/${alert.patientId}`} className="text-destructive font-semibold hover:underline">
-                          {alert.patientName}
-                        </Link>
-                        <span className="text-xs text-destructive/80 ml-2">({alert.alertType})</span>
-                      </div>
-                      <Badge variant={getRiskBadgeVariant(alert.riskLevel)} className="text-xs">{alert.riskLevel}风险</Badge>
+                      <Link href={`/doctor/patients/${alert.patientId}`} className="font-semibold text-destructive hover:underline text-md">
+                        {alert.patientName}
+                      </Link>
+                      <Badge variant={getRiskBadgeVariant(alert.riskLevel)} className="text-xs whitespace-nowrap">{alert.riskLevel}风险</Badge>
                     </div>
-                    <p className="text-sm text-destructive/90 mt-1">{alert.message}</p>
-                    {isClient && <p className="text-xs text-muted-foreground mt-0.5">时间: {format(parseISO(alert.timestamp), "yyyy-MM-dd HH:mm")}</p>}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
+                    <CardDescription className="text-xs text-destructive/80">{alert.alertType}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 flex-grow">
+                    <p className="text-sm text-destructive/90">{alert.message}</p>
+                  </CardContent>
+                  <CardFooter className="p-3 pt-1 text-xs text-muted-foreground border-t bg-destructive/5">
+                    {isClient && <p>时间: {format(parseISO(alert.timestamp), "yyyy-MM-dd HH:mm")}</p>}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           ) : (
             <p className="text-muted-foreground text-center py-4">暂无健康预警信息。</p>
           )}
           {patientAlerts.length > 0 && (
-            <div className="mt-4 flex justify-end">
+            <div className="mt-6 flex justify-end">
               <Button variant="outline" onClick={() => alert("跳转到预警病人列表 (功能开发中)")}>
                  <Eye className="mr-2 h-4 w-4" /> 查看所有预警
               </Button>
