@@ -39,7 +39,7 @@ import { SuggestionsForm, type SuggestionsFormValues } from '@/components/profil
 import { ServiceSatisfactionForm, type ServiceSatisfactionFormValues } from '@/components/profile/ServiceSatisfactionForm';
 import { ContactPreferenceForm, type ContactPreferenceFormValues } from '@/components/profile/ContactPreferenceForm';
 
-import { extractProfileInfoFlow, type ExtractProfileInfoOutput } from "@/ai/flows/extract-profile-info-flow";
+import { extractProfileInfoFlow, type ExtractProfileInfoOutput, type ExtractProfileInfoInput } from "@/ai/flows/extract-profile-info-flow";
 
 import type { 
   UserProfile, 
@@ -106,30 +106,28 @@ const defaultContactPreferenceData: ContactPreferenceFormValues = {};
 const defaultSuggestionsData: SuggestionsFormValues = { otherInfo_suggestions: "" };
 const defaultServiceSatisfactionData: ServiceSatisfactionFormValues = {};
 
-
 const tabItems = [
-  { value: "basicInfo", label: "基本信息", icon: UserCircle, componentKey: "basicInfo" },
-  { value: "familyHistory", label: "家族病史", icon: HandHeart, componentKey: "familyHistory" },
-  { value: "currentSymptoms", label: "现有症状", icon: Activity, componentKey: "currentSymptoms" },
-  { value: "allergies", label: "过敏史", icon: Ban, componentKey: "allergies" },
-  { value: "operationHistory", label: "手术史", icon: Drama, componentKey: "operationHistory" },
-  { value: "bloodTransfusion", label: "输血史", icon: Droplets, componentKey: "bloodTransfusion" },
-  { value: "medicationHistory", label: "用药史", icon: Pill, componentKey: "medicationHistory" },
-  { value: "contactHistory", label: "接触史", icon: Wind, componentKey: "contactHistory" },
-  { value: "dietaryHabits", label: "饮食习惯", icon: Apple, componentKey: "dietaryHabits" },
-  { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot, componentKey: "dietaryIntake" },
-  { value: "exercise", label: "运动锻炼", icon: Dumbbell, componentKey: "exercise" },
-  { value: "smokingStatus", label: "吸烟情况", icon: Cigarette, componentKey: "smokingStatus" },
-  { value: "drinkingStatus", label: "饮酒情况", icon: Wine, componentKey: "drinkingStatus" },
-  { value: "mentalHealth", label: "心理健康", icon: Brain, componentKey: "mentalHealth" },
-  { value: "adherence", label: "遵医行为", icon: CheckSquare, componentKey: "adherence" },
-  { value: "sleep", label: "睡眠", icon: Bed, componentKey: "sleep" },
-  { value: "otherInfo", label: "其他", icon: FileQuestion, componentKey: "otherInfo" }, // Grouped 'Other' items
-  { value: "communication", label: "沟通偏好", icon: MessagesSquare, componentKey: "communication" },
-  { value: "suggestions", label: "您的建议", icon: Lightbulb, componentKey: "suggestions" },
-  { value: "serviceSatisfaction", label: "服务满意度", icon: ThumbsUp, componentKey: "serviceSatisfaction" },
+  { value: "basicInfo", label: "基本信息", icon: UserCircle, component: BasicInfoForm },
+  { value: "familyHistory", label: "家族病史", icon: HandHeart, component: FamilyHistoryEditor },
+  { value: "currentSymptoms", label: "现有症状", icon: Activity, component: CurrentSymptomsForm },
+  { value: "allergies", label: "过敏史", icon: Ban, component: AllergyForm },
+  { value: "operationHistory", label: "手术史", icon: Drama, component: OperationHistoryForm },
+  { value: "bloodTransfusion", label: "输血史", icon: Droplets, component: BloodTransfusionForm },
+  { value: "medicationHistory", label: "用药史", icon: Pill, component: MedicationCategoryForm },
+  { value: "contactHistory", label: "接触史", icon: Wind, component: ContactHistoryForm },
+  { value: "dietaryHabits", label: "饮食习惯", icon: Apple, component: DietaryHabitsForm },
+  { value: "dietaryIntake", label: "膳食摄入", icon: CookingPot, component: DietaryIntakeForm },
+  { value: "exercise", label: "运动锻炼", icon: Dumbbell, component: ExerciseForm },
+  { value: "smokingStatus", label: "吸烟情况", icon: Cigarette, component: SmokingStatusForm },
+  { value: "drinkingStatus", label: "饮酒情况", icon: Wine, component: DrinkingStatusForm },
+  { value: "mentalHealth", label: "心理健康", icon: Brain, component: MentalHealthForm },
+  { value: "adherence", label: "遵医行为", icon: CheckSquare, component: AdherenceBehaviorForm },
+  { value: "sleep", label: "睡眠", icon: Bed, component: SleepForm },
+  { value: "otherInfo", label: "其他", icon: FileQuestion, component: OtherMedicationsForm }, // Using OtherMedicationsForm as a placeholder for "Other" tab's content
+  { value: "communication", label: "沟通偏好", icon: MessagesSquare, component: ContactPreferenceForm },
+  { value: "suggestions", label: "您的建议", icon: Lightbulb, component: SuggestionsForm },
+  { value: "serviceSatisfaction", label: "服务满意度", icon: ThumbsUp, component: ServiceSatisfactionForm },
 ];
-
 
 const renderPlaceholderContent = (title: string, Icon?: LucideIcon) => (
     <Card className="shadow-sm mt-4">
@@ -201,47 +199,44 @@ export default function EditProfileDetailsPage() {
       reader.onloadend = async () => {
         const fileDataUri = reader.result as string;
         const aiResponse = await extractProfileInfoFlow({ fileDataUri });
-
-        if (aiResponse) { // aiResponse is now ExtractProfileInfoOutput, not { output: ... }
-          const aiData = aiResponse;
+        
+        if (aiResponse) { // No .output needed, aiResponse is ExtractProfileInfoOutput
+          const aiData = aiResponse; // Use aiResponse directly
           let updatedFieldsCount = 0;
 
           // Basic Info
           const basicUpdate: Partial<BasicInfoFormValues> = {};
           if (aiData.name) { basicUpdate.name = aiData.name; updatedFieldsCount++; }
-          if (aiData.gender) { basicUpdate.gender = aiData.gender; updatedFieldsCount++; }
-          if (aiData.dob) { try { const d = parseISO(aiData.dob); if(isValid(d)) basicUpdate.dob = d; updatedFieldsCount++; } catch(e){} }
+          if (aiData.gender) { basicUpdate.gender = aiData.gender as Gender; updatedFieldsCount++; }
+          if (aiData.dob) { try { const d = parseISO(aiData.dob); if(isValid(d)) basicUpdate.dob = d; updatedFieldsCount++; } catch(e){ console.warn("Invalid DOB from AI", e); } }
           if (aiData.address) { basicUpdate.address = aiData.address; updatedFieldsCount++; }
           if (typeof aiData.hadPreviousCheckup === 'boolean') { basicUpdate.hadPreviousCheckup = aiData.hadPreviousCheckup; updatedFieldsCount++; }
           if (typeof aiData.agreesToIntervention === 'boolean') { basicUpdate.agreesToIntervention = aiData.agreesToIntervention; updatedFieldsCount++; }
           if (aiData.contactPhone) { basicUpdate.contactPhone = aiData.contactPhone; updatedFieldsCount++; }
           if (aiData.contactEmail) { basicUpdate.contactEmail = aiData.contactEmail; updatedFieldsCount++; }
-          if (aiData.bloodType) { basicUpdate.bloodType = aiData.bloodType; updatedFieldsCount++; }
-          if (aiData.maritalStatus) { basicUpdate.maritalStatus = aiData.maritalStatus; updatedFieldsCount++; }
+          if (aiData.bloodType) { basicUpdate.bloodType = aiData.bloodType as BloodType; updatedFieldsCount++; }
+          if (aiData.maritalStatus) { basicUpdate.maritalStatus = aiData.maritalStatus as MaritalStatus; updatedFieldsCount++; }
           if (aiData.occupation) { basicUpdate.occupation = aiData.occupation; updatedFieldsCount++; }
           if (aiData.educationLevel) { basicUpdate.educationLevel = aiData.educationLevel; updatedFieldsCount++; }
           if (aiData.recordNumber) { basicUpdate.recordNumber = aiData.recordNumber; updatedFieldsCount++; }
           if (aiData.admissionDate) { try { const d = parseISO(aiData.admissionDate); if(isValid(d)) basicUpdate.admissionDate = d; updatedFieldsCount++; } catch(e){} }
           if (aiData.recordDate) { try { const d = parseISO(aiData.recordDate); if(isValid(d)) basicUpdate.recordDate = d; updatedFieldsCount++; } catch(e){} }
           if (aiData.informant) { basicUpdate.informant = aiData.informant; updatedFieldsCount++; }
-          if (aiData.reliability) { basicUpdate.reliability = aiData.reliability; updatedFieldsCount++; }
+          if (aiData.reliability) { basicUpdate.reliability = aiData.reliability as ReliabilityOption; updatedFieldsCount++; }
           if (Object.keys(basicUpdate).length > 0) setBasicInfoData(prev => ({ ...(prev || defaultBasicInfoData), ...basicUpdate }));
           
           // Family History
           if (aiData.familyMedicalHistory && Array.isArray(aiData.familyMedicalHistory)) {
             const processedFamilyHistory = aiData.familyMedicalHistory.map(entry => ({
-              relative: entry.relative || 'self', // Default to 'self' if missing
+              relative: entry.relative || 'self', 
               conditions: Array.isArray(entry.conditions) ? entry.conditions.filter(c => typeof c === 'string') : [],
             })).filter(entry => defaultFamilyHistoryData.some(dfh => dfh.relative === entry.relative));
-
             const mergedFamilyHistory = defaultFamilyHistoryData.map(defaultEntry => {
                 const aiEntry = processedFamilyHistory.find(ae => ae.relative === defaultEntry.relative);
                 if (aiEntry && aiEntry.conditions.length > 0) updatedFieldsCount++;
                 return aiEntry ? { ...defaultEntry, conditions: aiEntry.conditions } : defaultEntry;
             });
             setFamilyHistoryData(mergedFamilyHistory);
-          } else {
-            setFamilyHistoryData(defaultFamilyHistoryData);
           }
 
           // Current Symptoms
@@ -249,8 +244,7 @@ export default function EditProfileDetailsPage() {
             const validSymptoms = aiData.currentSymptoms.filter(s => typeof s === 'string');
             if (validSymptoms.length > 0) updatedFieldsCount++;
             setCurrentSymptomsData(validSymptoms);
-          } else { setCurrentSymptomsData(defaultCurrentSymptomsData); }
-
+          }
           // Allergies
           if (aiData.allergies && Array.isArray(aiData.allergies)) {
             const validAllergies = aiData.allergies.filter(a => typeof a === 'string');
@@ -258,180 +252,150 @@ export default function EditProfileDetailsPage() {
             setAllergiesData(validAllergies);
              if (typeof aiData.otherAllergyText === 'string' && aiData.otherAllergyText.trim() !== "") {
               setOtherAllergyTextData(aiData.otherAllergyText);
-              if (!validAllergies.includes("其他")) {
-                setAllergiesData(prev => [...prev, "其他"]);
-              }
+              if (!validAllergies.includes("其他")) { setAllergiesData(prev => [...prev, "其他"]); }
               updatedFieldsCount++;
-            } else {
-              setOtherAllergyTextData(defaultOtherAllergyTextData);
             }
-          } else {
-            setAllergiesData(defaultAllergiesData);
-            setOtherAllergyTextData(defaultOtherAllergyTextData);
           }
-
           // Operation History
           if (aiData.operationHistory && Array.isArray(aiData.operationHistory)) {
             const validOps = aiData.operationHistory.filter(op => typeof op === 'string');
             if (validOps.length > 0) updatedFieldsCount++;
             setOperationHistoryData(validOps);
-          } else { setOperationHistoryData(defaultOperationHistoryData); }
-
+          }
           // Blood Transfusion
           if (typeof aiData.bloodTransfusionHistory === 'string') {
             setBloodTransfusionHistoryData(aiData.bloodTransfusionHistory);
             if(aiData.bloodTransfusionHistory.trim() !== "") updatedFieldsCount++;
-          } else { setBloodTransfusionHistoryData(defaultBloodTransfusionHistoryData); }
-
+          }
           // Medication Categories
           if (aiData.medicationCategories && Array.isArray(aiData.medicationCategories)) {
             const validMedCats = aiData.medicationCategories.filter(mc => typeof mc === 'string');
             if (validMedCats.length > 0) updatedFieldsCount++;
             setMedicationCategoriesData(validMedCats);
-          } else { setMedicationCategoriesData(defaultMedicationCategoriesData); }
-          
+          }
           // Contact History
           if (aiData.contactHistory && Array.isArray(aiData.contactHistory)) {
             const validContacts = aiData.contactHistory.filter(ch => typeof ch === 'string');
             if (validContacts.length > 0) updatedFieldsCount++;
             setContactHistoryData(validContacts);
-          } else { setContactHistoryData(defaultContactHistoryData); }
-          
+          }
           // Dietary Habits
-          const dietaryHabitsUpdate: Partial<DietaryHabitsFormValues> = {};
-          if (aiData.dietaryHabits_breakfastDays) { dietaryHabitsUpdate.dietaryHabits_breakfastDays = aiData.dietaryHabits_breakfastDays; updatedFieldsCount++; }
-          if (aiData.dietaryHabits_lateSnackDays) { dietaryHabitsUpdate.dietaryHabits_lateSnackDays = aiData.dietaryHabits_lateSnackDays; updatedFieldsCount++; }
-          if (aiData.dietaryHabits_badHabits && Array.isArray(aiData.dietaryHabits_badHabits)) { dietaryHabitsUpdate.dietaryHabits_badHabits = aiData.dietaryHabits_badHabits.filter(s=>typeof s === 'string'); if(dietaryHabitsUpdate.dietaryHabits_badHabits.length > 0) updatedFieldsCount++;}
-          if (aiData.dietaryHabits_preferences && Array.isArray(aiData.dietaryHabits_preferences)) { dietaryHabitsUpdate.dietaryHabits_preferences = aiData.dietaryHabits_preferences.filter(s=>typeof s === 'string'); if(dietaryHabitsUpdate.dietaryHabits_preferences.length > 0) updatedFieldsCount++;}
-          if (aiData.dietaryHabits_foodTypePreferences && Array.isArray(aiData.dietaryHabits_foodTypePreferences)) { dietaryHabitsUpdate.dietaryHabits_foodTypePreferences = aiData.dietaryHabits_foodTypePreferences.filter(s=>typeof s === 'string'); if(dietaryHabitsUpdate.dietaryHabits_foodTypePreferences.length > 0)updatedFieldsCount++;}
-          setDietaryHabitsData(prev => ({...(prev || defaultDietaryHabitsData), ...dietaryHabitsUpdate}));
-
+          const dhUpdate: Partial<DietaryHabitsFormValues> = {};
+          if (aiData.dietaryHabits_breakfastDays) { dhUpdate.dietaryHabits_breakfastDays = aiData.dietaryHabits_breakfastDays as FrequencyOption; updatedFieldsCount++; }
+          if (aiData.dietaryHabits_lateSnackDays) { dhUpdate.dietaryHabits_lateSnackDays = aiData.dietaryHabits_lateSnackDays as FrequencyOption; updatedFieldsCount++; }
+          if (aiData.dietaryHabits_badHabits) { dhUpdate.dietaryHabits_badHabits = aiData.dietaryHabits_badHabits.filter(s=>typeof s === 'string'); if(dhUpdate.dietaryHabits_badHabits.length > 0) updatedFieldsCount++;}
+          if (aiData.dietaryHabits_preferences) { dhUpdate.dietaryHabits_preferences = aiData.dietaryHabits_preferences.filter(s=>typeof s === 'string'); if(dhUpdate.dietaryHabits_preferences.length > 0) updatedFieldsCount++;}
+          if (aiData.dietaryHabits_foodTypePreferences) { dhUpdate.dietaryHabits_foodTypePreferences = aiData.dietaryHabits_foodTypePreferences.filter(s=>typeof s === 'string'); if(dhUpdate.dietaryHabits_foodTypePreferences.length > 0) updatedFieldsCount++;}
+          if(Object.keys(dhUpdate).length > 0) setDietaryHabitsData(prev => ({...(prev || defaultDietaryHabitsData), ...dhUpdate}));
+          
           // Dietary Intake
-          const dietaryIntakeUpdate: Partial<DietaryIntakeFormValues> = {};
-          if (aiData.dietaryIntake_staple) { dietaryIntakeUpdate.dietaryIntake_staple = aiData.dietaryIntake_staple; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_meat) { dietaryIntakeUpdate.dietaryIntake_meat = aiData.dietaryIntake_meat; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_fish) { dietaryIntakeUpdate.dietaryIntake_fish = aiData.dietaryIntake_fish; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_eggs) { dietaryIntakeUpdate.dietaryIntake_eggs = aiData.dietaryIntake_eggs; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_dairy) { dietaryIntakeUpdate.dietaryIntake_dairy = aiData.dietaryIntake_dairy; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_soy) { dietaryIntakeUpdate.dietaryIntake_soy = aiData.dietaryIntake_soy; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_vegetables) { dietaryIntakeUpdate.dietaryIntake_vegetables = aiData.dietaryIntake_vegetables; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_fruits) { dietaryIntakeUpdate.dietaryIntake_fruits = aiData.dietaryIntake_fruits; updatedFieldsCount++; }
-          if (aiData.dietaryIntake_water) { dietaryIntakeUpdate.dietaryIntake_water = aiData.dietaryIntake_water; updatedFieldsCount++; }
-          setDietaryIntakeData(prev => ({...(prev || defaultDietaryIntakeData), ...dietaryIntakeUpdate}));
+          const diUpdate: Partial<DietaryIntakeFormValues> = {};
+          if(aiData.dietaryIntake_staple) {diUpdate.dietaryIntake_staple = aiData.dietaryIntake_staple as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_meat) {diUpdate.dietaryIntake_meat = aiData.dietaryIntake_meat as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_fish) {diUpdate.dietaryIntake_fish = aiData.dietaryIntake_fish as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_eggs) {diUpdate.dietaryIntake_eggs = aiData.dietaryIntake_eggs as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_dairy) {diUpdate.dietaryIntake_dairy = aiData.dietaryIntake_dairy as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_soy) {diUpdate.dietaryIntake_soy = aiData.dietaryIntake_soy as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_vegetables) {diUpdate.dietaryIntake_vegetables = aiData.dietaryIntake_vegetables as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_fruits) {diUpdate.dietaryIntake_fruits = aiData.dietaryIntake_fruits as DietaryIntakeOption; updatedFieldsCount++;}
+          if(aiData.dietaryIntake_water) {diUpdate.dietaryIntake_water = aiData.dietaryIntake_water as DietaryIntakeOption; updatedFieldsCount++;}
+          if(Object.keys(diUpdate).length > 0) setDietaryIntakeData(prev => ({...(prev || defaultDietaryIntakeData), ...diUpdate}));
 
           // Exercise
-          const exerciseUpdate: Partial<ExerciseFormValues> = {};
-          if (aiData.exercise_workHours) { exerciseUpdate.exercise_workHours = aiData.exercise_workHours; updatedFieldsCount++; }
-          if (aiData.exercise_sedentaryHours) { exerciseUpdate.exercise_sedentaryHours = aiData.exercise_sedentaryHours; updatedFieldsCount++; }
-          if (aiData.exercise_weeklyFrequency) { exerciseUpdate.exercise_weeklyFrequency = aiData.exercise_weeklyFrequency; updatedFieldsCount++; }
-          if (aiData.exercise_durationPerSession) { exerciseUpdate.exercise_durationPerSession = aiData.exercise_durationPerSession; updatedFieldsCount++; }
-          if (aiData.exercise_intensity) { exerciseUpdate.exercise_intensity = aiData.exercise_intensity; updatedFieldsCount++; }
-          setExerciseData(prev => ({...(prev || defaultExerciseData), ...exerciseUpdate}));
+          const exUpdate: Partial<ExerciseFormValues> = {};
+          if(aiData.exercise_workHours) {exUpdate.exercise_workHours = aiData.exercise_workHours as ExerciseWorkHoursOption; updatedFieldsCount++;}
+          if(aiData.exercise_sedentaryHours) {exUpdate.exercise_sedentaryHours = aiData.exercise_sedentaryHours as ExerciseWorkHoursOption; updatedFieldsCount++;}
+          if(aiData.exercise_weeklyFrequency) {exUpdate.exercise_weeklyFrequency = aiData.exercise_weeklyFrequency as ExerciseWeeklyFrequencyOption; updatedFieldsCount++;}
+          if(aiData.exercise_durationPerSession) {exUpdate.exercise_durationPerSession = aiData.exercise_durationPerSession as ExerciseDurationOption; updatedFieldsCount++;}
+          if(aiData.exercise_intensity) {exUpdate.exercise_intensity = aiData.exercise_intensity as ExerciseIntensityOption; updatedFieldsCount++;}
+          if(Object.keys(exUpdate).length > 0) setExerciseData(prev => ({...(prev || defaultExerciseData), ...exUpdate}));
           
           // Smoking Status
-          const smokingUpdate: Partial<SmokingStatusFormValues> = {};
-          if (aiData.smoking_status) { smokingUpdate.smoking_status = aiData.smoking_status; updatedFieldsCount++; }
+          const smkUpdate: Partial<SmokingStatusFormValues> = {};
+          if (aiData.smoking_status) { smkUpdate.smoking_status = aiData.smoking_status as SmokingStatusOption; updatedFieldsCount++; }
           if (aiData.smoking_status === '吸烟' || aiData.smoking_status === '戒烟') {
-              if (aiData.smoking_cigarettesPerDay) { smokingUpdate.smoking_cigarettesPerDay = aiData.smoking_cigarettesPerDay; updatedFieldsCount++; }
-              if (aiData.smoking_years) { smokingUpdate.smoking_years = aiData.smoking_years; updatedFieldsCount++; }
+              if (aiData.smoking_cigarettesPerDay) { smkUpdate.smoking_cigarettesPerDay = aiData.smoking_cigarettesPerDay; updatedFieldsCount++; }
+              if (aiData.smoking_years) { smkUpdate.smoking_years = aiData.smoking_years; updatedFieldsCount++; }
           }
-          if (aiData.smoking_passiveDays) { smokingUpdate.smoking_passiveDays = aiData.smoking_passiveDays; updatedFieldsCount++; }
-          setSmokingStatusData(prev => ({...(prev || defaultSmokingStatusData), ...smokingUpdate}));
+          if (aiData.smoking_passiveDays) { smkUpdate.smoking_passiveDays = aiData.smoking_passiveDays as FrequencyOption; updatedFieldsCount++; }
+          if (Object.keys(smkUpdate).length > 0) setSmokingStatusData(prev => ({...(prev || defaultSmokingStatusData), ...smkUpdate}));
 
           // Drinking Status
-          const drinkingUpdate: Partial<DrinkingStatusFormValues> = {};
-          if (aiData.drinking_status) { drinkingUpdate.drinking_status = aiData.drinking_status; updatedFieldsCount++; }
+          const drkUpdate: Partial<DrinkingStatusFormValues> = {};
+          if (aiData.drinking_status) { drkUpdate.drinking_status = aiData.drinking_status as DrinkingStatusOption; updatedFieldsCount++; }
           if (aiData.drinking_status === '饮酒' || aiData.drinking_status === '戒酒') {
-            if (aiData.drinking_type) { drinkingUpdate.drinking_type = aiData.drinking_type; updatedFieldsCount++; }
-            if (aiData.drinking_type === '其他' && aiData.drinking_type_other) { drinkingUpdate.drinking_type_other = aiData.drinking_type_other; updatedFieldsCount++;}
-            if (aiData.drinking_amountPerDay) { drinkingUpdate.drinking_amountPerDay = aiData.drinking_amountPerDay; updatedFieldsCount++; }
-            if (aiData.drinking_years) { drinkingUpdate.drinking_years = aiData.drinking_years; updatedFieldsCount++; }
+            if (aiData.drinking_type) { drkUpdate.drinking_type = aiData.drinking_type as AlcoholTypeOption | string; updatedFieldsCount++; }
+            if (aiData.drinking_type === '其他' && aiData.drinking_type_other) { drkUpdate.drinking_type_other = aiData.drinking_type_other; updatedFieldsCount++;}
+            if (aiData.drinking_amountPerDay) { drkUpdate.drinking_amountPerDay = aiData.drinking_amountPerDay; updatedFieldsCount++; }
+            if (aiData.drinking_years) { drkUpdate.drinking_years = aiData.drinking_years; updatedFieldsCount++; }
           }
-          setDrinkingStatusData(prev => ({...(prev || defaultDrinkingStatusData), ...drinkingUpdate}));
-          
+          if (Object.keys(drkUpdate).length > 0) setDrinkingStatusData(prev => ({...(prev || defaultDrinkingStatusData), ...drkUpdate}));
+
           // Mental Health
-          const mentalHealthUpdate: Partial<MentalHealthFormValues> = {};
-          if (aiData.mentalHealth_majorEvents) { mentalHealthUpdate.mentalHealth_majorEvents = aiData.mentalHealth_majorEvents; updatedFieldsCount++; }
-          if (aiData.mentalHealth_impactOnLife) { mentalHealthUpdate.mentalHealth_impactOnLife = aiData.mentalHealth_impactOnLife; updatedFieldsCount++; }
-          if (aiData.mentalHealth_stressLevel) { mentalHealthUpdate.mentalHealth_stressLevel = aiData.mentalHealth_stressLevel; updatedFieldsCount++; }
-          const sasKeys = Object.keys(aiData).filter(k => k.startsWith('mentalHealth_sas_')) as (keyof ExtractProfileInfoOutput)[];
+          const mhUpdate: Partial<MentalHealthFormValues> = {};
+          if (aiData.mentalHealth_majorEvents) { mhUpdate.mentalHealth_majorEvents = aiData.mentalHealth_majorEvents as YesNoOption; updatedFieldsCount++; }
+          if (aiData.mentalHealth_impactOnLife) { mhUpdate.mentalHealth_impactOnLife = aiData.mentalHealth_impactOnLife as ImpactLevelOption; updatedFieldsCount++; }
+          if (aiData.mentalHealth_stressLevel) { mhUpdate.mentalHealth_stressLevel = aiData.mentalHealth_stressLevel as ImpactLevelOption; updatedFieldsCount++; }
+          const sasKeys = Object.keys(aiData).filter(k => k.startsWith('mentalHealth_sas_')) as (keyof typeof aiData)[];
           sasKeys.forEach(key => {
-            if (aiData[key] && typeof aiData[key] === 'string') { // Ensure value is a string
-                (mentalHealthUpdate as any)[key] = aiData[key] as SASOption; // Type assertion
-                updatedFieldsCount++;
-            }
+            if (aiData[key]) { (mhUpdate as any)[key] = aiData[key] as SASOption; updatedFieldsCount++; }
           });
-          if (Object.keys(mentalHealthUpdate).length > 0) {
-              setMentalHealthData(prev => ({...(prev || defaultMentalHealthData), ...mentalHealthUpdate}));
-          }
-          
+          if (Object.keys(mhUpdate).length > 0) setMentalHealthData(prev => ({...(prev || defaultMentalHealthData), ...mhUpdate}));
+
           // Adherence Behavior
-          const adherenceUpdate: Partial<AdherenceBehaviorFormValues> = {};
-          if (aiData.adherence_selfAssessmentBody) { adherenceUpdate.adherence_selfAssessmentBody = aiData.adherence_selfAssessmentBody; updatedFieldsCount++; }
-          if (aiData.adherence_selfAssessmentMind) { adherenceUpdate.adherence_selfAssessmentMind = aiData.adherence_selfAssessmentMind; updatedFieldsCount++; }
+          const adhUpdate: Partial<AdherenceBehaviorFormValues> = {};
+          if (aiData.adherence_selfAssessmentBody) { adhUpdate.adherence_selfAssessmentBody = aiData.adherence_selfAssessmentBody as AdherenceBodyOption; updatedFieldsCount++; }
+          if (aiData.adherence_selfAssessmentMind) { adhUpdate.adherence_selfAssessmentMind = aiData.adherence_selfAssessmentMind as AdherenceMindOption; updatedFieldsCount++; }
           if (aiData.adherence_priorityProblems && Array.isArray(aiData.adherence_priorityProblems)) {
               const problems = aiData.adherence_priorityProblems.filter(s => typeof s === 'string').slice(0,4);
-              adherenceUpdate.adherence_priorityProblems = [...problems, ...Array(Math.max(0, 4 - problems.length)).fill('')];
+              adhUpdate.adherence_priorityProblems = [...problems, ...Array(Math.max(0, 4 - problems.length)).fill('')];
               if(problems.length > 0) updatedFieldsCount++;
-          } else {
-              adherenceUpdate.adherence_priorityProblems = Array(4).fill('');
-          }
-          if (aiData.adherence_doctorAdviceCompliance) { adherenceUpdate.adherence_doctorAdviceCompliance = aiData.adherence_doctorAdviceCompliance; updatedFieldsCount++; }
+          } else { adhUpdate.adherence_priorityProblems = Array(4).fill('');}
+          if (aiData.adherence_doctorAdviceCompliance) { adhUpdate.adherence_doctorAdviceCompliance = aiData.adherence_doctorAdviceCompliance as AdherenceComplianceOption; updatedFieldsCount++; }
           if (aiData.adherence_healthPromotionMethods && Array.isArray(aiData.adherence_healthPromotionMethods)) { 
-              adherenceUpdate.adherence_healthPromotionMethods = aiData.adherence_healthPromotionMethods.filter(s=>typeof s === 'string'); 
-              if(adherenceUpdate.adherence_healthPromotionMethods.length > 0) updatedFieldsCount++;
+              adhUpdate.adherence_healthPromotionMethods = aiData.adherence_healthPromotionMethods.filter(s=>typeof s === 'string'); 
+              if(adhUpdate.adherence_healthPromotionMethods.length > 0) updatedFieldsCount++;
           }
           if (aiData.adherence_otherHealthPromotion) { 
-              adherenceUpdate.adherence_otherHealthPromotion = aiData.adherence_otherHealthPromotion; 
-              if(adherenceUpdate.adherence_otherHealthPromotion.trim() !== "" && adherenceUpdate.adherence_healthPromotionMethods && !adherenceUpdate.adherence_healthPromotionMethods.includes("其他")) {
-                  adherenceUpdate.adherence_healthPromotionMethods = [...(adherenceUpdate.adherence_healthPromotionMethods || []), "其他"];
+              adhUpdate.adherence_otherHealthPromotion = aiData.adherence_otherHealthPromotion; 
+              if(adhUpdate.adherence_otherHealthPromotion.trim() !== "" && adhUpdate.adherence_healthPromotionMethods && !adhUpdate.adherence_healthPromotionMethods.includes("其他")) {
+                  adhUpdate.adherence_healthPromotionMethods = [...(adhUpdate.adherence_healthPromotionMethods || []), "其他"];
               }
               updatedFieldsCount++;
           }
-          if (Object.keys(adherenceUpdate).length > 0) {
-              setAdherenceData(prev => ({...(prev || defaultAdherenceData), ...adherenceUpdate}));
-          }
+          if (Object.keys(adhUpdate).length > 0) setAdherenceData(prev => ({...(prev || defaultAdherenceData), ...adhUpdate}));
           
           // Sleep
-          const sleepUpdate: Partial<SleepFormValues> = {};
-          if (aiData.sleep_adequacy) { sleepUpdate.sleep_adequacy = aiData.sleep_adequacy; updatedFieldsCount++; }
-          if (Object.keys(sleepUpdate).length > 0) {
-            setSleepData(prev => ({...(prev || defaultSleepData), ...sleepUpdate}));
-          }
+          const slpUpdate: Partial<SleepFormValues> = {};
+          if (aiData.sleep_adequacy) { slpUpdate.sleep_adequacy = aiData.sleep_adequacy as SleepAdequacyOption; updatedFieldsCount++; }
+          if (Object.keys(slpUpdate).length > 0) setSleepData(prev => ({...(prev || defaultSleepData), ...slpUpdate}));
 
           // Other Medications
-          const otherMedsUpdate: Partial<OtherMedicationsFormValues> = {};
-          if (aiData.otherInfo_medicationsUsed) { otherMedsUpdate.otherInfo_medicationsUsed = aiData.otherInfo_medicationsUsed; updatedFieldsCount++; }
-          if (Object.keys(otherMedsUpdate).length > 0) {
-              setOtherMedicationsData(prev => ({...(prev || defaultOtherMedicationsData), ...otherMedsUpdate}));
-          }
+          const omUpdate: Partial<OtherMedicationsFormValues> = {};
+          if (aiData.otherInfo_medicationsUsed) { omUpdate.otherInfo_medicationsUsed = aiData.otherInfo_medicationsUsed; updatedFieldsCount++; }
+          if (Object.keys(omUpdate).length > 0) setOtherMedicationsData(prev => ({...(prev || defaultOtherMedicationsData), ...omUpdate}));
 
           // Contact Preferences
-          const contactPrefUpdate: Partial<ContactPreferenceFormValues> = {};
-          if (aiData.otherInfo_contactPreference_method) { contactPrefUpdate.otherInfo_contactPreference_method = aiData.otherInfo_contactPreference_method; updatedFieldsCount++;}
-          if (aiData.otherInfo_contactPreference_method_other) { contactPrefUpdate.otherInfo_contactPreference_method_other = aiData.otherInfo_contactPreference_method_other; if(aiData.otherInfo_contactPreference_method_other.trim() !== "") updatedFieldsCount++;}
-          if (aiData.otherInfo_contactPreference_frequency) { contactPrefUpdate.otherInfo_contactPreference_frequency = aiData.otherInfo_contactPreference_frequency; updatedFieldsCount++;}
-          if (aiData.otherInfo_contactPreference_frequency_other) { contactPrefUpdate.otherInfo_contactPreference_frequency_other = aiData.otherInfo_contactPreference_frequency_other; if(aiData.otherInfo_contactPreference_frequency_other.trim() !== "") updatedFieldsCount++;}
-          if (aiData.otherInfo_contactPreference_time) { contactPrefUpdate.otherInfo_contactPreference_time = aiData.otherInfo_contactPreference_time; updatedFieldsCount++;}
-          if (aiData.otherInfo_contactPreference_time_other) { contactPrefUpdate.otherInfo_contactPreference_time_other = aiData.otherInfo_contactPreference_time_other; if(aiData.otherInfo_contactPreference_time_other.trim() !== "") updatedFieldsCount++;}
-          if (Object.keys(contactPrefUpdate).length > 0) {
-            setContactPreferenceData(prev => ({...(prev || defaultContactPreferenceData), ...contactPrefUpdate}));
-          }
+          const cpUpdate: Partial<ContactPreferenceFormValues> = {};
+          if (aiData.otherInfo_contactPreference_method) { cpUpdate.otherInfo_contactPreference_method = aiData.otherInfo_contactPreference_method as ContactPreferenceMethod | string; updatedFieldsCount++;}
+          if (aiData.otherInfo_contactPreference_method_other) { cpUpdate.otherInfo_contactPreference_method_other = aiData.otherInfo_contactPreference_method_other; if(aiData.otherInfo_contactPreference_method_other.trim() !== "") updatedFieldsCount++;}
+          if (aiData.otherInfo_contactPreference_frequency) { cpUpdate.otherInfo_contactPreference_frequency = aiData.otherInfo_contactPreference_frequency as ContactPreferenceFrequency | string; updatedFieldsCount++;}
+          if (aiData.otherInfo_contactPreference_frequency_other) { cpUpdate.otherInfo_contactPreference_frequency_other = aiData.otherInfo_contactPreference_frequency_other; if(ai.otherInfo_contactPreference_frequency_other.trim() !== "") updatedFieldsCount++;}
+          if (aiData.otherInfo_contactPreference_time) { cpUpdate.otherInfo_contactPreference_time = aiData.otherInfo_contactPreference_time as ContactPreferenceTime | string; updatedFieldsCount++;}
+          if (aiData.otherInfo_contactPreference_time_other) { cpUpdate.otherInfo_contactPreference_time_other = aiData.otherInfo_contactPreference_time_other; if(ai.otherInfo_contactPreference_time_other.trim() !== "") updatedFieldsCount++;}
+          if (Object.keys(cpUpdate).length > 0) setContactPreferenceData(prev => ({...(prev || defaultContactPreferenceData), ...cpUpdate}));
           
           // Suggestions
-          const suggestionsUpdate: Partial<SuggestionsFormValues> = {};
-          if (aiData.otherInfo_suggestions) { suggestionsUpdate.otherInfo_suggestions = aiData.otherInfo_suggestions; if(aiData.otherInfo_suggestions.trim() !== "") updatedFieldsCount++;}
-          if (Object.keys(suggestionsUpdate).length > 0) {
-            setSuggestionsData(prev => ({...(prev || defaultSuggestionsData), ...suggestionsUpdate}));
-          }
+          const sugUpdate: Partial<SuggestionsFormValues> = {};
+          if (aiData.otherInfo_suggestions) { sugUpdate.otherInfo_suggestions = aiData.otherInfo_suggestions; if(ai.otherInfo_suggestions.trim() !== "") updatedFieldsCount++;}
+          if (Object.keys(sugUpdate).length > 0) setSuggestionsData(prev => ({...(prev || defaultSuggestionsData), ...sugUpdate}));
 
           // Service Satisfaction
-          const satisfactionUpdate: Partial<ServiceSatisfactionFormValues> = {};
-          if (aiData.otherInfo_serviceSatisfaction) { satisfactionUpdate.otherInfo_serviceSatisfaction = aiData.otherInfo_serviceSatisfaction; updatedFieldsCount++;}
-          if (Object.keys(satisfactionUpdate).length > 0) {
-            setServiceSatisfactionData(prev => ({...(prev || defaultServiceSatisfactionData), ...satisfactionUpdate}));
-          }
-          
+          const satUpdate: Partial<ServiceSatisfactionFormValues> = {};
+          if (aiData.otherInfo_serviceSatisfaction) { satUpdate.otherInfo_serviceSatisfaction = aiData.otherInfo_serviceSatisfaction as ServiceSatisfactionOption; updatedFieldsCount++;}
+          if (Object.keys(satUpdate).length > 0) setServiceSatisfactionData(prev => ({...(prev || defaultServiceSatisfactionData), ...satUpdate}));
+
+
           toast({
             title: "AI识别完成",
             description: updatedFieldsCount > 0 ? `已尝试填充 ${updatedFieldsCount} 个字段，请检查并确认。` : "AI未能从文件中识别出可填充的信息。",
@@ -496,7 +460,8 @@ export default function EditProfileDetailsPage() {
 
   return (
     <div className="space-y-4">
-      <Card className="shadow-sm sticky top-[60px] z-10 bg-background/90 backdrop-blur-sm">
+       {/* AI File Upload Section - No longer sticky */}
+      <Card className="shadow-sm bg-card">
         <CardHeader className="p-3">
           <CardTitle className="text-base flex items-center gap-2">
             <UploadCloud className="h-5 w-5 text-primary"/> AI智能填充档案
@@ -667,31 +632,32 @@ export default function EditProfileDetailsPage() {
         
         <TabsContent value="mentalHealth">
           <MentalHealthForm
-            initialData={mentalHealthData || undefined} // Pass undefined if null
+            initialData={mentalHealthData || undefined} 
             onSave={setMentalHealthData} />
         </TabsContent>
         
-        <TabsContent value="adherence">
+         <TabsContent value="adherence">
            <AdherenceBehaviorForm 
-            initialData={adherenceData || undefined}  // Pass undefined if null
+            initialData={adherenceData || undefined}  
             onSave={setAdherenceData} />
         </TabsContent>
 
         <TabsContent value="sleep">
           <SleepForm 
-            initialData={sleepData || undefined} // Pass undefined if null
+            initialData={sleepData || undefined} 
             onSave={setSleepData} />
         </TabsContent>
         
-         <TabsContent value="otherInfo">
-             {renderPlaceholderContent("其他个人信息", FileQuestion)}
-             {/* Example: If OtherMedicationsForm was meant to be here standalone */}
-             {/* <OtherMedicationsForm initialData={otherMedicationsData} onSave={setOtherMedicationsData} /> */}
+        <TabsContent value="otherInfo">
+            <OtherMedicationsForm 
+                initialData={otherMedicationsData}
+                onSave={setOtherMedicationsData}
+            />
         </TabsContent>
         
         <TabsContent value="communication">
           <ContactPreferenceForm 
-            initialData={contactPreferenceData || undefined}  // Pass undefined if null
+            initialData={contactPreferenceData || undefined}  
             onSave={setContactPreferenceData} />
         </TabsContent>
         
@@ -703,11 +669,11 @@ export default function EditProfileDetailsPage() {
 
         <TabsContent value="serviceSatisfaction">
           <ServiceSatisfactionForm 
-            initialData={serviceSatisfactionData || undefined} // Pass undefined if null
+            initialData={serviceSatisfactionData || undefined} 
             onSave={setServiceSatisfactionData} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-  
+
