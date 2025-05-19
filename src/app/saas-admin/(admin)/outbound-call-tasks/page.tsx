@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SaasOutboundCallTask, SaasEnterprise, SaasEmployee, OutboundCallGroup, SaasPatient, SaasSopService } from '@/lib/types';
-import { Send, PlusCircle, Search, Filter, CalendarDays, Users, Bot, Briefcase } from "lucide-react"; // Added Briefcase
+import { Send, PlusCircle, Search, Filter, CalendarDays, Users, Bot, Briefcase } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import type { DateRange } from 'react-day-picker';
@@ -21,19 +21,19 @@ const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
 ];
 const mockEmployees: SaasEmployee[] = [
-  { id: 'emp-001a', enterpriseId: 'ent-001', name: '王明医生', email: 'wm@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
-  { id: 'emp-002b', enterpriseId: 'ent-002', name: '李芳护士', email: 'lf@healthb.com', status: 'active', joinDate: new Date().toISOString() },
-  { id: 'saas-admin-01', name: 'SAAS平台管理员A', email: 'admin@saas.com', enterpriseId: '', status: 'active', joinDate: new Date().toISOString() }, // Example SAAS admin
+  { id: 'emp-001a', enterpriseId: 'ent-001', name: '王明医生', email: 'wm@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+  { id: 'emp-002b', enterpriseId: 'ent-002', name: '李芳护士', email: 'lf@healthb.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+  { id: 'saas-admin-01', name: 'SAAS平台管理员A', email: 'admin@saas.com', enterpriseId: '', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() }, // Example SAAS admin
 ];
 const mockPatients: SaasPatient[] = [
-  { id: 'pat-saas-001', enterpriseId: 'ent-001', name: '刘备', gender: 'male', dob: '1961-07-23', primaryDisease: '高血压' },
-  { id: 'pat-saas-002', enterpriseId: 'ent-001', name: '关羽', gender: 'male', dob: '1960-08-12', primaryDisease: '2型糖尿病' },
-  { id: 'pat-saas-003', enterpriseId: 'ent-002', name: '孙尚香', gender: 'female', dob: '1987-03-15', primaryDisease: '哮喘' },
+  { id: 'pat-saas-001', enterpriseId: 'ent-001', name: '刘备', gender: 'male', dob: '1961-07-23', primaryDisease: '高血压', contactPhone: '13012340001' },
+  { id: 'pat-saas-002', enterpriseId: 'ent-001', name: '关羽', gender: 'male', dob: '1960-08-12', primaryDisease: '2型糖尿病', contactPhone: '13012340002' },
+  { id: 'pat-saas-003', enterpriseId: 'ent-002', name: '孙尚香', gender: 'female', dob: '1987-03-15', primaryDisease: '哮喘', contactPhone: '13012340003' },
 ];
 const mockGroups: OutboundCallGroup[] = [
-  { id: 'grp-hbp-001', enterpriseId: 'ent-001', name: '高血压随访组A院', patientIds: ['pat-saas-001'], memberCount: 1, creationDate: new Date().toISOString() },
-  { id: 'grp-dm-001', enterpriseId: 'ent-001', name: '糖尿病教育组A院', patientIds: ['pat-saas-002'], memberCount: 1, creationDate: new Date().toISOString() },
-  { id: 'grp-asthma-002', enterpriseId: 'ent-002', name: '哮喘关怀组B中心', patientIds: ['pat-saas-003'], memberCount: 1, creationDate: new Date().toISOString() },
+  { id: 'grp-hbp-001', enterpriseId: 'ent-001', name: '高血压随访组A院', patientIds: ['pat-saas-001'], memberCount: 1, creationDate: new Date().toISOString(), createdByUserId: 'emp-001a' },
+  { id: 'grp-dm-001', enterpriseId: 'ent-001', name: '糖尿病教育组A院', patientIds: ['pat-saas-002'], memberCount: 1, creationDate: new Date().toISOString(), createdByUserId: 'emp-001a' },
+  { id: 'grp-asthma-002', enterpriseId: 'ent-002', name: '哮喘关怀组B中心', patientIds: ['pat-saas-003'], memberCount: 1, creationDate: new Date().toISOString(), createdByUserId: 'emp-002b' },
 ];
 const mockSopServices: SaasSopService[] = [
     {id: 'sop-coze-001', name: '智能健康问答Bot (Coze)', type: 'Coze', apiEndpoint: 'coze_endpoint', status: 'active', creationDate: new Date().toISOString()},
@@ -42,9 +42,9 @@ const mockSopServices: SaasSopService[] = [
 
 
 const mockInitialTasks: SaasOutboundCallTask[] = [
-  { id: 'task-saas-001', name: '季度健康回访 (医院A高血压病人)', enterpriseId: 'ent-001', creatingDoctorId: 'emp-001a', targetType: 'patient_group', targetGroupId: 'grp-hbp-001', targetDescription: '高血压随访组A院', status: 'scheduled', creationDate: subDays(new Date(), 10).toISOString(), scheduledTime: new Date().toISOString(), callCount: 50, successCount: 35 },
-  { id: 'task-saas-002', name: '新服务推广 (平台级)', targetType: 'custom_list', targetDetails: 'VIP客户列表 (平台)', targetDescription: '平台VIP客户', status: 'in_progress', creationDate: subDays(new Date(), 5).toISOString(), assignedToEmployeeId: 'saas-admin-01', callCount: 20, successCount: 8 },
-  { id: 'task-saas-003', name: '用药提醒 (李四)', enterpriseId: 'ent-001', creatingDoctorId: 'emp-001a', targetType: 'individual_patient', targetPatientId: 'pat-saas-002', targetDescription: '李四', status: 'completed', creationDate: subDays(new Date(), 2).toISOString(), callCount:1, successCount:1, notes: '病人已确认按时服药', callContentSummary: '提醒李四按时服用降糖药，并询问有无不适。'},
+  { id: 'task-saas-001', name: '季度健康回访 (医院A高血压病人)', enterpriseId: 'ent-001', creatingDoctorId: 'emp-001a', targetType: 'patient_group', targetGroupId: 'grp-hbp-001', targetDescription: '高血压随访组A院', status: 'scheduled', creationDate: subDays(new Date(), 10).toISOString(), scheduledTime: new Date().toISOString(), callCountTotal: 50, callCountSuccess: 35 },
+  { id: 'task-saas-002', name: '新服务推广 (平台级)', targetType: 'custom_list', targetDetails: 'VIP客户列表 (平台)', targetDescription: '平台VIP客户', status: 'in_progress', creationDate: subDays(new Date(), 5).toISOString(), assignedToEmployeeId: 'saas-admin-01', callCountTotal: 20, callCountSuccess: 8 },
+  { id: 'task-saas-003', name: '用药提醒 (关羽)', enterpriseId: 'ent-001', creatingDoctorId: 'emp-001a', targetType: 'individual_patient', targetPatientId: 'pat-saas-002', targetDescription: '关羽', status: 'completed', creationDate: subDays(new Date(), 2).toISOString(), callCountTotal:1, callCountSuccess:1, notes: '病人已确认按时服药', callContentSummary: '提醒关羽按时服用降糖药，并询问有无不适。'},
 ];
 
 export default function OutboundCallTasksPage() {
@@ -189,7 +189,7 @@ export default function OutboundCallTasksPage() {
               </Select>
               <div className="lg:col-span-2">
                 <Label htmlFor="taskDateRange" className="block text-xs font-medium mb-1 text-muted-foreground">创建日期范围</Label>
-                <DatePickerWithRange id="taskDateRange" date={dateRange} onDateChange={setDateRange} className="w-full" />
+                <DatePickerWithRange id="taskDateRange" date={dateRange} onDateChange={setDateRange} className="max-w-sm" />
               </div>
             </div>
             <Button onClick={handleAddTask} className="w-full sm:w-auto shrink-0">
