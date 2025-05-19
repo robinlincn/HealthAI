@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageSquare, Search, Filter, PlusCircle, ExternalLink, List, LogIn, CheckCircle, AlertTriangle } from "lucide-react";
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import type { DateRange } from "react-day-picker";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from '@/hooks/use-toast'; 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { format, subDays } from "date-fns";
+import { format, subDays, parseISO } from "date-fns";
 
 interface WeChatAccount {
   id: string;
@@ -32,12 +32,14 @@ interface ChatLogEntry {
   isBot: boolean;
 }
 
-const mockWeChatAccounts: WeChatAccount[] = [
+// Mock data for WeChat accounts - lastSync uses toISOString() which is good.
+// The issue arises if new Date() in subDays(new Date()...) is evaluated at different times on server/client.
+const generateMockWeChatAccounts = (): WeChatAccount[] => [
   { id: 'wc-pers-001', type: 'personal', name: '我的个人微信', status: 'connected', lastSync: subDays(new Date(), 1).toISOString() },
   { id: 'wc-ent-001', type: 'enterprise', name: '公司企业微信', status: 'disconnected' },
 ];
 
-const mockChatLogs: ChatLogEntry[] = [
+const generateMockChatLogs = (): ChatLogEntry[] => [
   { id: 'log-001', groupId: 'group-a', groupName: 'VIP客户交流群', senderName: '张三', message: '请问最近有什么新的优惠活动吗？', timestamp: subDays(new Date(), 0.5).toISOString(), isBot: false},
   { id: 'log-002', groupId: 'group-a', groupName: 'VIP客户交流群', senderName: 'AI小助手', message: '您好张三，目前我们有针对老客户的XXX活动，详情请看链接...', timestamp: subDays(new Date(), 0.4).toISOString(), isBot: true},
   { id: 'log-003', groupId: 'group-b', groupName: '产品反馈群', senderName: '李四', message: 'APP的某个功能好像有点问题。', timestamp: subDays(new Date(), 1).toISOString(), isBot: false},
@@ -47,13 +49,40 @@ export default function CommunityManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGroupType, setFilterGroupType] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [weChatAccounts, setWeChatAccounts] = useState<WeChatAccount[]>(mockWeChatAccounts);
-  const [chatLogs, setChatLogs] = useState<ChatLogEntry[]>(mockChatLogs);
+  const [weChatAccounts, setWeChatAccounts] = useState<WeChatAccount[]>([]);
+  const [chatLogs, setChatLogs] = useState<ChatLogEntry[]>([]);
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+  const [formattedSyncDates, setFormattedSyncDates] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setIsClient(true);
+    // Initialize mock data on client to ensure `new Date()` consistency for initial load
+    const initialAccounts = generateMockWeChatAccounts();
+    setWeChatAccounts(initialAccounts);
+    setChatLogs(generateMockChatLogs());
+  }, []);
+
+  useEffect(() => {
+    if (isClient) {
+      const dates: Record<string, string> = {};
+      weChatAccounts.forEach(acc => {
+        if (acc.lastSync) {
+          try {
+            dates[acc.id] = format(parseISO(acc.lastSync), "yyyy-MM-dd HH:mm");
+          } catch (error) {
+            console.error(`Error formatting date for account ${acc.id}:`, error);
+            dates[acc.id] = "日期无效";
+          }
+        }
+      });
+      setFormattedSyncDates(dates);
+    }
+  }, [weChatAccounts, isClient]);
+
 
   const handleConnectWeChat = (type: 'personal' | 'enterprise') => {
     toast({ title: "模拟连接", description: `正在尝试连接${type === 'personal' ? '个人' : '企业'}微信... (此为模拟操作)`});
-    // Simulate connection logic
     setTimeout(() => {
         setWeChatAccounts(prev => prev.map(acc => acc.type === type ? {...acc, status: 'connected', lastSync: new Date().toISOString()} : acc));
         toast({ title: "连接成功 (模拟)", description: `${type === 'personal' ? '个人' : '企业'}微信已连接。` });
@@ -64,7 +93,6 @@ export default function CommunityManagementPage() {
      toast({ title: "模拟同步", description: "正在同步聊天记录... (此为模拟操作)"});
      setTimeout(() => {
         setWeChatAccounts(prev => prev.map(acc => acc.id === accountId ? {...acc, lastSync: new Date().toISOString()} : acc));
-        // Add new mock logs or indicate sync happened
         setChatLogs(prev => [...prev, {id: `log-${Date.now()}`, groupId: 'group-sync', groupName: '新同步群聊', senderName: '系统同步', message: '日志同步完成。', timestamp: new Date().toISOString(), isBot: true}]);
         toast({ title: "同步完成 (模拟)", description: "聊天记录已更新。" });
     }, 2500);
@@ -104,10 +132,10 @@ export default function CommunityManagementPage() {
                     <div key={acc.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-md">
                         <div>
                             <p className="font-medium">{acc.name} ({acc.type === 'personal' ? '个人微信' : '企业微信'})</p>
-                            <div className="text-xs text-muted-foreground"> {/* Changed p to div here */}
+                            <div className="text-xs text-muted-foreground">
                                 状态: {getStatusBadge(acc.status)}
                                 {acc.status === 'connected' && acc.lastSync && (
-                                    <span className="ml-2">上次同步: {format(new Date(acc.lastSync), "yyyy-MM-dd HH:mm")}</span>
+                                    <span className="ml-2">上次同步: {isClient ? (formattedSyncDates[acc.id] || '...') : '...'}</span>
                                 )}
                             </div>
                         </div>
@@ -180,7 +208,7 @@ export default function CommunityManagementPage() {
                                 <div key={log.id} className={`p-2 rounded-md ${log.isBot ? 'bg-primary/10' : 'bg-muted/50'}`}>
                                     <div className="flex justify-between items-center text-xs mb-0.5">
                                         <span className="font-semibold">{log.senderName} @ {log.groupName}</span>
-                                        <span className="text-muted-foreground">{format(new Date(log.timestamp), "MM-dd HH:mm")}</span>
+                                        <span className="text-muted-foreground">{isClient ? format(parseISO(log.timestamp), "MM-dd HH:mm") : "..."}</span>
                                     </div>
                                     <p className="text-sm">{log.message}</p>
                                 </div>
@@ -204,4 +232,3 @@ export default function CommunityManagementPage() {
     </div>
   );
 }
-
