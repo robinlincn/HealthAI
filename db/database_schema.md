@@ -11,21 +11,26 @@
 | 字段名                | 数据类型                                                    | 约束/注释                                          | 中文注释             |
 | --------------------- | ----------------------------------------------------------- | -------------------------------------------------- | -------------------- |
 | `id`                  | VARCHAR(255)                                                | PK (主键)                                          | 用户ID (UUID或自定义字符串) |
-| `user_type`           | VARCHAR(50)                                                 | NOT NULL, CHECK (`user_type` IN ('patient', 'doctor', 'saas_admin')) | 用户类型             |
+| `user_type`           | VARCHAR(50)                                                 | NOT NULL, CHECK (`user_type` IN ('patient', 'doctor', 'saas_admin', 'enterprise_admin')) | 用户类型             |
 | `email`               | VARCHAR(255)                                                | UNIQUE, NOT NULL                                   | 邮箱 (登录用)        |
 | `password_hash`       | VARCHAR(255)                                                | NOT NULL                                           | 哈希密码             |
 | `name`                | VARCHAR(100)                                                | NOT NULL                                           | 姓名/昵称           |
 | `phone_number`        | VARCHAR(20)                                                 | UNIQUE, NULLABLE                                   | 手机号               |
 | `avatar_url`          | VARCHAR(255)                                                | NULLABLE                                           | 头像URL              |
-| `status`              | VARCHAR(50)                                                 | NOT NULL, DEFAULT 'active', CHECK (`status` IN ('active', 'inactive', 'pending_approval', 'suspended')) | 账户状态             |
+| `status`              | VARCHAR(50)                                                 | NOT NULL, DEFAULT 'active', CHECK (`status` IN ('active', 'inactive', 'pending_approval', 'suspended', 'invited', 'disabled')) | 账户状态             |
 | `created_at`          | TIMESTAMP WITH TIME ZONE                                    | NOT NULL, DEFAULT CURRENT_TIMESTAMP                | 创建时间             |
 | `updated_at`          | TIMESTAMP WITH TIME ZONE                                    | NOT NULL, DEFAULT CURRENT_TIMESTAMP                | 更新时间             |
 | `last_login_at`       | TIMESTAMP WITH TIME ZONE                                    | NULLABLE                                           | 最后登录时间         |
 | `saas_enterprise_id`  | VARCHAR(255)                                                | FK to `SaasEnterprises(id)` ON DELETE SET NULL, NULLABLE | (外键) 所属SAAS企业ID (医生/企业员工) |
 | `saas_department_id`  | VARCHAR(255)                                                | FK to `SaasDepartments(id)` ON DELETE SET NULL, NULLABLE | (外键) 所属SAAS部门ID (医生/企业员工) |
+| `employee_number`     | VARCHAR(100)                                                | NULLABLE                                           | 员工工号 (企业内)    |
+| `role_title`          | VARCHAR(100)                                                | NULLABLE                                           | 职位/角色名称 (企业内) |
+| `join_date`           | DATE                                                        | NULLABLE                                           | 入职日期 (企业内)    |
+| `system_role_id`      | VARCHAR(255)                                                | FK to `SaasSystemRoles(id)` ON DELETE SET NULL, NULLABLE | (外键) SAAS平台系统角色ID (saas_admin) |
+
 
 ### 2. `PatientProfiles` (病人档案表)
-存储病人的详细个人信息和医疗背景。
+存储病人的详细个人信息和医疗背景。字段非常多，大部分为可空。
 
 | 字段名                    | 数据类型        | 约束/注释                               | 中文注释                     |
 | ------------------------- | --------------- | --------------------------------------- | ---------------------------- |
@@ -98,7 +103,20 @@
 | `mental_health_stress_level` | VARCHAR(50)  | NULLABLE                                | 精神压力感觉程度             |
 | `mental_health_sas_anxiety` | VARCHAR(50)   | NULLABLE                                | SAS焦虑自评-焦虑             |
 | `mental_health_sas_fear`    | VARCHAR(50)   | NULLABLE                                | SAS焦虑自评-害怕             |
-| ... (其他 SAS 问卷字段，共17项) ... | VARCHAR(50) | NULLABLE                              | ...                          |
+| `mental_health_sas_panic`   | VARCHAR(50)   | NULLABLE                                | SAS焦虑自评-惊恐             |
+| `mental_health_sas_going_crazy` | VARCHAR(50) | NULLABLE                              | SAS焦虑自评-发疯感           |
+| `mental_health_sas_misfortune` | VARCHAR(50)| NULLABLE                                | SAS焦虑自评-不幸预感         |
+| `mental_health_sas_trembling` | VARCHAR(50)| NULLABLE                                | SAS焦虑自评-手足颇抖         |
+| `mental_health_sas_body_pain` | VARCHAR(50)| NULLABLE                                | SAS焦虑自评-躯体疼痛         |
+| `mental_health_sas_fatigue` | VARCHAR(50)   | NULLABLE                                | SAS焦虑自评-乏力             |
+| `mental_health_sas_restlessness` | VARCHAR(50)| NULLABLE                                | SAS焦虑自评-静坐不能         |
+| `mental_health_sas_palpitations` | VARCHAR(50)| NULLABLE                                | SAS焦虑自评-心悸             |
+| `mental_health_sas_dizziness` | VARCHAR(50) | NULLABLE                                | SAS焦虑自评-头昏             |
+| `mental_health_sas_fainting` | VARCHAR(50)  | NULLABLE                                | SAS焦虑自评-晕厥感           |
+| `mental_health_sas_breathing_difficulty` | VARCHAR(50) | NULLABLE                      | SAS焦虑自评-呼吸困难         |
+| `mental_health_sas_paresthesia` | VARCHAR(50) | NULLABLE                               | SAS焦虑自评-手足刺痛         |
+| `mental_health_sas_stomach_pain` | VARCHAR(50) | NULLABLE                              | SAS焦虑自评-胃痛或消化不良   |
+| `mental_health_sas_frequent_urination` | VARCHAR(50) | NULLABLE                        | SAS焦虑自评-尿意频数         |
 | `mental_health_sas_sweating`| VARCHAR(50)   | NULLABLE                                | SAS焦虑自评-多汗             |
 | `adherence_self_assessment_body` | VARCHAR(50) | NULLABLE                             | 遵医行为-身体感觉评价        |
 | `adherence_self_assessment_mind` | VARCHAR(50) | NULLABLE                             | 遵医行为-心理态度评价        |
@@ -118,8 +136,8 @@
 | `other_info_service_satisfaction` | VARCHAR(50) | NULLABLE                           | 其他-服务满意度              |
 | `managing_doctor_id`      | VARCHAR(255)    | FK to `Users(id)` ON DELETE SET NULL, NULLABLE | (外键)主管医生ID             |
 
-### 3. `PatientFamilyMedicalHistory` (病家族病史表)
-存储病人的结构化家族病史，取代 `PatientProfiles` 中的 JSON 字段。
+### 3. `PatientFamilyMedicalHistory` (病人家族病史表)
+存储病人的结构化家族病史。
 
 | 字段名            | 数据类型     | 约束/注释                                   | 中文注释             |
 | ----------------- | ------------ | ------------------------------------------- | -------------------- |
@@ -130,7 +148,7 @@
 | `notes`           | TEXT         | NULLABLE                                    | 备注                 |
 
 ### 4. `PatientMedicationHistory` (病人用药史表)
-存储病人的详细用药记录，取代 `PatientProfiles` 中的 JSON 字段。
+存储病人的详细用药记录。
 
 | 字段名            | 数据类型     | 约束/注释                                   | 中文注释           |
 | ----------------- | ------------ | ------------------------------------------- | ------------------ |
@@ -155,15 +173,17 @@
 | `created_at`     | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建时间       |
 
 ### 6. `DoctorProfiles` (医生档案表)
+(注意: 医生信息大部分已合并到 `Users` 表中 `user_type='doctor'` 的记录，此表可用于存储医生特有的、非认证相关的额外信息。)
 
 | 字段名                  | 数据类型     | 约束/注释                                   | 中文注释         |
 | ----------------------- | ------------ | ------------------------------------------- | ---------------- |
 | `user_id`               | VARCHAR(255) | PK, FK to `Users(id)` ON DELETE CASCADE   | 用户ID (主键, 外键) |
-| `specialty`             | VARCHAR(100) | NULLABLE                                    | 专业/科室        |
-| `hospital_affiliation`  | VARCHAR(255) | NULLABLE (SAAS模式下可能通过`Users.saas_enterprise_id`关联) | 所属医院/机构    |
-| `years_of_experience`   | INT          | NULLABLE                                    | 执业年限         |
-| `license_number`        | VARCHAR(100) | NULLABLE                                    | 执业医师编号     |
+| `specialty`             | VARCHAR(100) | NULLABLE                                    | 专业             |
 | `bio`                   | TEXT         | NULLABLE                                    | 个人简介/擅长    |
+| `hospital_affiliation`  | VARCHAR(255) | NULLABLE (SAAS模式下通常通过`Users.saas_enterprise_id`关联) | 所属医院/机构    |
+| `license_number`        | VARCHAR(100) | NULLABLE (已移至`Users`表，可考虑删除此字段) | 执业医师编号     |
+| `years_of_experience`   | INT          | NULLABLE (可考虑移至`Users`表)             | 执业年限         |
+
 
 ## 健康数据与记录
 
@@ -266,7 +286,7 @@
 | `consultation_id`     | VARCHAR(255)    | FK to `Consultations(id)` ON DELETE CASCADE, NOT NULL | (外键) 咨询ID       |
 | `sender_user_id`      | VARCHAR(255)    | FK to `Users(id)` ON DELETE CASCADE, NOT NULL | (外键) 发送者ID     |
 | `message_content`     | TEXT            | NOT NULL                                    | 消息内容           |
-| `message_type`        | VARCHAR(20)     | DEFAULT 'text', CHECK (`message_type` IN ('text', 'image', 'video', 'file')) | 消息类型           |
+| `message_type`        | VARCHAR(20)     | DEFAULT 'text', CHECK (`message_type` IN ('text', 'image', 'video', 'file', 'audio')) | 消息类型           |
 | `file_url`            | VARCHAR(255)    | NULLABLE (非文本消息)                       | 文件URL            |
 | `sent_at`             | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP      | 发送时间           |
 
@@ -432,9 +452,7 @@
 | `address`                | VARCHAR(255)    | NULLABLE                                    | 地址                   |
 | `status`                 | VARCHAR(50)     | NOT NULL, DEFAULT 'pending_approval', CHECK (`status` IN ('active', 'inactive', 'pending_approval', 'suspended')) | 账户状态               |
 | `creation_date`          | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期               |
-| `max_users_limit`        | INT             | NOT NULL                                    | 分配最大用户数 (员工)  |
-| `max_storage_gb_limit`   | INT             | NOT NULL                                    | 分配最大存储空间 (GB)  |
-| `max_patients_limit`     | INT             | NOT NULL                                    | 分配最大病人额度       |
+| `assigned_resources`     | JSONB           | NULLABLE                                    | 分配资源 (如: {"maxUsers": 50, "maxStorageGB": 100, "maxPatients": 5000}) |
 | `current_users_count`    | INT             | DEFAULT 0                                   | 当前用户数 (员工)      |
 | `current_patients_count` | INT             | DEFAULT 0                                   | 当前病人数量           |
 | `notes`                  | TEXT            | NULLABLE                                    | 备注                   |
@@ -461,15 +479,7 @@
 | `description` | TEXT         | NULLABLE                            | 角色描述             |
 | `permissions` | JSONB        | NOT NULL (权限标识符数组JSON)        | 权限列表             |
 
-### 28. `SaasUserSystemRoles` (SAAS平台用户角色关联表)
-SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多对多关联。
-
-| 字段名                 | 数据类型     | 约束/注释                                   | 中文注释               |
-| ---------------------- | ------------ | ------------------------------------------- | ---------------------- |
-| `saas_user_id`         | VARCHAR(255) | PK, FK to `Users(id)` ON DELETE CASCADE     | (外键) SAAS管理员用户ID |
-| `saas_system_role_id`  | VARCHAR(255) | PK, FK to `SaasSystemRoles(id)` ON DELETE CASCADE | (外键) SAAS系统角色ID   |
-
-### 29. `SaasServicePackages` (SAAS服务包表)
+### 28. `SaasServicePackages` (SAAS服务包表)
 
 | 字段名                 | 数据类型        | 约束/注释                                   | 中文注释             |
 | ---------------------- | --------------- | ------------------------------------------- | -------------------- |
@@ -486,7 +496,7 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `is_enabled`           | BOOLEAN         | DEFAULT TRUE                                | 是否启用销售         |
 | `created_at`           | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建时间             |
 
-### 30. `SaasOrders` (SAAS订单表)
+### 29. `SaasOrders` (SAAS订单表)
 
 | 字段名                    | 数据类型        | 约束/注释                                   | 中文注释             |
 | ------------------------- | --------------- | ------------------------------------------- | -------------------- |
@@ -503,25 +513,61 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `invoice_number`          | VARCHAR(100)    | NULLABLE                                    | 发票号               |
 | `notes`                   | TEXT            | NULLABLE                                    | 订单备注             |
 
-### 31. `SaasCommunityMessageLogs` (SAAS社群消息日志表)
+### 30. `SaasPlatformConnections` (SAAS平台连接表 - 如微信机器人)
+
+| 字段名                  | 数据类型        | 约束/注释                                   | 中文注释                 |
+| ----------------------- | --------------- | ------------------------------------------- | ------------------------ |
+| `id`                    | VARCHAR(255)    | PK (主键)                                   | 连接ID                   |
+| `enterprise_id`         | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NULLABLE       | 所属企业 (若特定于企业)   |
+| `platform`              | VARCHAR(50)     | NOT NULL, CHECK (`platform` IN ('wechat_personal_bot', 'wechat_enterprise_app', 'other')) | 平台类型                 |
+| `account_name`          | VARCHAR(255)    | NOT NULL                                    | 账号/应用名称            |
+| `status`                | VARCHAR(50)     | NOT NULL, CHECK (`status` IN ('connected', 'disconnected', 'error', 'requires_reauth', 'pending_setup')) | 连接状态                 |
+| `last_sync`             | TIMESTAMP WITH TIME ZONE | NULLABLE                               | 上次同步时间             |
+| `associated_employee_id`| VARCHAR(255)    | FK to `Users(id)`, NULLABLE                 | 关联员工ID (如个人Bot)   |
+| `notes`                 | TEXT            | NULLABLE                                    | 备注                     |
+| `created_at`            | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建时间                 |
+
+### 31. `SaasCommunityGroups` (SAAS社群组表 - 如微信群)
+
+| 字段名                  | 数据类型        | 约束/注释                                   | 中文注释                   |
+| ----------------------- | --------------- | ------------------------------------------- | -------------------------- |
+| `id`                    | VARCHAR(255)    | PK (主键)                                   | 社群组ID                   |
+| `name`                  | VARCHAR(255)    | NOT NULL                                    | 群名称                     |
+| `enterprise_id`         | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NOT NULL       | 所属企业ID                 |
+| `managing_employee_id`  | VARCHAR(255)    | FK to `Users(id)`, NULLABLE                 | 管理员工ID                 |
+| `type`                  | VARCHAR(50)     | NOT NULL, CHECK (`type` IN ('personal_wechat_group', 'enterprise_wechat_group', 'other_platform_group')) | 群类型                     |
+| `platform_group_id`     | VARCHAR(255)    | NULLABLE, UNIQUE                            | 平台外部群ID               |
+| `description`           | TEXT            | NULLABLE                                    | 群描述                     |
+| `member_patient_ids_json` | JSONB         | NULLABLE                                    | 群成员病人ID列表 (JSON)    |
+| `patient_count`         | INT             | DEFAULT 0                                   | 病人成员数量               |
+| `platform_connection_id`| VARCHAR(255)    | FK to `SaasPlatformConnections(id)`, NULLABLE | 关联的平台连接ID           |
+| `connection_status`     | VARCHAR(50)     | NOT NULL, CHECK (`connection_status` IN ('active_sync', 'inactive_sync', 'error_sync', 'not_monitored')) | 群日志同步状态             |
+| `last_log_sync`         | TIMESTAMP WITH TIME ZONE | NULLABLE                               | 上次聊天日志同步时间       |
+| `creation_date`         | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期                   |
+| `tags_json`             | JSONB           | NULLABLE                                    | 标签 (JSON数组)            |
+
+
+### 32. `SaasCommunityMessageLogs` (SAAS社群消息日志表)
 
 | 字段名                 | 数据类型        | 约束/注释                                   | 中文注释             |
 | ---------------------- | --------------- | ------------------------------------------- | -------------------- |
 | `id`                   | VARCHAR(255)    | PK (主键)                                   | 日志ID               |
-| `platform`             | VARCHAR(50)     | NOT NULL, CHECK (`platform` IN ('wechat_personal', 'wechat_enterprise')) | 平台 (个微, 企微)   |
-| `group_id_external`    | VARCHAR(255)    | NOT NULL                                    | 外部群ID             |
-| `group_name`           | VARCHAR(255)    | NULLABLE                                    | 群名称               |
-| `sender_external_id`   | VARCHAR(255)    | NOT NULL                                    | 发送者外部ID         |
-| `sender_name`          | VARCHAR(255)    | NULLABLE                                    | 发送者昵称           |
-| `message_external_id`  | VARCHAR(255)    | NOT NULL, UNIQUE                            | 消息外部ID           |
-| `message_content_type` | VARCHAR(50)     | NOT NULL                                    | 消息内容类型         |
-| `message_text`         | TEXT            | NULLABLE                                    | 文本消息内容         |
-| `message_file_url`     | VARCHAR(255)    | NULLABLE                                    | 文件/图片URL         |
-| `timestamp`            | TIMESTAMP WITH TIME ZONE | NOT NULL                               | 消息时间戳           |
-| `raw_data_json`        | JSONB           | NULLABLE                                    | 原始消息数据 (JSON) |
-| `logged_at`            | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 记录时间             |
+| `community_group_id`   | VARCHAR(255)    | FK to `SaasCommunityGroups(id)`, NOT NULL   | 所属社群组ID         |
+| `platform`             | VARCHAR(50)     | NOT NULL, (e.g., 'wechat_personal', 'wechat_enterprise') | 平台                 |
+| `platform_group_id_external`| VARCHAR(255)| NULLABLE                                    | 平台外部群ID         |
+| `platform_message_id_external`| VARCHAR(255)| NOT NULL, UNIQUE                            | 平台外部消息ID       |
+| `sender_platform_id`   | VARCHAR(255)    | NOT NULL                                    | 发送者平台ID         |
+| `sender_saas_user_id`  | VARCHAR(255)    | FK to `Users(id)`, NULLABLE                 | 发送者SAAS用户ID (若匹配) |
+| `sender_name_display`  | VARCHAR(255)    | NOT NULL                                    | 发送者显示名称       |
+| `message_content`      | TEXT            | NOT NULL                                    | 消息内容 (文本)    |
+| `message_type`         | VARCHAR(50)     | NOT NULL, CHECK (`message_type` IN ('text', 'image', 'file', 'voice', 'system_notification', 'video')) | 消息内容类型         |
+| `file_url`             | VARCHAR(255)    | NULLABLE                                    | 文件/媒体URL         |
+| `timestamp`            | TIMESTAMP WITH TIME ZONE | NOT NULL                               | 消息原始时间戳       |
+| `logged_at`            | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 日志记录时间         |
+| `is_bot_message`       | BOOLEAN         | DEFAULT FALSE                               | 是否为机器人消息     |
+| `metadata_json`        | JSONB           | NULLABLE                                    | 其他元数据 (JSON)   |
 
-### 32. `SaasSopServices` (SAAS SOP服务配置表)
+### 33. `SaasSopServices` (SAAS SOP服务配置表)
 
 | 字段名                | 数据类型        | 约束/注释                                   | 中文注释           |
 | --------------------- | --------------- | ------------------------------------------- | ------------------ |
@@ -529,33 +575,57 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `name`                | VARCHAR(255)    | NOT NULL                                    | 服务名称           |
 | `type`                | VARCHAR(20)     | NOT NULL, CHECK (`type` IN ('Coze', 'Dify', 'Other')) | 服务类型           |
 | `api_endpoint`        | VARCHAR(255)    | NOT NULL                                    | API端点URL         |
-| `api_key_encrypted`   | VARCHAR(512)    | NULLABLE (加密存储)                         | 加密的API密钥      |
+| `api_key`             | VARCHAR(512)    | NULLABLE (建议加密存储)                      | API密钥            |
 | `description`         | TEXT            | NULLABLE                                    | 服务描述           |
 | `status`              | VARCHAR(20)     | NOT NULL, CHECK (`status` IN ('active', 'inactive', 'error')) | 服务状态           |
 | `parameters_json`     | JSONB           | NULLABLE (固定参数JSON)                     | 固定参数           |
 | `creation_date`       | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期           |
 | `last_call_timestamp` | TIMESTAMP WITH TIME ZONE | NULLABLE                               | 最近调用时间       |
-| `total_call_count`    | INT             | DEFAULT 0                                   | 总调用次数         |
+| `call_count`          | INT             | DEFAULT 0                                   | 总调用次数         |
 | `error_count`         | INT             | DEFAULT 0                                   | 错误次数           |
 
-### 33. `SaasOutboundCallTasks` (SAAS平台外呼任务表)
+### 34. `SaasAiWorkflowApiConfigs` (SAAS AI工作流API配置表)
+
+| 字段名                  | 数据类型        | 约束/注释                                   | 中文注释               |
+| ----------------------- | --------------- | ------------------------------------------- | ---------------------- |
+| `id`                    | VARCHAR(255)    | PK (主键)                                   | 配置ID                 |
+| `name`                  | VARCHAR(255)    | NOT NULL                                    | 工作流名称             |
+| `type`                  | VARCHAR(20)     | NOT NULL, CHECK (`type` IN ('Dify', 'Coze', 'Other')) | 工作流平台类型         |
+| `api_endpoint`          | VARCHAR(255)    | NOT NULL                                    | API端点URL             |
+| `api_key`               | VARCHAR(512)    | NULLABLE (建议加密存储)                     | API密钥 (可选)         |
+| `parameters_json`       | JSONB           | NULLABLE                                    | 默认参数 (JSON格式)    |
+| `description`           | TEXT            | NULLABLE                                    | 工作流描述             |
+| `status`                | VARCHAR(20)     | NOT NULL, DEFAULT 'active', CHECK (`status` IN ('active', 'inactive')) | 状态                   |
+| `creation_date`         | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期               |
+| `updated_at`            | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 更新日期               |
+
+
+### 35. `SaasOutboundCallTasks` (SAAS平台外呼任务表)
 
 | 字段名                 | 数据类型        | 约束/注释                                   | 中文注释             |
 | ---------------------- | --------------- | ------------------------------------------- | -------------------- |
 | `id`                   | VARCHAR(255)    | PK (主键)                                   | 任务ID               |
 | `name`                 | VARCHAR(255)    | NOT NULL                                    | 任务名称             |
-| `target_type`          | VARCHAR(50)     | NOT NULL, CHECK (`target_type` IN ('customer_segment', 'employee_group', 'custom_list', 'individual_patient')) | 目标类型             |
-| `target_details`       | TEXT            | NOT NULL                                    | 目标详情             |
+| `enterprise_id`        | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NULLABLE       | 所属企业 (若特定于企业)|
+| `creating_doctor_id`   | VARCHAR(255)    | FK to `Users(id)`, NULLABLE                 | 创建医生ID (若医生端创建)|
+| `creating_saas_admin_id`| VARCHAR(255)   | FK to `Users(id)`, NULLABLE                 | 创建SAAS管理员ID (若平台创建)|
+| `target_type`          | VARCHAR(50)     | NOT NULL, CHECK (`target_type` IN ('individual_patient', 'patient_group', 'custom_list', 'employee_group')) | 目标类型             |
+| `target_patient_id`    | VARCHAR(255)    | FK to `Users(id)`, NULLABLE                 | 目标病人ID           |
+| `target_group_id`      | VARCHAR(255)    | FK to `OutboundCallGroups(id)`, NULLABLE    | 目标组ID             |
+| `target_custom_list_details` | TEXT      | NULLABLE                                    | 自定义列表详情       |
+| `target_description`   | VARCHAR(255)    | NULLABLE                                    | 目标描述 (冗余, 便于查询)|
 | `status`               | VARCHAR(50)     | NOT NULL, CHECK (`status` IN ('pending_schedule', 'scheduled', 'in_progress', 'completed', 'failed', 'cancelled')) | 任务状态             |
 | `creation_date`        | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期             |
 | `scheduled_time`       | TIMESTAMP WITH TIME ZONE | NULLABLE                               | 计划执行时间         |
+| `call_content_summary` | TEXT            | NULLABLE                                    | 外呼内容摘要         |
 | `sop_service_id`       | VARCHAR(255)    | FK to `SaasSopServices(id)` ON DELETE SET NULL, NULLABLE | (外键) 关联SOP服务ID |
-| `assigned_user_id`     | VARCHAR(255)    | FK to `Users(id)` ON DELETE SET NULL, NULLABLE | (外键) 分配SAAS用户ID|
+| `assigned_to_employee_id` | VARCHAR(255) | FK to `Users(id)` ON DELETE SET NULL, NULLABLE | (外键) 分配执行员工ID|
 | `call_count_total`     | INT             | DEFAULT 0                                   | 总呼叫数             |
 | `call_count_success`   | INT             | DEFAULT 0                                   | 成功呼叫数           |
+| `completion_status`    | VARCHAR(50)     | NULLABLE, CHECK (`completion_status` IN ('success_all', 'partial_success', 'failed_all', 'not_applicable')) | 整体完成状态       |
 | `notes`                | TEXT            | NULLABLE                                    | 任务备注             |
 
-### 34. `SaasApiKeys` (SAAS API密钥表)
+### 36. `SaasApiKeys` (SAAS API密钥表)
 
 | 字段名                  | 数据类型        | 约束/注释                                   | 中文注释               |
 | ----------------------- | --------------- | ------------------------------------------- | ---------------------- |
@@ -570,7 +640,7 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `created_at`            | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP     | 创建时间               |
 | `expires_at`            | TIMESTAMP WITH TIME ZONE | NULLABLE                                | 过期时间               |
 
-### 35. `SaasSystemSettings` (SAAS平台系统设置表)
+### 37. `SaasSystemSettings` (SAAS平台系统设置表)
 存储平台级配置，如默认AI模型参数等。
 
 | 字段名            | 数据类型     | 约束/注释                                   | 中文注释     |
@@ -580,17 +650,18 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `description`     | VARCHAR(255) | NULLABLE                                    | 设置描述     |
 | `last_updated_at` | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP     | 最后更新时间 |
 
-### 36. `SaasLlmSettings` (SAAS平台大语言模型设置表)
+### 38. `SaasLlmSettings` (SAAS平台大语言模型设置表)
+存储核心LLM的配置信息。
 
 | 字段名        | 数据类型     | 约束/注释             | 中文注释     |
 | ------------- | ------------ | --------------------- | ------------ |
-| `id`          | VARCHAR(255) | PK (主键), DEFAULT 'primary' | 设置ID (可默认为 'primary' 表示主配置) |
-| `api_key`     | VARCHAR(255) | NOT NULL              | API密钥      |
+| `id`          | VARCHAR(255) | PK (主键), DEFAULT 'primary_llm_config' | 设置ID (如 'primary_llm_config') |
+| `api_key`     | VARCHAR(512) | NOT NULL (建议加密存储) | API密钥      |
 | `api_endpoint`| VARCHAR(255) | NOT NULL              | API端点URL   |
 | `model_name`  | VARCHAR(100) | NOT NULL              | 模型名称     |
 | `updated_at`  | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 更新时间     |
 
-### 37. `OutboundCallGroups` (外呼组表 - SAAS/医生端通用)
+### 39. `OutboundCallGroups` (外呼组表 - SAAS/医生端通用)
 
 | 字段名                 | 数据类型        | 约束/注释                                   | 中文注释           |
 | ---------------------- | --------------- | ------------------------------------------- | ------------------ |
@@ -602,7 +673,7 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `creation_date`        | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期           |
 | `member_count`         | INT             | DEFAULT 0                                   | 成员数量           |
 
-### 38. `OutboundCallGroupMembers` (外呼组成员表 - SAAS/医生端通用)
+### 40. `OutboundCallGroupMembers` (外呼组成员表 - SAAS/医生端通用)
 
 | 字段名                 | 数据类型        | 约束/注释                                   | 中文注释         |
 | ---------------------- | --------------- | ------------------------------------------- | ---------------- |
@@ -610,7 +681,7 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `patient_user_id`      | VARCHAR(255)    | PK, FK to `Users(id)` ON DELETE CASCADE       | (外键) 病人用户ID |
 | `added_at`             | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 添加时间         |
 
-### 39. `SaasScheduledTasks` (SAAS平台定时任务表)
+### 41. `SaasScheduledTasks` (SAAS平台定时任务表)
 
 | 字段名                   | 数据类型        | 约束/注释                                   | 中文注释           |
 | ------------------------ | --------------- | ------------------------------------------- | ------------------ |
@@ -625,7 +696,7 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 | `description`            | TEXT            | NULLABLE                                    | 任务描述           |
 | `job_handler_identifier` | VARCHAR(255)    | NOT NULL                                    | 任务处理器标识符   |
 
-### 40. `SystemLogs` (系统日志表 - 通用)
+### 42. `SystemLogs` (系统日志表 - 通用)
 
 | 字段名        | 数据类型        | 约束/注释                                   | 中文注释     |
 | ------------- | --------------- | ------------------------------------------- | ------------ |
@@ -643,6 +714,10 @@ SAAS管理员用户 (`Users`表中`user_type='saas_admin'`) 与其角色的多�
 *   JSONB 类型特定于 PostgreSQL。对于 MySQL，可以使用 JSON 类型。如果数据库不支持 JSON，则可以考虑使用 TEXT 并存储序列化的 JSON 字符串。
 *   ENUM 类型在某些数据库中可能需要用 VARCHAR 和 CHECK 约束来模拟。
 *   外键的 `ON DELETE` 和 `ON UPDATE` 行为（如 `CASCADE`, `SET NULL`, `RESTRICT`）需要根据业务逻辑仔细确定。这里提供了一些常见默认值。
-*   此schema设计为关系型数据库，与Firebase Firestore的NoSQL结构有所不同。
-*   很多 PatientProfiles 中的 JSON 字段在关系型设计中可以进一步规范化为独立的表，如上面为 `FamilyMedicalHistory` 和 `MedicationHistory` 所做的那样。为了简洁，其他一些JSON字段在此版本中保留，但实际项目中可能需要进一步拆分。
-*   SAS问卷的20个字段在 `PatientProfiles` 中作为单独的 `VARCHAR(50)` 列，这是一种简化的处理方式。在非常规范化的设计中，它们也可以存到单独的关联表中。
+*   `PatientProfiles` 表中大量的 `VARCHAR(50)` 字段用于存储用户通过单选或多选框选择的文本值，这些值对应于前端定义的选项。在实际数据库设计中，可以考虑使用外键关联到专门的选项表，或者使用更严格的ENUM类型（如果选项固定且数量有限）。
+*   `Users` 表中增加了一些字段以统一管理医生和SAAS平台用户的部分属性。
+*   `SaasEnterprises` 中的 `assigned_resources` 改为JSONB类型，以更灵活地存储资源配额。
+*   新增了 `SaasPlatformConnections` 和 `SaasCommunityGroups` 用于更细致地管理社群连接和群组。
+*   `SaasCommunityMessageLogs` 用于存储聊天记录。
+*   `SaasAiWorkflowApiConfigs` 用于存储Dify/Coze等工作流API配置。
+*   `SaasLlmSettings` 用于存储核心大语言模型配置。
