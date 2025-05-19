@@ -11,9 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import type { SaasOutboundCallTask, SaasEnterprise, SaasEmployee, OutboundCallGroup, SaasPatient, SaasSopService } from '@/lib/types'; // Added SaasPatient, SaasSopService
+import type { SaasOutboundCallTask, SaasEnterprise, SaasEmployee, OutboundCallGroup, SaasPatient, SaasSopService } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+const PLATFORM_LEVEL_ENTERPRISE_ID = "__PLATFORM_LEVEL__";
+const NO_SOP_SERVICE_ID = "__NO_SOP_SERVICE__";
+const NO_ASSIGNEE_ID = "__NO_ASSIGNEE__";
 
 const taskSchema = z.object({
   name: z.string().min(2, { message: "任务名称至少需要2个字符。" }),
@@ -23,7 +27,7 @@ const taskSchema = z.object({
   targetPatientId: z.string().optional(),
   targetGroupId: z.string().optional(),
   targetCustomListDetails: z.string().optional(),
-  targetDescription: z.string().optional(), // To store patient/group name for display if selected
+  targetDescription: z.string().optional(), 
   status: z.enum(['pending_schedule', 'scheduled', 'in_progress', 'completed', 'failed', 'cancelled']),
   scheduledTime: z.string().optional().refine(val => !val || !isNaN(parseISO(val).valueOf()), { message: "若填写，需为有效日期时间" }),
   callContentSummary: z.string().optional(),
@@ -40,10 +44,10 @@ interface OutboundCallTaskDialogProps {
   onSubmit: (data: SaasOutboundCallTask) => void;
   task?: SaasOutboundCallTask | null;
   enterprises: SaasEnterprise[];
-  allEmployees: SaasEmployee[]; // All employees from all enterprises for selection
-  allPatients: SaasPatient[]; // All patients from all enterprises
-  allGroups: OutboundCallGroup[]; // All groups from all enterprises
-  allSopServices: SaasSopService[]; // All SOP services
+  allEmployees: SaasEmployee[]; 
+  allPatients: SaasPatient[]; 
+  allGroups: OutboundCallGroup[]; 
+  allSopServices: SaasSopService[]; 
 }
 
 export function OutboundCallTaskDialog({ 
@@ -55,13 +59,18 @@ export function OutboundCallTaskDialog({
     resolver: zodResolver(taskSchema),
     defaultValues: task ? {
       ...task,
+      enterpriseId: task.enterpriseId || PLATFORM_LEVEL_ENTERPRISE_ID,
       scheduledTime: task.scheduledTime ? format(parseISO(task.scheduledTime), "yyyy-MM-dd'T'HH:mm") : undefined,
+      sopServiceId: task.sopServiceId || NO_SOP_SERVICE_ID,
+      assignedToEmployeeId: task.assignedToEmployeeId || NO_ASSIGNEE_ID,
     } : {
       name: '',
-      enterpriseId: enterprises.length > 0 ? enterprises[0].id : undefined,
+      enterpriseId: enterprises.length > 0 ? enterprises[0].id : PLATFORM_LEVEL_ENTERPRISE_ID,
       targetType: 'individual_patient',
       status: 'pending_schedule',
       scheduledTime: undefined,
+      sopServiceId: NO_SOP_SERVICE_ID,
+      assignedToEmployeeId: NO_ASSIGNEE_ID,
     },
   });
 
@@ -69,17 +78,17 @@ export function OutboundCallTaskDialog({
   const selectedTargetType = form.watch('targetType');
 
   const employeesOfSelectedEnterprise = useMemo(() => {
-    if (!selectedEnterpriseId) return [];
+    if (!selectedEnterpriseId || selectedEnterpriseId === PLATFORM_LEVEL_ENTERPRISE_ID) return allEmployees; // Show all if platform level or no specific enterprise
     return allEmployees.filter(e => e.enterpriseId === selectedEnterpriseId);
   }, [selectedEnterpriseId, allEmployees]);
 
   const patientsOfSelectedEnterprise = useMemo(() => {
-    if (!selectedEnterpriseId) return [];
+    if (!selectedEnterpriseId || selectedEnterpriseId === PLATFORM_LEVEL_ENTERPRISE_ID) return []; // No patients for platform level task target typically
     return allPatients.filter(p => p.enterpriseId === selectedEnterpriseId);
   }, [selectedEnterpriseId, allPatients]);
   
   const groupsOfSelectedEnterprise = useMemo(() => {
-    if (!selectedEnterpriseId) return [];
+    if (!selectedEnterpriseId || selectedEnterpriseId === PLATFORM_LEVEL_ENTERPRISE_ID) return []; // No groups for platform level task target typically
     return allGroups.filter(g => g.enterpriseId === selectedEnterpriseId);
   }, [selectedEnterpriseId, allGroups]);
 
@@ -89,12 +98,15 @@ export function OutboundCallTaskDialog({
       if (task) {
         form.reset({
           ...task,
+          enterpriseId: task.enterpriseId || PLATFORM_LEVEL_ENTERPRISE_ID,
           scheduledTime: task.scheduledTime ? format(parseISO(task.scheduledTime), "yyyy-MM-dd'T'HH:mm") : undefined,
+          sopServiceId: task.sopServiceId || NO_SOP_SERVICE_ID,
+          assignedToEmployeeId: task.assignedToEmployeeId || NO_ASSIGNEE_ID,
         });
       } else {
         form.reset({
           name: '', 
-          enterpriseId: enterprises.length > 0 ? enterprises[0].id : undefined,
+          enterpriseId: enterprises.length > 0 ? enterprises[0].id : PLATFORM_LEVEL_ENTERPRISE_ID,
           targetType: 'individual_patient', 
           targetPatientId: undefined,
           targetGroupId: undefined,
@@ -103,8 +115,8 @@ export function OutboundCallTaskDialog({
           status: 'pending_schedule',
           scheduledTime: undefined, 
           callContentSummary: '',
-          sopServiceId: undefined, 
-          assignedToEmployeeId: undefined,
+          sopServiceId: NO_SOP_SERVICE_ID, 
+          assignedToEmployeeId: NO_ASSIGNEE_ID,
           notes: '',
         });
       }
@@ -119,21 +131,21 @@ export function OutboundCallTaskDialog({
         targetDesc = allGroups.find(g => g.id === data.targetGroupId)?.name || data.targetGroupId;
     } else if (data.targetType === 'custom_list') {
         targetDesc = data.targetCustomListDetails;
-    } else if (data.targetType === 'employee_group' && data.targetGroupId) { // Assuming targetGroupId can be used for employee groups too
-        targetDesc = allGroups.find(g => g.id === data.targetGroupId)?.name || data.targetGroupId; // Or fetch employee group name
+    } else if (data.targetType === 'employee_group' && data.targetGroupId) { 
+        targetDesc = allGroups.find(g => g.id === data.targetGroupId)?.name || data.targetGroupId; 
     }
-
 
     const taskToSubmit: SaasOutboundCallTask = {
       ...task, 
       id: task?.id || `saas-task-${Date.now().toString()}`,
       creationDate: task?.creationDate || new Date().toISOString(),
       ...data,
+      enterpriseId: data.enterpriseId === PLATFORM_LEVEL_ENTERPRISE_ID ? undefined : data.enterpriseId,
       scheduledTime: data.scheduledTime ? parseISO(data.scheduledTime).toISOString() : undefined,
       targetDescription: targetDesc,
       callContentSummary: data.callContentSummary || undefined,
-      sopServiceId: data.sopServiceId || undefined,
-      assignedToEmployeeId: data.assignedToEmployeeId || undefined,
+      sopServiceId: data.sopServiceId === NO_SOP_SERVICE_ID ? undefined : data.sopServiceId,
+      assignedToEmployeeId: data.assignedToEmployeeId === NO_ASSIGNEE_ID ? undefined : data.assignedToEmployeeId,
       notes: data.notes || undefined,
     };
     onSubmit(taskToSubmit);
@@ -162,7 +174,7 @@ export function OutboundCallTaskDialog({
                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="选择企业 (平台级任务可不选)" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">平台级任务 (不指定企业)</SelectItem>
+                      <SelectItem value={PLATFORM_LEVEL_ENTERPRISE_ID}>平台级任务 (不指定企业)</SelectItem>
                       {enterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
                     </SelectContent>
                   </Select>
@@ -189,16 +201,16 @@ export function OutboundCallTaskDialog({
             {selectedTargetType === 'individual_patient' && (
                  <FormField control={form.control} name="targetPatientId" render={({ field }) => (
                     <FormItem> <FormLabel>选择病人</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEnterpriseId && patientsOfSelectedEnterprise.length === 0}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEnterpriseId || selectedEnterpriseId === PLATFORM_LEVEL_ENTERPRISE_ID || patientsOfSelectedEnterprise.length === 0}>
                             <FormControl><SelectTrigger><SelectValue placeholder="选择一个病人" /></SelectTrigger></FormControl>
                             <SelectContent className="max-h-60">
                               <ScrollArea>
-                                {patientsOfSelectedEnterprise.length === 0 && <SelectItem value="" disabled>请先选择企业或此企业无病人</SelectItem>}
+                                {patientsOfSelectedEnterprise.length === 0 && <SelectItem value="" disabled>请先选择具体企业或此企业无病人</SelectItem>}
                                 {patientsOfSelectedEnterprise.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} ({p.id})</SelectItem>))}
                               </ScrollArea>
                             </SelectContent>
                         </Select>
-                        <FormDescription className="text-xs">选择此任务针对的单个病人。需先选定企业。</FormDescription>
+                        <FormDescription className="text-xs">选择此任务针对的单个病人。需先选定具体企业。</FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}/>
@@ -206,16 +218,16 @@ export function OutboundCallTaskDialog({
             {selectedTargetType === 'patient_group' && (
                  <FormField control={form.control} name="targetGroupId" render={({ field }) => (
                     <FormItem> <FormLabel>选择病人组</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEnterpriseId && groupsOfSelectedEnterprise.length === 0}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEnterpriseId || selectedEnterpriseId === PLATFORM_LEVEL_ENTERPRISE_ID || groupsOfSelectedEnterprise.length === 0}>
                             <FormControl><SelectTrigger><SelectValue placeholder="选择一个病人组" /></SelectTrigger></FormControl>
                             <SelectContent className="max-h-60">
                               <ScrollArea>
-                                {groupsOfSelectedEnterprise.length === 0 && <SelectItem value="" disabled>请先选择企业或此企业无病人组</SelectItem>}
+                                {groupsOfSelectedEnterprise.length === 0 && <SelectItem value="" disabled>请先选择具体企业或此企业无病人组</SelectItem>}
                                 {groupsOfSelectedEnterprise.map(g => (<SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>))}
                               </ScrollArea>
                             </SelectContent>
                         </Select>
-                        <FormDescription className="text-xs">选择此任务针对的病人组。需先选定企业。</FormDescription>
+                        <FormDescription className="text-xs">选择此任务针对的病人组。需先选定具体企业。</FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}/>
@@ -227,7 +239,6 @@ export function OutboundCallTaskDialog({
                     <FormMessage/></FormItem>
                 )}/>
             )}
-
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="status" render={({ field }) => (
@@ -260,10 +271,10 @@ export function OutboundCallTaskDialog({
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="sopServiceId" render={({ field }) => (
                     <FormItem> <FormLabel>关联SOP服务 (可选)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="选择一个SOP服务 (若为自动任务)" /></SelectTrigger></FormControl>
                             <SelectContent>
-                                <SelectItem value="">不关联</SelectItem>
+                                <SelectItem value={NO_SOP_SERVICE_ID}>不关联</SelectItem>
                                 {allSopServices.map(s => (<SelectItem key={s.id} value={s.id}>{s.name} ({s.type})</SelectItem>))}
                             </SelectContent>
                         </Select><FormMessage />
@@ -271,10 +282,10 @@ export function OutboundCallTaskDialog({
                 )}/>
                 <FormField control={form.control} name="assignedToEmployeeId" render={({field}) => (
                      <FormItem> <FormLabel>分配给 (员工, 可选)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedEnterpriseId && employeesOfSelectedEnterprise.length === 0}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled={employeesOfSelectedEnterprise.length === 0}>
                             <FormControl><SelectTrigger><SelectValue placeholder="选择执行员工 (若为手动任务)" /></SelectTrigger></FormControl>
                             <SelectContent>
-                                 <SelectItem value="">不分配/系统执行</SelectItem>
+                                 <SelectItem value={NO_ASSIGNEE_ID}>不分配/系统执行</SelectItem>
                                 {employeesOfSelectedEnterprise.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
                             </SelectContent>
                         </Select><FormMessage />
