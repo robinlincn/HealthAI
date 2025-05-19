@@ -7,41 +7,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, PlusCircle, Search, Filter, Play, Pause, Edit, Trash2, CheckCircle, XCircle, AlertTriangle, ListChecks } from "lucide-react";
+import { Clock, PlusCircle, Search, Filter, Play, Pause, Edit, Trash2, CheckCircle, XCircle, AlertTriangle, ListChecks, Loader2 } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subDays, addMinutes } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
 interface ScheduledTask {
   id: string;
   name: string;
   type: 'data_backup' | 'report_generation' | 'notification_push' | 'system_cleanup';
-  cronExpression: string; // e.g., "0 2 * * *" (daily at 2 AM)
+  cronExpression: string;
   status: 'enabled' | 'disabled' | 'running' | 'error';
-  lastRun?: string; // ISO date string
-  nextRun?: string; // ISO date string
+  lastRun?: string; 
+  nextRun?: string; 
   description?: string;
 }
 
-const mockScheduledTasks: ScheduledTask[] = [
-  { id: 'task-backup', name: '每日数据备份', type: 'data_backup', cronExpression: '0 2 * * *', status: 'enabled', lastRun: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(), nextRun: new Date(Date.now() + 1000 * 60 * 60 * 1).toISOString(), description: '备份所有SAAS平台数据到云存储。'},
+const initialScheduledTasks: ScheduledTask[] = [
+  { id: 'task-backup', name: '每日数据备份', type: 'data_backup', cronExpression: '0 2 * * *', status: 'enabled', lastRun: subDays(new Date(),1).toISOString(), nextRun: addMinutes(new Date(), 60 * 22).toISOString(), description: '备份所有SAAS平台数据到云存储。'},
   { id: 'task-report', name: '月度运营报告', type: 'report_generation', cronExpression: '0 3 1 * *', status: 'enabled', nextRun: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1, 3, 0, 0).toISOString(), description: '生成上个月的平台运营和客户使用报告。'},
   { id: 'task-notify', name: '服务到期提醒', type: 'notification_push', cronExpression: '0 9 * * 1-5', status: 'disabled', description: '每周工作日提醒即将到期的企业服务。'},
-  { id: 'task-cleanup', name: '临时文件清理', type: 'system_cleanup', cronExpression: '0 0 * * 0', status: 'running', lastRun: new Date(Date.now() - 1000*60*5).toISOString(), description: '每周日清理过期的临时文件和日志。'},
-  { id: 'task-error-example', name: '错误任务示例', type: 'system_cleanup', cronExpression: '0 1 * * *', status: 'error', lastRun: new Date(Date.now() - 1000*60*60*2).toISOString(), description: '演示一个出错的任务。'},
+  { id: 'task-cleanup', name: '临时文件清理', type: 'system_cleanup', cronExpression: '0 0 * * 0', status: 'enabled', lastRun: subDays(new Date(), 7).toISOString(), nextRun: addMinutes(new Date(), 60*24*6).toISOString(), description: '每周日清理过期的临时文件和日志。'},
+  { id: 'task-error-example', name: '错误任务示例', type: 'system_cleanup', cronExpression: '0 1 * * *', status: 'error', lastRun: subDays(new Date(),2).toISOString(), description: '演示一个出错的任务。'},
 ];
 
 export default function ScheduledTasksPage() {
-  const [tasks, setTasks] = useState<ScheduledTask[]>([]);
+  const [tasks, setTasks] = useState<ScheduledTask[]>(initialScheduledTasks);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | ScheduledTask['status']>('all');
   const [filterType, setFilterType] = useState<'all' | ScheduledTask['type']>('all');
+  const [isLoadingAction, setIsLoadingAction] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
-    setTasks(mockScheduledTasks);
   }, []);
 
   const handleToggleStatus = (taskId: string) => {
@@ -57,11 +57,12 @@ export default function ScheduledTasksPage() {
   const handleRunNow = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'running', lastRun: new Date().toISOString() } : t));
+        setIsLoadingAction(prev => ({...prev, [taskId]: true}));
         toast({ title: "任务执行中", description: `任务 "${task.name}" 已开始执行 (模拟)。`});
         setTimeout(() => { 
-            const success = Math.random() > 0.2; // Simulate success/failure
-            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: success ? 'enabled' : 'error', lastRun: new Date().toISOString() } : t)); 
+            const success = Math.random() > 0.2; 
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: success ? (t.status === 'running' ? 'enabled' : t.status) : 'error', lastRun: new Date().toISOString() } : t)); 
+            setIsLoadingAction(prev => ({...prev, [taskId]: false}));
             toast({ title: "任务执行完成", description: `任务 "${task.name}" 执行${success ? '成功' : '失败'}。`});
         }, 3000);
     }
@@ -69,10 +70,10 @@ export default function ScheduledTasksPage() {
 
   const getStatusBadge = (status: ScheduledTask['status']) => {
     switch(status) {
-        case 'enabled': return <Badge className="bg-green-500 hover:bg-green-600"><CheckCircle className="h-3.5 w-3.5 mr-1"/>已启用</Badge>;
-        case 'disabled': return <Badge variant="secondary"><XCircle className="h-3.5 w-3.5 mr-1"/>已禁用</Badge>;
-        case 'running': return <Badge className="bg-blue-500 text-white hover:bg-blue-600 animate-pulse"><Play className="h-3.5 w-3.5 mr-1"/>运行中</Badge>;
-        case 'error': return <Badge variant="destructive"><AlertTriangle className="h-3.5 w-3.5 mr-1"/>错误</Badge>;
+        case 'enabled': return <Badge className="bg-green-100 text-green-700 border-green-300"><CheckCircle className="h-3.5 w-3.5 mr-1"/>已启用</Badge>;
+        case 'disabled': return <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-300"><XCircle className="h-3.5 w-3.5 mr-1"/>已禁用</Badge>;
+        case 'running': return <Badge className="bg-blue-100 text-blue-700 border-blue-300 animate-pulse"><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin"/>运行中</Badge>;
+        case 'error': return <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-300"><AlertTriangle className="h-3.5 w-3.5 mr-1"/>错误</Badge>;
         default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -98,7 +99,7 @@ export default function ScheduledTasksPage() {
   if (!isClient) {
      return (
       <div className="space-y-6">
-        <Card><CardHeader><CardTitle>定时任务管理</CardTitle></CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载定时任务数据...</p></CardContent></Card>
+        <Card><CardHeader><CardTitle className="text-xl">定时任务管理</CardTitle></CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载定时任务数据...</p></CardContent></Card>
       </div>
     );
   }
@@ -127,7 +128,7 @@ export default function ScheduledTasksPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                 <Select value={filterType} onValueChange={(value) => setFilterType(value as 'all' | ScheduledTask['type'])}>
                     <SelectTrigger className="w-full sm:w-[160px]">
                         <ListChecks className="mr-2 h-4 w-4"/>
@@ -174,24 +175,25 @@ export default function ScheduledTasksPage() {
               <TableBody>
                 {filteredTasks.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell className="font-medium" title={task.description}>{task.name}</TableCell>
+                    <TableCell className="font-medium" title={task.description || task.name}>{task.name}</TableCell>
                     <TableCell>{getTaskTypeLabel(task.type)}</TableCell>
                     <TableCell className="font-mono text-xs">{task.cronExpression}</TableCell>
                     <TableCell>{getStatusBadge(task.status)}</TableCell>
-                    <TableCell>{task.lastRun ? format(parseISO(task.lastRun), 'yyyy-MM-dd HH:mm') : '-'}</TableCell>
-                    <TableCell>{task.nextRun ? format(parseISO(task.nextRun), 'yyyy-MM-dd HH:mm') : '-'}</TableCell>
+                    <TableCell className="text-xs">{task.lastRun ? format(parseISO(task.lastRun), 'yyyy-MM-dd HH:mm') : '-'}</TableCell>
+                    <TableCell className="text-xs">{task.nextRun ? format(parseISO(task.nextRun), 'yyyy-MM-dd HH:mm') : '-'}</TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleRunNow(task.id)} disabled={task.status === 'running' || task.status === 'disabled'}>
-                          <Play className="mr-1 h-3 w-3" /> 立即执行
+                      <Button variant="ghost" size="sm" onClick={() => handleRunNow(task.id)} disabled={isLoadingAction[task.id] || task.status === 'disabled' || task.status === 'running'} className="h-7 px-2 text-xs">
+                        {isLoadingAction[task.id] ? <Loader2 className="mr-1 h-3 w-3 animate-spin"/> : <Play className="mr-1 h-3 w-3" />}
+                        {isLoadingAction[task.id] ? '执行中' : '立即执行'}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(task.id)} className={task.status === 'enabled' || task.status === 'running' ? 'text-yellow-600 hover:text-yellow-700' : 'text-green-600 hover:text-green-700'}>
+                      <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(task.id)} className={`${task.status === 'enabled' || task.status === 'running' ? 'text-yellow-600 hover:text-yellow-700' : 'text-green-600 hover:text-green-700'} h-7 px-2 text-xs`}>
                         {task.status === 'enabled' || task.status === 'running' ? <Pause className="mr-1 h-3 w-3"/> : <Play className="mr-1 h-3 w-3"/>}
                         {task.status === 'enabled' || task.status === 'running' ? '禁用' : '启用'}
                       </Button>
-                       <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+                       <Button variant="ghost" size="icon" className="h-7 w-7" disabled>
                         <Edit className="h-4 w-4" /> <span className="sr-only">编辑</span>
                       </Button>
-                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" disabled>
+                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" disabled>
                         <Trash2 className="h-4 w-4" /> <span className="sr-only">删除</span>
                       </Button>
                     </TableCell>
@@ -207,7 +209,7 @@ export default function ScheduledTasksPage() {
             </Table>
           </div>
            <CardFooter className="pt-4 px-0">
-                <p className="text-xs text-muted-foreground">任务编辑、删除和日志查看功能正在建设中。</p>
+                <p className="text-xs text-muted-foreground">任务编辑、删除和日志查看功能正在建设中。新建任务功能也待实现。</p>
            </CardFooter>
         </CardContent>
       </Card>
