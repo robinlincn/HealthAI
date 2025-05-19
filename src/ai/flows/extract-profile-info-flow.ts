@@ -35,7 +35,7 @@ const ExtractProfileInfoOutputSchema = z.object({
   dob: z.string().optional().describe("Patient's date of birth in YYYY-MM-DD format."),
   address: z.string().optional().describe("Patient's home address."),
   contactPhone: z.string().optional().describe("Patient's contact phone number."),
-  contactEmail: z.string().email().optional().describe("Patient's contact email address."),
+  contactEmail: z.string().optional().describe("Patient's contact email address. Should be a valid email format e.g. user@example.com."),
   bloodType: z.enum(["A", "B", "O", "AB", "unknown"] as [BloodType, ...BloodType[]]).optional().describe("Patient's blood type."),
   maritalStatus: z.enum(["unmarried", "married", "divorced", "widowed", "other"] as [MaritalStatus, ...MaritalStatus[]]).optional().describe("Patient's marital status."),
   occupation: z.string().optional().describe("Patient's occupation."),
@@ -171,7 +171,7 @@ Prioritize accuracy. If a piece of information is not clearly found or is ambigu
 For dates, strictly use YYYY-MM-DD format.
 For selection-based fields (like gender, blood type, yes/no questions, SAS questionnaire answers, etc.), try to match your output to one of the common options implied by the field's description if possible, or provide the closest textual match from the document.
 
-The target JSON schema for the output has been provided to you by the system. Fill as many fields as possible based on the document content.
+Fill as many fields as possible based on the document content according to the output schema you have been provided.
 `,
 });
 
