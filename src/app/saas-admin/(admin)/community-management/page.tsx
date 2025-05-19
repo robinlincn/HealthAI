@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageSquare, Search, Filter, PlusCircle, ExternalLink, List, LogIn, CheckCircle, AlertTriangle, Briefcase, Users as UsersIcon, RotateCcw } from "lucide-react";
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range'; // Assuming this exists
 import type { DateRange } from "react-day-picker";
-import { useToast } from '@/hooks/use-toast'; 
+import { useToast } from '@/hooks/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, subDays, parseISO } from 'date-fns';
@@ -24,10 +24,12 @@ const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-001', name: '示例医院A', contactPerson: '张三院长', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'13800000001', status: 'active', assignedResources: {maxUsers:10,maxStorageGB:10,maxPatients:100}},
   { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四主任', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'13900000002', status: 'active', assignedResources: {maxUsers:10,maxStorageGB:10,maxPatients:100}},
 ];
-const mockEmployees: SaasEmployee[] = [
-    { id: 'emp-001a', enterpriseId: 'ent-001', departmentId: 'dept-001', name: '王明医生', email: 'wm@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
-    { id: 'emp-002a', enterpriseId: 'ent-001', departmentId: 'dept-002', name: '刘芳护士', email: 'lf@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
-    { id: 'emp-001b', enterpriseId: 'ent-002', departmentId: 'dept-003', name: '孙琳技师', email: 'sl@healthb.com', status: 'invited', joinDate: new Date().toISOString() },
+// Define allEmployees here for the page scope
+const allMockEmployees: SaasEmployee[] = [
+    { id: 'emp-001a', enterpriseId: 'ent-001', departmentId: 'dept-001', name: '王明医生', email: 'wm@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+    { id: 'emp-002a', enterpriseId: 'ent-001', departmentId: 'dept-002', name: '刘芳护士', email: 'lf@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+    { id: 'emp-001b', enterpriseId: 'ent-002', departmentId: 'dept-003', name: '孙琳技师', email: 'sl@healthb.com', status: 'invited', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+    { id: 'emp-004c', enterpriseId: 'ent-001', name: '周医生', email: 'zhou@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString()}
 ];
 const mockPatients: SaasPatient[] = [
   { id: 'pat-saas-001', enterpriseId: 'ent-001', name: '刘备', gender: 'male', dob: '1961-07-23', primaryDisease: '高血压', contactPhone: '13012340001' },
@@ -69,8 +71,8 @@ export default function CommunityManagementPage() {
   }, []);
   
   const availableEmployeesForFilter = useMemo(() => {
-    if (selectedEnterpriseId === "all") return allEmployees;
-    return allEmployees.filter(emp => emp.enterpriseId === selectedEnterpriseId);
+    if (selectedEnterpriseId === "all") return allMockEmployees; // Use the defined allMockEmployees
+    return allMockEmployees.filter(emp => emp.enterpriseId === selectedEnterpriseId);
   }, [selectedEnterpriseId]);
 
   const filteredCommunityGroups = useMemo(() => {
@@ -156,11 +158,11 @@ export default function CommunityManagementPage() {
                  <div key={pc.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 border rounded-md">
                     <div>
                         <p className="font-medium">{pc.accountName}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground"> {/* Changed from p to div for valid nesting */}
                             类型: {pc.platform === 'wechat_personal_bot' ? '个人微信Bot' : '企业微信应用'} | 
                             状态: <Badge variant={pc.status === 'connected' ? 'default' : 'outline'} className={`${pc.status === 'connected' ? 'bg-green-500' : ''}`}>{pc.status}</Badge>
-                            {pc.lastSync && <span className="ml-2">上次同步: {format(parseISO(pc.lastSync), 'yy-MM-dd HH:mm')}</span>}
-                        </p>
+                            {pc.status === 'connected' && pc.lastSync && <span className="ml-2">上次同步: {format(parseISO(pc.lastSync), "yyyy-MM-dd HH:mm")}</span>}
+                        </div>
                     </div>
                     <div className="flex gap-2 mt-2 sm:mt-0">
                         {pc.status !== 'connected' && <Button size="sm" onClick={() => handleConnectPlatform(pc.platform === 'wechat_personal_bot' ? 'personal' : 'enterprise')} disabled>连接</Button>}
@@ -208,7 +210,7 @@ export default function CommunityManagementPage() {
           <CommunityGroupTable
             groups={filteredCommunityGroups}
             enterprises={mockEnterprises}
-            employees={mockEmployees}
+            employees={allMockEmployees} // Pass allMockEmployees to the table
             onEdit={handleEditGroup}
             onDelete={handleDeleteGroup}
             onSyncLogs={handleSyncGroupLogs}
@@ -216,14 +218,14 @@ export default function CommunityManagementPage() {
         </CardContent>
       </Card>
       
-      {isClient && platformConnections && enterprises && mockEmployees && mockPatients && (
+      {isClient && (
         <CommunityGroupDialog
             isOpen={isGroupDialogOpen}
             onClose={() => setIsGroupDialogOpen(false)}
             onSubmit={handleGroupDialogSubmit}
             group={editingGroup}
             enterprises={mockEnterprises}
-            allEmployees={mockEmployees}
+            allEmployees={allMockEmployees} // Pass allMockEmployees to the dialog
             allPatients={mockPatients}
             platformConnections={platformConnections}
         />
@@ -248,3 +250,5 @@ export default function CommunityManagementPage() {
     </div>
   );
 }
+
+    
