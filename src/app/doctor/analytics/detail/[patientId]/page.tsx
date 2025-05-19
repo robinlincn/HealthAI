@@ -6,10 +6,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BarChart3, FileSpreadsheet, LineChart as LineChartIcon, Loader2, Download, UserCircle } from "lucide-react";
+import { ArrowLeft, BarChart3, FileSpreadsheet, LineChart as LineChartIcon, Loader2, Download, UserCircle, CalendarClock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { generateDataAnalysisReport, type GenerateDataAnalysisReportInput, type GenerateDataAnalysisReportOutput } from "@/ai/flows/generate-data-analysis-report";
 
 import {
   ChartContainer,
@@ -59,54 +62,52 @@ export default function PatientAnalyticsDetailPage() {
   const { toast } = useToast();
   const [isLoadingReport, setIsLoadingReport] = useState(false);
   const [patientDataInput, setPatientDataInput] = useState("");
-  const [generatedReport, setGeneratedReport] = useState<string | null>(null);
+  const [generatedReport, setGeneratedReport] = useState<GenerateDataAnalysisReportOutput | null>(null);
+  const [selectedReportPeriod, setSelectedReportPeriod] = useState<string>("monthly_report"); // Default to monthly
 
   useEffect(() => {
     const details = getPatientDetails(patientId);
     setPatient(details);
     if (details) {
-      setPatientDataInput(`病人姓名: ${details.name}\n年龄: ${details.age}\n性别: ${details.gender}\n主要诊断: ${details.diagnosis}\n健康数据摘要: ${details.healthDataSummary}\n\n近期血糖数据：...\n近期血压数据：...\n主要症状：...`);
+      setPatientDataInput(`病人姓名: ${details.name}\n年龄: ${details.age}\n性别: ${details.gender}\n主要诊断: ${details.diagnosis}\n健康数据摘要: ${details.healthDataSummary}\n\n近期血糖数据（示例）：...\n近期血压数据（示例）：...\n主要症状：...\n`);
     }
   }, [patientId]);
 
   const handleGenerateReport = async () => {
     if (!patientDataInput.trim()) {
-      toast({ title: "请输入病人数据", variant: "destructive" });
+      toast({ title: "请输入病人数据", variant: "destructive", description: "需要提供病人健康数据以生成报告。" });
       return;
     }
     setIsLoadingReport(true);
     setGeneratedReport(null);
-    // Mock AI report generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const mockReport = `
-病情分析报告 - 病人：${patient?.name || '未知'} (ID: ${patientId})
-==================================
-
-数据统计:
------------
-- 根据输入数据分析... (示例：平均血糖（近7天）: 7.8 mmol/L)
-- 根据输入数据分析... (示例：血压（平均）: 135/88 mmHg)
-
-趋势分析:
------------
-- 根据输入数据分析... (示例：血糖水平整体偏高)
-
-异常数据标记:
--------------
-- 根据输入数据分析... (示例：2024-05-03 餐后血糖达12.5 mmol/L)
-
-初步建议:
----------
-1. 建议调整当前治疗方案。
-2. 强化饮食控制教育。
-3. 密切监测相关指标。
-
-**免责声明: 此报告由AI生成，仅供参考，具体诊疗请结合临床实际情况。**
-    `;
-    setGeneratedReport(mockReport);
-    setIsLoadingReport(false);
-    toast({ title: "AI病情分析报告已生成 (模拟)" });
+    
+    try {
+      const reportInput: GenerateDataAnalysisReportInput = {
+        healthData: patientDataInput,
+        reportType: selectedReportPeriod, // Pass selected period
+        userPreferences: "请重点关注血糖和血压的控制情况，并给出具体的生活方式调整建议。", // Example preference
+      };
+      const result = await generateDataAnalysisReport(reportInput);
+      setGeneratedReport(result);
+      toast({ title: "AI病情分析报告已生成", description: "报告内容已显示在下方。" });
+    } catch (error) {
+      console.error("Error generating AI report:", error);
+      toast({ title: "报告生成失败", description: "AI分析时发生错误，请稍后再试。", variant: "destructive" });
+    } finally {
+      setIsLoadingReport(false);
+    }
   };
+  
+  const reportPeriodOptions = [
+    { value: "daily_report", label: "每日报告" },
+    { value: "weekly_report", label: "每周报告" },
+    { value: "biweekly_report", label: "半月报告" },
+    { value: "monthly_report", label: "月度报告" },
+    { value: "quarterly_report", label: "季度报告" },
+    { value: "semiannual_report", label: "半年度报告" },
+    { value: "annual_report", label: "年度报告" },
+  ];
+
 
   if (!patient) {
     return (
@@ -156,7 +157,6 @@ export default function PatientAnalyticsDetailPage() {
               <CardDescription>查看病人 {patient.name} 的健康数据趋势。</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-              {/* Blood Sugar Chart */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">血糖数据趋势</CardTitle>
@@ -176,7 +176,6 @@ export default function PatientAnalyticsDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Blood Pressure Chart */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">血压数据趋势</CardTitle>
@@ -209,7 +208,23 @@ export default function PatientAnalyticsDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label htmlFor="patientData" className="block text-sm font-medium mb-1">病人相关数据 (自动填充，可编辑)</label>
+                <Label htmlFor="reportPeriodSelect" className="block text-sm font-medium mb-1">选择报告周期</Label>
+                <Select value={selectedReportPeriod} onValueChange={setSelectedReportPeriod}>
+                    <SelectTrigger id="reportPeriodSelect" className="w-full md:w-[240px]">
+                         <CalendarClock className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="选择报告周期" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {reportPeriodOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">选择周期后，请在下方文本框中提供该周期内的相关健康数据。</p>
+              </div>
+
+              <div>
+                <Label htmlFor="patientData" className="block text-sm font-medium mb-1">病人相关数据 (请确保与所选周期一致)</Label>
                 <Textarea
                   id="patientData"
                   placeholder="粘贴或输入病人的健康数据、病历摘要、主诉等信息..."
@@ -217,7 +232,7 @@ export default function PatientAnalyticsDetailPage() {
                   value={patientDataInput}
                   onChange={(e) => setPatientDataInput(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">提供的数据越全面，AI分析越精准。</p>
+                <p className="text-xs text-muted-foreground mt-1">提供的数据越全面、与所选周期越匹配，AI分析越精准。</p>
               </div>
               <Button onClick={handleGenerateReport} disabled={isLoadingReport}>
                 {isLoadingReport ? (
@@ -227,19 +242,29 @@ export default function PatientAnalyticsDetailPage() {
                 )}
                 {isLoadingReport ? "报告生成中..." : "生成分析报告"}
               </Button>
+              <p className="text-xs text-muted-foreground">自动生成并推送报告给病人的功能正在规划中。医生可根据半月或月度报告调整治疗计划。</p>
 
               {generatedReport && (
                 <Card className="mt-6">
                   <CardHeader className="flex flex-row justify-between items-center">
-                    <CardTitle className="text-lg">生成的分析报告</CardTitle>
-                    <Button variant="outline" onClick={() => alert("导出功能暂未实现")}>
+                    <CardTitle className="text-lg">{generatedReport.reportTitle || "AI分析报告"}</CardTitle>
+                    <Button variant="outline" onClick={() => toast({title: "提示", description: "导出功能暂未实现。"})}>
                       <Download className="mr-2 h-4 w-4" /> 导出报告
                     </Button>
                   </CardHeader>
-                  <CardContent>
-                    <div className="p-4 border rounded-md bg-muted/30 whitespace-pre-wrap text-sm max-h-[400px] overflow-y-auto">
-                      {generatedReport}
-                    </div>
+                  <CardContent className="space-y-3">
+                     <div>
+                        <h3 className="font-semibold mb-1">报告摘要:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{generatedReport.reportSummary}</p>
+                     </div>
+                     <div>
+                        <h3 className="font-semibold mb-1">详细分析:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{generatedReport.reportDetails}</p>
+                     </div>
+                      <div>
+                        <h3 className="font-semibold mb-1">AI建议:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{generatedReport.recommendations}</p>
+                     </div>
                   </CardContent>
                 </Card>
               )}
