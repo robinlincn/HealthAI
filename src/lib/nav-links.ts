@@ -15,6 +15,7 @@ import {
   Users, 
   HelpCircle, 
   BellRing, 
+  Pill, // Added Pill icon
 } from 'lucide-react';
 
 export const navLinks: NavItem[] = [
@@ -24,7 +25,7 @@ export const navLinks: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: '健康数据', // 原 健康可视化
+    title: '健康数据', 
     href: '/dashboard/health-data',
     icon: LineChart,
   },
@@ -32,6 +33,11 @@ export const navLinks: NavItem[] = [
     title: '饮食记录',
     href: '/dashboard/nutrition',
     icon: Apple,
+  },
+  {
+    title: '用药计划', // New Medication Plan link
+    href: '/dashboard/medication-plan',
+    icon: Pill,
   },
   {
     title: '检查报告', 
@@ -69,7 +75,7 @@ export const navLinks: NavItem[] = [
     icon: Users,
   },
    {
-    title: '我的', // Changed from '个人信息' to '我的' to match new design and typical app navigation
+    title: '我的', 
     href: '/dashboard/profile',
     icon: UserCircle,
   },
