@@ -393,7 +393,7 @@ export interface SaasEmployee {
   roleTitle?: string;
   status: 'active' | 'invited' | 'disabled';
   joinDate: string;
-  creationDate?: string;
+  creationDate?: string; // Ensure creationDate is optional or always present
 }
 
 export interface SaasPatient {
@@ -419,7 +419,7 @@ export interface SaasServicePackage {
   maxStorageGB: number;
   maxPatients: number;
   isEnabled: boolean;
-  creationDate?: string; // Added optional creationDate
+  creationDate?: string; 
 }
 
 export interface SaasOrder {
@@ -473,15 +473,23 @@ export interface SaasSopService {
 export interface SaasOutboundCallTask {
   id: string;
   name: string;
-  targetType: 'customer_segment' | 'employee_group' | 'custom_list' | 'individual_patient';
-  targetDetails: string; 
+  enterpriseId?: string;      // Which enterprise initiated/owns this task
+  creatingDoctorId?: string; // Which doctor user initiated this task (if from doctor portal)
+  creatingSaasAdminId?: string; // Which SAAS admin user initiated (if platform level)
+  targetType: 'individual_patient' | 'patient_group' | 'custom_list' | 'employee_group'; // Added 'patient_group'
+  targetPatientId?: string;
+  targetGroupId?: string;      // Link to OutboundCallGroup.id
+  targetCustomListDetails?: string; // e.g., criteria for custom list, or list name
+  targetDescription?: string; // Display friendly name for target (e.g. patient name, group name)
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-  creationDate: string;
-  scheduledTime?: string; 
-  scriptId?: string; 
-  assignedTo?: string; 
-  callCount?: number;
-  successCount?: number;
+  creationDate: string; // ISO
+  scheduledTime?: string; // ISO
+  callContentSummary?: string; // Summary of the call content/script
+  sopServiceId?: string;   // Link to SaasSopServices.id if automated
+  assignedToEmployeeId?: string; // Employee who will manually execute (if manual task)
+  callCount?: number; // Total calls made or attempted for this task instance
+  successCount?: number; // Successful calls for this task instance
+  completionStatus?: 'success_all' | 'partial_success' | 'failed_all' | 'not_applicable'; // Overall completion status for the task
   notes?: string;
 }
 
@@ -503,52 +511,62 @@ export interface SaasAiWorkflowApiConfig {
   status?: 'active' | 'inactive'; 
 }
 
-// New types for Community Management
 export interface SaasPlatformConnection {
   id: string;
-  enterpriseId?: string; // Optional: Some connections might be platform-wide, others enterprise-specific
+  enterpriseId?: string; 
   platform: 'wechat_personal_bot' | 'wechat_enterprise_app' | 'other';
-  accountName: string; // e.g., "张三的个人微信机器人", "XX医院的企业微信应用"
+  accountName: string; 
   status: 'connected' | 'disconnected' | 'error' | 'requires_reauth' | 'pending_setup';
-  lastSync?: string; // ISO date string
-  associatedEmployeeId?: string; // For personal bots linked to an employee
+  lastSync?: string; 
+  associatedEmployeeId?: string; 
   notes?: string;
 }
 
 export interface SaasCommunityGroup {
   id: string;
-  name: string; // Group Name
-  enterpriseId: string; // Belongs to which enterprise/hospital
-  managingEmployeeId?: string; // Which employee manages or is responsible for this group
+  name: string; 
+  enterpriseId: string; 
+  managingEmployeeId?: string; 
   type: 'personal_wechat_group' | 'enterprise_wechat_group' | 'other_platform_group';
-  platformGroupId?: string; // External ID of the group on the platform (e.g., WeChat group ID)
+  platformGroupId?: string; 
   description?: string;
-  memberPatientIds?: string[]; // List of patient User IDs who are members
-  patientCount?: number; // Derived from memberPatientIds.length or a separate count
-  platformConnectionId?: string; // Which SaasPlatformConnection is monitoring/managing this group
+  memberPatientIds?: string[]; 
+  patientCount?: number; 
+  platformConnectionId?: string; 
   connectionStatus: 'active_sync' | 'inactive_sync' | 'error_sync' | 'not_monitored';
-  lastLogSync?: string; // ISO date string for last message sync
-  creationDate: string; // ISO date string
-  tags?: string[]; // E.g., "高血压交流", "VIP服务"
+  lastLogSync?: string; 
+  creationDate: string; 
+  tags?: string[]; 
 }
 
-export interface SaasCommunityMessageLog { // This corresponds to SaasCommunityMessageLogs in schema
+export interface SaasCommunityMessageLog { 
   id: string;
-  communityGroupId: string; // Link to SaasCommunityGroup
-  platform: SaasPlatformConnection['platform']; // e.g., 'wechat_personal_bot'
-  platformGroupIdExternal?: string; // External group ID
-  platformMessageIdExternal?: string; // External message ID
-  senderPlatformId?: string; // External sender ID (WeChat ID, etc.)
-  senderSaasUserId?: string; // If sender can be mapped to a SaasEmployee or SaasPatient
-  senderNameDisplay: string; // Name to display in logs
+  communityGroupId: string; 
+  platform: SaasPlatformConnection['platform']; 
+  platformGroupIdExternal?: string; 
+  platformMessageIdExternal?: string; 
+  senderPlatformId?: string; 
+  senderSaasUserId?: string; 
+  senderNameDisplay: string; 
   messageContent: string;
   messageType: 'text' | 'image' | 'file' | 'voice' | 'system_notification';
   fileUrl?: string;
-  timestamp: string; // ISO date string of the message
-  loggedAt: string; // ISO date string when it was logged into SAAS
+  timestamp: string; 
+  loggedAt: string; 
   isBotMessage?: boolean;
-  metadataJson?: string; // Raw message data or additional metadata
+  metadataJson?: string; 
 }
     
-
+export interface SaasScheduledTask {
+  id: string;
+  name: string;
+  type: 'data_backup' | 'report_generation' | 'notification_push' | 'system_cleanup' | 'external_sync';
+  cronExpression: string;
+  status: 'enabled' | 'disabled' | 'running' | 'error';
+  lastRunAt?: string; 
+  nextRunAt?: string; 
+  lastRunStatus?: string; 
+  description?: string;
+  jobHandlerIdentifier: string;
+}
     

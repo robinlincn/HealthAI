@@ -6,19 +6,45 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { SaasOutboundCallTask } from '@/lib/types';
-import { Send, PlusCircle, Search, Filter, CalendarDays, Users, Bot } from "lucide-react";
+import type { SaasOutboundCallTask, SaasEnterprise, SaasEmployee, OutboundCallGroup, SaasPatient, SaasSopService } from '@/lib/types';
+import { Send, PlusCircle, Search, Filter, CalendarDays, Users, Bot, Briefcase } from "lucide-react"; // Added Briefcase
 import { useToast } from '@/hooks/use-toast';
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import type { DateRange } from 'react-day-picker';
 import { OutboundCallTaskTable } from './components/OutboundCallTaskTable';
 import { OutboundCallTaskDialog } from './components/OutboundCallTaskDialog';
-import { subDays, format } from 'date-fns';
+import { subDays, format, parseISO } from 'date-fns';
+import { Label } from '@/components/ui/label';
+
+const mockEnterprises: SaasEnterprise[] = [
+  { id: 'ent-001', name: '示例医院A', contactPerson: '张三', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
+  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
+];
+const mockEmployees: SaasEmployee[] = [
+  { id: 'emp-001a', enterpriseId: 'ent-001', name: '王明医生', email: 'wm@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
+  { id: 'emp-002b', enterpriseId: 'ent-002', name: '李芳护士', email: 'lf@healthb.com', status: 'active', joinDate: new Date().toISOString() },
+  { id: 'saas-admin-01', name: 'SAAS平台管理员A', email: 'admin@saas.com', enterpriseId: '', status: 'active', joinDate: new Date().toISOString() }, // Example SAAS admin
+];
+const mockPatients: SaasPatient[] = [
+  { id: 'pat-saas-001', enterpriseId: 'ent-001', name: '刘备', gender: 'male', dob: '1961-07-23', primaryDisease: '高血压' },
+  { id: 'pat-saas-002', enterpriseId: 'ent-001', name: '关羽', gender: 'male', dob: '1960-08-12', primaryDisease: '2型糖尿病' },
+  { id: 'pat-saas-003', enterpriseId: 'ent-002', name: '孙尚香', gender: 'female', dob: '1987-03-15', primaryDisease: '哮喘' },
+];
+const mockGroups: OutboundCallGroup[] = [
+  { id: 'grp-hbp-001', enterpriseId: 'ent-001', name: '高血压随访组A院', patientIds: ['pat-saas-001'], memberCount: 1, creationDate: new Date().toISOString() },
+  { id: 'grp-dm-001', enterpriseId: 'ent-001', name: '糖尿病教育组A院', patientIds: ['pat-saas-002'], memberCount: 1, creationDate: new Date().toISOString() },
+  { id: 'grp-asthma-002', enterpriseId: 'ent-002', name: '哮喘关怀组B中心', patientIds: ['pat-saas-003'], memberCount: 1, creationDate: new Date().toISOString() },
+];
+const mockSopServices: SaasSopService[] = [
+    {id: 'sop-coze-001', name: '智能健康问答Bot (Coze)', type: 'Coze', apiEndpoint: 'coze_endpoint', status: 'active', creationDate: new Date().toISOString()},
+    {id: 'sop-dify-001', name: '用药提醒工作流 (Dify)', type: 'Dify', apiEndpoint: 'dify_endpoint', status: 'active', creationDate: new Date().toISOString()},
+];
+
 
 const mockInitialTasks: SaasOutboundCallTask[] = [
-  { id: 'task-001', name: '季度健康回访', targetType: 'customer_segment', targetDetails: '高血压风险人群', status: 'scheduled', creationDate: subDays(new Date(), 10).toISOString(), scheduledTime: new Date().toISOString(), callCount: 50, successCount: 35 },
-  { id: 'task-002', name: '新服务推广', targetType: 'custom_list', targetDetails: 'VIP客户列表', status: 'in_progress', creationDate: subDays(new Date(), 5).toISOString(), assignedTo: 'emp-001a', callCount: 20, successCount: 8 },
-  { id: 'task-003', name: '用药提醒确认', targetType: 'individual_patient', targetDetails: 'pat-saas-001', status: 'completed', creationDate: subDays(new Date(), 2).toISOString(), callCount:1, successCount:1, notes: '病人已确认按时服药'},
+  { id: 'task-saas-001', name: '季度健康回访 (医院A高血压病人)', enterpriseId: 'ent-001', creatingDoctorId: 'emp-001a', targetType: 'patient_group', targetGroupId: 'grp-hbp-001', targetDescription: '高血压随访组A院', status: 'scheduled', creationDate: subDays(new Date(), 10).toISOString(), scheduledTime: new Date().toISOString(), callCount: 50, successCount: 35 },
+  { id: 'task-saas-002', name: '新服务推广 (平台级)', targetType: 'custom_list', targetDetails: 'VIP客户列表 (平台)', targetDescription: '平台VIP客户', status: 'in_progress', creationDate: subDays(new Date(), 5).toISOString(), assignedToEmployeeId: 'saas-admin-01', callCount: 20, successCount: 8 },
+  { id: 'task-saas-003', name: '用药提醒 (李四)', enterpriseId: 'ent-001', creatingDoctorId: 'emp-001a', targetType: 'individual_patient', targetPatientId: 'pat-saas-002', targetDescription: '李四', status: 'completed', creationDate: subDays(new Date(), 2).toISOString(), callCount:1, successCount:1, notes: '病人已确认按时服药', callContentSummary: '提醒李四按时服用降糖药，并询问有无不适。'},
 ];
 
 export default function OutboundCallTasksPage() {
@@ -27,8 +53,9 @@ export default function OutboundCallTasksPage() {
   const [editingTask, setEditingTask] = useState<SaasOutboundCallTask | null>(null);
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterEnterprise, setFilterEnterprise] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<SaasOutboundCallTask['status'] | "all">("all");
-  const [filterType, setFilterType] = useState<SaasOutboundCallTask['targetType'] | "all">("all");
+  const [filterTargetType, setFilterTargetType] = useState<SaasOutboundCallTask['targetType'] | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   const { toast } = useToast();
@@ -58,23 +85,29 @@ export default function OutboundCallTasksPage() {
 
   const handleDialogSubmit = (data: SaasOutboundCallTask) => {
     if (editingTask) {
-      setTasks(prev => prev.map(t => (t.id === editingTask.id ? { ...t, ...data } : t)));
+      setTasks(prev => prev.map(t => (t.id === editingTask.id ? data : t)));
       toast({ title: '更新成功', description: `外呼任务 "${data.name}" 信息已更新。`});
     } else {
-      const newTask = { ...data, id: `task-${Date.now().toString()}`, creationDate: new Date().toISOString() };
-      setTasks(prev => [newTask, ...prev]);
+      setTasks(prev => [data, ...prev]);
       toast({ title: '创建成功', description: `新外呼任务 "${data.name}" 已添加。`});
     }
     setIsDialogOpen(false);
     setEditingTask(null);
   };
+  
+  const handleChangeStatus = (taskId: string, newStatus: SaasOutboundCallTask['status']) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    toast({ title: '状态更新', description: `任务 ${taskId} 状态已更新为 ${newStatus}`});
+  };
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
       const searchMatch = task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          task.targetDetails.toLowerCase().includes(searchTerm.toLowerCase());
+                          (task.targetDescription && task.targetDescription.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (task.targetDetails && task.targetDetails.toLowerCase().includes(searchTerm.toLowerCase()));
+      const enterpriseMatch = filterEnterprise === "all" || task.enterpriseId === filterEnterprise || (filterEnterprise === "platform_level" && !task.enterpriseId);
       const statusMatch = filterStatus === "all" || task.status === filterStatus;
-      const typeMatch = filterType === "all" || task.targetType === filterType;
+      const typeMatch = filterTargetType === "all" || task.targetType === filterTargetType;
       
       let dateMatch = true;
       if (dateRange?.from && task.creationDate) {
@@ -85,14 +118,14 @@ export default function OutboundCallTasksPage() {
         toDate.setHours(23, 59, 59, 999);
         dateMatch = new Date(task.creationDate) <= toDate;
       }
-      return searchMatch && statusMatch && typeMatch && dateMatch;
+      return searchMatch && enterpriseMatch && statusMatch && typeMatch && dateMatch;
     });
-  }, [tasks, searchTerm, filterStatus, filterType, dateRange]);
+  }, [tasks, searchTerm, filterEnterprise, filterStatus, filterTargetType, dateRange]);
 
   if (!isClient) {
     return (
       <div className="space-y-6">
-        <Card><CardHeader><CardTitle>外呼任务</CardTitle></CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载外呼任务数据...</p></CardContent></Card>
+        <Card><CardHeader><CardTitle>外呼任务管理</CardTitle></CardHeader><CardContent><p className="text-center p-8 text-muted-foreground">正在加载外呼任务数据...</p></CardContent></Card>
       </div>
     );
   }
@@ -103,25 +136,35 @@ export default function OutboundCallTasksPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
             <Send className="h-6 w-6 text-primary" />
-            外呼任务管理
+            外呼任务管理 (SAAS平台)
           </CardTitle>
           <CardDescription>
-            设置和管理自动或人工外呼任务，用于客户回访、业务推广、通知提醒等。
+            查看和管理由医生端或平台发起的各类外呼任务。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 flex-grow">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-4 border p-4 rounded-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-grow w-full">
               <div className="relative">
+                <Label htmlFor="taskSearch" className="sr-only">搜索任务</Label>
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
+                    id="taskSearch"
                     type="search"
-                    placeholder="搜索任务名称、目标..."
+                    placeholder="任务名称, 目标..."
                     className="pl-8 w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <Select value={filterEnterprise} onValueChange={setFilterEnterprise}>
+                  <SelectTrigger><Briefcase className="mr-2 h-4 w-4"/>企业筛选</SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">所有企业</SelectItem>
+                      <SelectItem value="platform_level">平台级任务</SelectItem>
+                      {mockEnterprises.map(ent => (<SelectItem key={ent.id} value={ent.id}>{ent.name}</SelectItem>))}
+                  </SelectContent>
+              </Select>
               <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as SaasOutboundCallTask['status'] | "all")}>
                   <SelectTrigger><Filter className="mr-2 h-4 w-4"/>任务状态</SelectTrigger>
                   <SelectContent>
@@ -134,29 +177,33 @@ export default function OutboundCallTasksPage() {
                       <SelectItem value="cancelled">已取消</SelectItem>
                   </SelectContent>
               </Select>
-              <Select value={filterType} onValueChange={(value) => setFilterType(value as SaasOutboundCallTask['targetType'] | "all")}>
-                  <SelectTrigger><Filter className="mr-2 h-4 w-4"/>目标类型</SelectTrigger>
+              <Select value={filterTargetType} onValueChange={(value) => setFilterTargetType(value as SaasOutboundCallTask['targetType'] | "all")}>
+                  <SelectTrigger><Users className="mr-2 h-4 w-4"/>目标类型</SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="all">所有类型</SelectItem>
-                      <SelectItem value="customer_segment">客户分群</SelectItem>
-                      <SelectItem value="employee_group">员工组</SelectItem>
-                      <SelectItem value="custom_list">自定义列表</SelectItem>
+                      <SelectItem value="all">所有目标类型</SelectItem>
                       <SelectItem value="individual_patient">单个病人</SelectItem>
+                      <SelectItem value="patient_group">病人组</SelectItem>
+                      <SelectItem value="custom_list">自定义列表</SelectItem>
+                      <SelectItem value="employee_group">员工组</SelectItem>
                   </SelectContent>
               </Select>
-              <div className="md:col-span-3">
-                <DatePickerWithRange date={dateRange} onDateChange={setDateRange} className="w-full" />
+              <div className="lg:col-span-2">
+                <Label htmlFor="taskDateRange" className="block text-xs font-medium mb-1 text-muted-foreground">创建日期范围</Label>
+                <DatePickerWithRange id="taskDateRange" date={dateRange} onDateChange={setDateRange} className="w-full" />
               </div>
             </div>
-            <Button onClick={handleAddTask} className="w-full sm:w-auto mt-2 md:mt-0">
-                <PlusCircle className="mr-2 h-4 w-4" /> 新建外呼任务
+            <Button onClick={handleAddTask} className="w-full sm:w-auto shrink-0">
+                <PlusCircle className="mr-2 h-4 w-4" /> 新建平台任务
             </Button>
           </div>
           
           <OutboundCallTaskTable 
             tasks={filteredTasks}
+            enterprises={mockEnterprises}
+            employees={mockEmployees}
             onEdit={handleEditTask}
             onDelete={handleDeleteTask} 
+            onChangeStatus={handleChangeStatus}
           />
         </CardContent>
       </Card>
@@ -169,7 +216,13 @@ export default function OutboundCallTasksPage() {
         }}
         onSubmit={handleDialogSubmit}
         task={editingTask}
+        enterprises={mockEnterprises}
+        allEmployees={mockEmployees}
+        allPatients={mockPatients}
+        allGroups={mockGroups}
+        allSopServices={mockSopServices}
       />
     </div>
   );
 }
+
