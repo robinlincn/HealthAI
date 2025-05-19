@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card"; // Added Card import
 import type { TreatmentPlan, TreatmentPlanMedication } from "@/lib/types";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -122,7 +123,7 @@ export function TreatmentPlanFormDialog({
         medStartDate: med.medStartDate ? parseISO(med.medStartDate).toISOString() : undefined,
         medEndDate: med.medEndDate ? parseISO(med.medEndDate).toISOString() : undefined,
       })) || [],
-      isActive: data.isActive,
+      isActive: data.isActive ?? true, // Ensure isActive has a default boolean value
       creationDate: initialData?.creationDate || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -236,3 +237,5 @@ export function TreatmentPlanFormDialog({
     </Dialog>
   );
 }
+
+    
