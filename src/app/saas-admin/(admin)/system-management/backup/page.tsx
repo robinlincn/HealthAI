@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatabaseBackup, RotateCcw, DownloadCloud, UploadCloud, History, ListChecks, Server, Clock4 } from "lucide-react";
+import { DatabaseBackup, RotateCcw, DownloadCloud, UploadCloud, History, ListChecks, Server, Clock4, CheckCircle, XCircle, AlertTriangle } from "lucide-react"; // Added missing icons
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
-import { format, subHours, subDays } from 'date-fns';
+import { format, parseISO, subHours, subDays } from 'date-fns'; // Ensure parseISO is imported
 import { Badge } from '@/components/ui/badge';
 
 interface BackupRecord {
@@ -68,9 +68,9 @@ export default function SaasBackupPage() {
   
   const getStatusBadge = (status: BackupRecord['status']) => {
     switch(status) {
-        case 'completed': return <Badge className="bg-green-500 hover:bg-green-600"><CheckCircle className="h-3 w-3 mr-1"/>已完成</Badge>;
-        case 'failed': return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1"/>失败</Badge>;
-        case 'in_progress': return <Badge className="bg-blue-500 text-white hover:bg-blue-600 animate-pulse"><Clock4 className="h-3 w-3 mr-1"/>进行中</Badge>;
+        case 'completed': return <Badge className="bg-green-100 text-green-700 border-green-300"><CheckCircle className="h-3 w-3 mr-1"/>已完成</Badge>;
+        case 'failed': return <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-300"><XCircle className="h-3 w-3 mr-1"/>失败</Badge>;
+        case 'in_progress': return <Badge className="bg-blue-100 text-blue-700 border-blue-300 animate-pulse"><Clock4 className="h-3 w-3 mr-1"/>进行中</Badge>;
         default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -174,11 +174,11 @@ export default function SaasBackupPage() {
                             <TableBody>
                                 {backupHistory.map(b => (
                                     <TableRow key={b.id}>
-                                        <TableCell>{format(parseISO(b.timestamp), 'yyyy-MM-dd HH:mm')}</TableCell>
+                                        <TableCell>{isClient ? format(parseISO(b.timestamp), 'yyyy-MM-dd HH:mm') : '...'}</TableCell>
                                         <TableCell>{b.type === 'manual' ? '手动' : '自动'}</TableCell>
                                         <TableCell>{getStatusBadge(b.status)}</TableCell>
                                         <TableCell>{b.size || '-'}</TableCell>
-                                        <TableCell className="max-w-xs truncate" title={b.notes}>{b.notes || '-'}</TableCell>
+                                        <TableCell className="max-w-xs truncate" title={b.notes || undefined}>{b.notes || '-'}</TableCell>
                                         <TableCell className="text-right">
                                             <Button 
                                                 variant="outline" 
