@@ -1,12 +1,11 @@
-
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Keep Card for individual sections
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // CardDescription might be needed
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BarChart3, Activity, Droplets, Scale, HeartPulse, Dumbbell } from "lucide-react";
+import { BarChart3, Activity, Droplets, Scale, HeartPulse, Dumbbell, GitCompareArrows, ArrowUpCircle, ArrowDownCircle, MinusCircle } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -15,11 +14,12 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart as RechartsLineChart, BarChart as RechartsBarChart, Bar, Line as RechartsLine, Tooltip as RechartsTooltip } from "recharts";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, subDays, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock data
+// Mock data (original, for existing charts)
 const mockBloodSugarData = [
   { date: "2023-01-01", value: 5.5 }, { date: "2023-01-02", value: 6.1 },
   { date: "2023-01-03", value: 5.2 }, { date: "2023-01-04", value: 7.0 },
@@ -62,13 +62,52 @@ const chartConfigLipids = {
   ldl: { label: "低密度脂蛋白 (mmol/L)", color: "hsl(var(--chart-4))"},
 };
 
+type MetricToCompare = 'bloodSugar' | 'bloodPressureSystolic' | 'bloodPressureDiastolic' | 'weight';
+
+interface DynamicHealthData {
+  date: string; // ISO string
+  bloodSugar?: number;
+  systolic?: number;
+  diastolic?: number;
+  weight?: number;
+}
+
 export default function HealthDataPage() {
   const { toast } = useToast();
-  const [bloodSugarInput, setBloodSugarInput] = useState({ date: format(new Date(), "yyyy-MM-dd"), time: format(new Date(), "HH:mm"), value: "", notes: "" });
-  const [bloodPressureInput, setBloodPressureInput] = useState({ date: format(new Date(), "yyyy-MM-dd"), time: format(new Date(), "HH:mm"), systolic: "", diastolic: "", heartRate: "" });
-  const [weightInput, setWeightInput] = useState({ date: format(new Date(), "yyyy-MM-dd"), value: "" });
-  const [lipidsInput, setLipidsInput] = useState({ date: format(new Date(), "yyyy-MM-dd"), totalCholesterol: "", triglycerides: "", hdl: "", ldl: "" });
-  const [exerciseInput, setExerciseInput] = useState({ date: format(new Date(), "yyyy-MM-dd"), type: "", duration: "", notes: "" });
+  const [isClient, setIsClient] = useState(false);
+  const [bloodSugarInput, setBloodSugarInput] = useState({ date: "", time: "", value: "", notes: "" });
+  const [bloodPressureInput, setBloodPressureInput] = useState({ date: "", time: "", systolic: "", diastolic: "", heartRate: "" });
+  const [weightInput, setWeightInput] = useState({ date: "", value: "" });
+  const [lipidsInput, setLipidsInput] = useState({ date: "", totalCholesterol: "", triglycerides: "", hdl: "", ldl: "" });
+  const [exerciseInput, setExerciseInput] = useState({ date: "", type: "", duration: "", notes: "" });
+
+  const [selectedMetric, setSelectedMetric] = useState<MetricToCompare>('bloodSugar');
+  const [dynamicMockData, setDynamicMockData] = useState<DynamicHealthData[]>([]);
+  
+  useEffect(() => {
+    setIsClient(true);
+    const today = new Date();
+    setBloodSugarInput({ date: format(today, "yyyy-MM-dd"), time: format(today, "HH:mm"), value: "", notes: "" });
+    setBloodPressureInput({ date: format(today, "yyyy-MM-dd"), time: format(today, "HH:mm"), systolic: "", diastolic: "", heartRate: "" });
+    setWeightInput({ date: format(today, "yyyy-MM-dd"), value: "" });
+    setLipidsInput({ date: format(today, "yyyy-MM-dd"), totalCholesterol: "", triglycerides: "", hdl: "", ldl: "" });
+    setExerciseInput({ date: format(today, "yyyy-MM-dd"), type: "", duration: "", notes: "" });
+
+    // Generate dynamic mock data for comparison tab
+    const data: DynamicHealthData[] = [];
+    for (let i = 0; i < 14; i++) { // Last 14 days of data
+      const day = subDays(today, i);
+      data.push({
+        date: day.toISOString(),
+        bloodSugar: parseFloat((Math.random() * 3 + 5).toFixed(1)), // 5.0 - 8.0
+        systolic: Math.floor(Math.random() * 20 + 115), // 115 - 135
+        diastolic: Math.floor(Math.random() * 15 + 75), // 75 - 90
+        weight: parseFloat((Math.random() * 2 + 68).toFixed(1)), // 68.0 - 70.0
+      });
+    }
+    setDynamicMockData(data.reverse()); // Oldest first
+  }, []);
+
 
   const handleDataSubmit = (dataType: string, data: any) => (e: FormEvent) => {
     e.preventDefault();
@@ -102,16 +141,76 @@ export default function HealthDataPage() {
     </Card>
   );
 
+  const comparisonData = useMemo(() => {
+    if (!isClient || dynamicMockData.length === 0) return null;
+
+    const today = new Date();
+    const currentPeriodStart = startOfDay(subDays(today, 6));
+    const currentPeriodEnd = endOfDay(today);
+    const previousPeriodStart = startOfDay(subDays(today, 13));
+    const previousPeriodEnd = endOfDay(subDays(today, 7));
+
+    const calculateAverage = (data: DynamicHealthData[], periodStart: Date, periodEnd: Date, metric: MetricToCompare) => {
+      const filteredData = data.filter(d => isWithinInterval(parseISO(d.date), { start: periodStart, end: periodEnd }));
+      if (filteredData.length === 0) return null;
+      
+      let sum = 0;
+      let count = 0;
+      filteredData.forEach(d => {
+        let value: number | undefined;
+        if (metric === 'bloodSugar') value = d.bloodSugar;
+        else if (metric === 'bloodPressureSystolic') value = d.systolic;
+        else if (metric === 'bloodPressureDiastolic') value = d.diastolic;
+        else if (metric === 'weight') value = d.weight;
+        
+        if (typeof value === 'number') {
+          sum += value;
+          count++;
+        }
+      });
+      return count > 0 ? parseFloat((sum / count).toFixed(1)) : null;
+    };
+
+    const currentAvg = calculateAverage(dynamicMockData, currentPeriodStart, currentPeriodEnd, selectedMetric);
+    const previousAvg = calculateAverage(dynamicMockData, previousPeriodStart, previousPeriodEnd, selectedMetric);
+    
+    let difference: number | null = null;
+    let percentageChange: number | null = null;
+    if (currentAvg !== null && previousAvg !== null) {
+      difference = parseFloat((currentAvg - previousAvg).toFixed(1));
+      percentageChange = parseFloat(((difference / previousAvg) * 100).toFixed(1));
+    }
+
+    const metricLabels: Record<MetricToCompare, string> = {
+      bloodSugar: '血糖 (mmol/L)',
+      bloodPressureSystolic: '收缩压 (mmHg)',
+      bloodPressureDiastolic: '舒张压 (mmHg)',
+      weight: '体重 (kg)',
+    };
+
+    return {
+      metricLabel: metricLabels[selectedMetric],
+      currentAvg,
+      previousAvg,
+      difference,
+      percentageChange,
+      currentPeriod: `${format(currentPeriodStart, 'MM/dd')} - ${format(currentPeriodEnd, 'MM/dd')}`,
+      previousPeriod: `${format(previousPeriodStart, 'MM/dd')} - ${format(previousPeriodEnd, 'MM/dd')}`,
+    };
+  }, [isClient, dynamicMockData, selectedMetric]);
+
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="view" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 text-sm h-10">
+        <TabsList className="grid w-full grid-cols-3 text-sm h-10"> {/* Changed to grid-cols-3 */}
           <TabsTrigger value="view" className="py-2"><BarChart3 className="mr-1 h-4 w-4" /> 查看数据</TabsTrigger>
+          <TabsTrigger value="comparison" className="py-2"><GitCompareArrows className="mr-1 h-4 w-4" /> 监测数据对比</TabsTrigger> {/* New Trigger */}
           <TabsTrigger value="input" className="py-2"><Activity className="mr-1 h-4 w-4" /> 手动记录</TabsTrigger>
         </TabsList>
 
         <TabsContent value="view">
-          <div className="space-y-4"> {/* Use space-y for vertical stacking of charts */}
+          <div className="space-y-4">
             <Card className="shadow-sm">
               <CardHeader className="p-4"><CardTitle className="text-base">血糖数据趋势</CardTitle></CardHeader>
               <CardContent className="p-2 sm:p-4">
@@ -197,8 +296,70 @@ export default function HealthDataPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="comparison">
+          <Card className="shadow-sm">
+            <CardHeader className="p-4">
+              <CardTitle className="text-base">重点指标数据对比</CardTitle>
+              <CardDescription className="text-xs">对比最近7天与上一个7天的健康数据平均值。</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              <div>
+                <Label htmlFor="metricSelect" className="text-sm">选择对比指标</Label>
+                <Select value={selectedMetric} onValueChange={(value) => setSelectedMetric(value as MetricToCompare)}>
+                  <SelectTrigger id="metricSelect" className="mt-1 h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bloodSugar">血糖</SelectItem>
+                    <SelectItem value="bloodPressureSystolic">血压 (收缩压)</SelectItem>
+                    <SelectItem value="bloodPressureDiastolic">血压 (舒张压)</SelectItem>
+                    <SelectItem value="weight">体重</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {comparisonData ? (
+                <Card className="bg-muted/30">
+                  <CardHeader className="p-3">
+                    <CardTitle className="text-sm font-semibold">{comparisonData.metricLabel} 对比</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3 space-y-1 text-sm">
+                    <p><strong>当前周期 ({comparisonData.currentPeriod}):</strong> {comparisonData.currentAvg ?? '无数据'}</p>
+                    <p><strong>上一周期 ({comparisonData.previousPeriod}):</strong> {comparisonData.previousAvg ?? '无数据'}</p>
+                    {comparisonData.difference !== null && comparisonData.percentageChange !== null && (
+                       <div className="flex items-center pt-1">
+                        <strong>变化: </strong>
+                        <span className={`ml-1.5 font-semibold ${
+                            comparisonData.difference === 0 ? 'text-muted-foreground' : 
+                            ( (selectedMetric === 'bloodSugar' || selectedMetric === 'bloodPressureSystolic' || selectedMetric === 'bloodPressureDiastolic' || selectedMetric === 'weight') && comparisonData.difference < 0 ) || // Lower is better for these
+                            ( (selectedMetric === 'bloodSugar' && comparisonData.currentAvg && comparisonData.currentAvg < 4.0 ) && comparisonData.difference > 0 ) // Example: if BS too low, increase is good
+                            ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {comparisonData.difference > 0 ? '+' : ''}{comparisonData.difference}
+                          {' ('}{Math.abs(comparisonData.percentageChange)}%
+                          {comparisonData.difference !== 0 && (
+                            comparisonData.difference < 0 ? 
+                            <ArrowDownCircle className="inline h-3.5 w-3.5 ml-0.5" /> : 
+                            <ArrowUpCircle className="inline h-3.5 w-3.5 ml-0.5" />
+                          )}
+                           {comparisonData.difference === 0 && <MinusCircle className="inline h-3.5 w-3.5 ml-0.5"/>}
+                          )
+                        </span>
+                      </div>
+                    )}
+                    {(comparisonData.currentAvg === null || comparisonData.previousAvg === null) && <p className="text-xs text-muted-foreground pt-1">部分周期数据不足，无法进行完整对比。</p>}
+                  </CardContent>
+                </Card>
+              ) : (
+                isClient && <p className="text-muted-foreground text-sm text-center py-4">正在加载对比数据...</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+
         <TabsContent value="input">
-          <div className="space-y-4"> {/* Stack forms vertically */}
+          <div className="space-y-4">
             {renderInputFormCard("血糖", Droplets, 
               [
                 {id: "date", label: "日期", type: "date", placeholder: "", state: bloodSugarInput, setState: setBloodSugarInput, parentObjKey: "bloodSugarInput"},
