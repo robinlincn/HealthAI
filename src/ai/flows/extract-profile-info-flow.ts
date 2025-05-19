@@ -171,10 +171,7 @@ Prioritize accuracy. If a piece of information is not clearly found or is ambigu
 For dates, strictly use YYYY-MM-DD format.
 For selection-based fields (like gender, blood type, yes/no questions, SAS questionnaire answers, etc.), try to match your output to one of the common options implied by the field's description if possible, or provide the closest textual match from the document.
 
-The target JSON schema for the output is as follows. Fill as many fields as possible based on the document content.
-
-Extracted Information:
-{{jsonSchema output}}
+The target JSON schema for the output has been provided to you by the system. Fill as many fields as possible based on the document content.
 `,
 });
 
@@ -183,7 +180,8 @@ export async function extractProfileInfoFlow(input: ExtractProfileInfoInput): Pr
   if (!output) {
     console.error('AI did not return a valid output or failed to parse schema.');
     // Return an empty object or a specific error structure if preferred
-    return {}; 
+    return {} as ExtractProfileInfoOutput; // Ensure it returns the correct type, even if empty
   }
   return output;
 }
+
