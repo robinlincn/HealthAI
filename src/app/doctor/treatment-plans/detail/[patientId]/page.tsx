@@ -50,8 +50,8 @@ const mockAdvice: TreatmentAdvice[] = [
 
 // Mock adjustment history - this would usually be part of the plan or fetched separately
 const mockPlanAdjustmentHistory = [
-    { date: "2024-04-15", change: "二甲双胍剂量由500mg每日两次调整为850mg每日两次，因近期血糖控制不佳。", physicianName: "王医生" },
-    { date: "2024-03-01", change: "初次制定方案，开始使用二甲双胍和硝苯地平。", physicianName: "王医生" },
+    { date: "2024-04-15T00:00:00.000Z", change: "二甲双胍剂量由500mg每日两次调整为850mg每日两次，因近期血糖控制不佳。", physicianName: "王医生" },
+    { date: "2024-03-01T00:00:00.000Z", change: "初次制定方案，开始使用二甲双胍和硝苯地平。", physicianName: "王医生" },
 ];
 
 
@@ -88,11 +88,15 @@ export default function PatientTreatmentPlanDetailPage() {
   };
 
   const handleOpenCreatePlanDialog = () => {
+    setEditingTreatmentPlan(null);
     setIsPlanFormOpen(true);
   };
+  
+  const [editingTreatmentPlan, setEditingTreatmentPlan] = useState<TreatmentPlan | null>(null);
 
   const handleOpenEditPlanDialog = () => {
     if (currentTreatmentPlan) {
+      setEditingTreatmentPlan(currentTreatmentPlan);
       setIsPlanFormOpen(true);
     } else {
       toast({ title: "无方案可编辑", description: "请先创建治疗方案。", variant: "destructive" });
@@ -162,8 +166,9 @@ export default function PatientTreatmentPlanDetailPage() {
               {currentTreatmentPlan ? (
                 <>
                   <p className="text-sm"><strong>方案名称:</strong> {currentTreatmentPlan.planName}</p>
-                  <p className="text-sm"><strong>开始日期:</strong> {format(parseISO(currentTreatmentPlan.startDate), "yyyy-MM-dd")}
-                  {currentTreatmentPlan.endDate && <span> - <strong>结束日期:</strong> {format(parseISO(currentTreatmentPlan.endDate), "yyyy-MM-dd")}</span>}
+                  <p className="text-sm">
+                    <strong>开始日期:</strong> {format(parseISO(currentTreatmentPlan.startDate), "yyyy-MM-dd")}
+                    {currentTreatmentPlan.endDate && isValid(parseISO(currentTreatmentPlan.endDate)) && <span> - <strong>结束日期:</strong> {format(parseISO(currentTreatmentPlan.endDate), "yyyy-MM-dd")}</span>}
                   </p>
                   
                   <section>
@@ -173,7 +178,7 @@ export default function PatientTreatmentPlanDetailPage() {
                         {currentTreatmentPlan.medications.map(med => (
                           <li key={med.id} className="p-2 border rounded-md bg-muted/30">
                             <p><strong>{med.drugName}</strong> - {med.dosage}, {med.frequency}</p>
-                            {med.medStartDate && <p className="text-xs text-muted-foreground">开始: {format(parseISO(med.medStartDate), 'yyyy-MM-dd')}{med.medEndDate ? ` - 结束: ${format(parseISO(med.medEndDate), 'yyyy-MM-dd')}` : ''}</p>}
+                            {med.medStartDate && isValid(parseISO(med.medStartDate)) && <p className="text-xs text-muted-foreground">开始: {format(parseISO(med.medStartDate), 'yyyy-MM-dd')}{med.medEndDate && isValid(parseISO(med.medEndDate)) ? ` - 结束: ${format(parseISO(med.medEndDate), 'yyyy-MM-dd')}` : ''}</p>}
                             {med.notes && <p className="text-xs text-muted-foreground">备注: {med.notes}</p>}
                           </li>
                         ))}
@@ -184,7 +189,12 @@ export default function PatientTreatmentPlanDetailPage() {
                   {currentTreatmentPlan.lifestyleAdjustments && <section><h3 className="text-md font-semibold mb-1">生活方式调整</h3><p className="text-sm whitespace-pre-wrap">{currentTreatmentPlan.lifestyleAdjustments}</p></section>}
                   {currentTreatmentPlan.shortTermGoals && <section><h3 className="text-md font-semibold mb-1">短期治疗目标</h3><p className="text-sm whitespace-pre-wrap">{currentTreatmentPlan.shortTermGoals}</p></section>}
                   {currentTreatmentPlan.longTermGoals && <section><h3 className="text-md font-semibold mb-1">长期治疗目标</h3><p className="text-sm whitespace-pre-wrap">{currentTreatmentPlan.longTermGoals}</p></section>}
-                  {typeof currentTreatmentPlan.isActive === 'boolean' && <p className="text-sm mt-2"><strong>当前激活:</strong> {currentTreatmentPlan.isActive ? <Badge className="bg-green-500">是</Badge> : <Badge variant="outline">否</Badge>}</p>}
+                  {typeof currentTreatmentPlan.isActive === 'boolean' && 
+                    <div className="text-sm mt-2"> {/* Changed from p to div */}
+                      <strong>当前激活:</strong> 
+                      {currentTreatmentPlan.isActive ? <Badge className="bg-green-500 ml-1">是</Badge> : <Badge variant="outline" className="ml-1">否</Badge>}
+                    </div>
+                  }
                 </>
               ) : (
                 <p className="text-center text-muted-foreground py-8">暂未给该病人制定治疗方案。</p>
@@ -203,7 +213,7 @@ export default function PatientTreatmentPlanDetailPage() {
                     {mockPlanAdjustmentHistory.map((adj, idx) => (
                       <li key={idx} className="p-3 border rounded-md bg-muted/30">
                         <p className="text-xs text-muted-foreground">
-                          调整日期: {format(parseISO(adj.date), "yyyy-MM-dd")} 
+                          调整日期: {isClient && adj.date ? format(parseISO(adj.date), "yyyy-MM-dd") : '...'} 
                           {adj.physicianName && ` | 操作医生: ${adj.physicianName}`}
                         </p>
                         <p className="text-sm font-medium mt-1">{adj.change}</p>
@@ -253,7 +263,7 @@ export default function PatientTreatmentPlanDetailPage() {
           isOpen={isPlanFormOpen}
           onClose={() => setIsPlanFormOpen(false)}
           onSubmit={handleSavePlan}
-          initialData={currentTreatmentPlan} // Pass current plan for editing, or null for new
+          initialData={editingTreatmentPlan} // Pass current plan for editing, or null for new
           patientId={patient.id}
           doctorId={doctorIdMock} 
         />
@@ -261,3 +271,4 @@ export default function PatientTreatmentPlanDetailPage() {
     </div>
   );
 }
+
