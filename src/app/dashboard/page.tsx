@@ -12,16 +12,17 @@ export default function DashboardPage() {
     link.href !== '/dashboard' &&
     (link.href === '/dashboard/health-data' ||
      link.href === '/dashboard/nutrition' ||
+     link.href === '/dashboard/medication-plan' || // Added medication-plan here
      link.href === '/dashboard/reports' ||
      link.href === '/dashboard/reminders' ||
      link.href === '/dashboard/consultations')
   ).slice(0, 5); 
 
   const overviewData = [
-    { title: "血糖", value: "5.8", unit: "mmol/L", description: "餐前", icon: Droplets, color: "text-blue-500" },
-    { title: "血压", value: "125/80", unit: "mmHg", description: "最新记录", icon: HeartPulse, color: "text-red-500" },
-    { title: "体重", value: "70.2", unit: "kg", description: "稳定", icon: Scale, color: "text-green-500" },
-    { title: "今日步数", value: "3450", unit: "步", description: "加油！", icon: Footprints, color: "text-orange-500" },
+    { title: "血糖", value: "5.8", unit: "mmol/L", description: "餐前", icon: Droplets, color: "text-blue-500", href: "/dashboard/health-data" },
+    { title: "血压", value: "125/80", unit: "mmHg", description: "最新记录", icon: HeartPulse, color: "text-red-500", href: "/dashboard/health-data" },
+    { title: "体重", value: "70.2", unit: "kg", description: "稳定", icon: Scale, color: "text-green-500", href: "/dashboard/health-data" },
+    { title: "今日步数", value: "3450", unit: "步", description: "加油！", icon: Footprints, color: "text-orange-500", href: "/dashboard/health-data" }, // Assuming steps are part of general health data
   ];
 
   return (
@@ -37,18 +38,22 @@ export default function DashboardPage() {
           {overviewData.map((item) => {
             const Icon = item.icon;
             return (
-              <Card key={item.title} className="shadow-xs hover:shadow-md transition-shadow bg-muted/30">
-                <CardHeader className="p-2.5 pb-1">
-                  <div className="flex items-center space-x-1.5">
-                    <Icon className={`h-4 w-4 ${item.color || 'text-primary'}`} />
-                    <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-2.5 pt-0">
-                  <p className="text-xl font-semibold">{item.value} <span className="text-xs text-muted-foreground">{item.unit}</span></p>
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                </CardContent>
-              </Card>
+              <Link href={item.href} key={item.title} legacyBehavior>
+                <a className="block">
+                  <Card className="shadow-xs hover:shadow-md transition-shadow bg-muted/30 h-full flex flex-col">
+                    <CardHeader className="p-2.5 pb-1">
+                      <div className="flex items-center space-x-1.5">
+                        <Icon className={`h-4 w-4 ${item.color || 'text-primary'}`} />
+                        <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-2.5 pt-0 flex-grow">
+                      <p className="text-xl font-semibold">{item.value} <span className="text-xs text-muted-foreground">{item.unit}</span></p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </CardContent>
+                  </Card>
+                </a>
+              </Link>
             );
           })}
         </CardContent>
@@ -67,9 +72,9 @@ export default function DashboardPage() {
             <Link href={link.href} key={link.title} legacyBehavior>
               <a className="block">
                 <Card className="hover:shadow-md active:bg-muted/60 transition-all shadow-sm">
-                  <CardContent className="p-4 flex items-center space-x-4">
-                      <Icon className="h-7 w-7 text-primary flex-shrink-0" />
-                      <span className="text-base font-semibold text-foreground">{link.title}</span>
+                  <CardContent className="p-3 flex items-center space-x-3"> {/* Reduced padding from p-4 to p-3 */}
+                      <Icon className="h-6 w-6 text-primary flex-shrink-0" /> {/* Reduced icon size from h-7 w-7 */}
+                      <span className="text-sm font-semibold text-foreground">{link.title}</span> {/* Reduced text size from text-base */}
                   </CardContent>
                 </Card>
               </a>
@@ -80,4 +85,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
