@@ -2,7 +2,8 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for generating data analysis reports based on user health data.
+ * @fileOverview This file defines a Genkit flow for generating data analysis reports based on user health data,
+ * focusing on six key pillars: Diet, Exercise, Sleep, Medication, Emotion, and Toxins.
  *
  * - generateDataAnalysisReport - A function that generates a data analysis report.
  * - GenerateDataAnalysisReportInput - The input type for the generateDataAnalysisReport function.
@@ -16,7 +17,7 @@ const GenerateDataAnalysisReportInputSchema = z.object({
   healthData: z
     .string()
     .describe(
-      'A string containing health data, including but not limited to: blood sugar levels, blood pressure readings, weight, blood lipid levels, and any other relevant health metrics recorded during the specified report period.'
+      'A string containing comprehensive health data for a patient. This should include information relevant to diet (e.g., meal logs, nutritional intake), exercise (e.g., activity levels, types of exercise), sleep (e.g., duration, quality, patterns), medication (e.g., adherence, types of medication, side effects if reported), emotion (e.g., stress levels, mood reports, relevant life events), and toxins (e.g., smoking habits, alcohol consumption, environmental exposures). Also include general health metrics like blood sugar levels, blood pressure, weight, lipids, etc., along with the report period or relevant dates.'
     ),
   reportType: z
     .string()
@@ -28,18 +29,25 @@ const GenerateDataAnalysisReportInputSchema = z.object({
     .string()
     .optional()
     .describe(
-      'Any specific user preferences or requirements for the report, such as specific metrics to focus on or desired format.'
+      'Any specific user preferences or doctor notes for the report, such as specific metrics to focus on or desired format.'
     ),
 });
 export type GenerateDataAnalysisReportInput = z.infer<typeof GenerateDataAnalysisReportInputSchema>;
 
+const PillarAnalysisSchema = z.object({
+  analysis: z.string().describe("Detailed analysis for this pillar based on the provided health data."),
+  recommendations: z.string().describe("Specific, actionable recommendations for this pillar."),
+});
+
 const GenerateDataAnalysisReportOutputSchema = z.object({
-  reportTitle: z.string().describe('The title of the generated data analysis report, reflecting the report type (e.g., "张三的健康周报").'),
-  reportSummary: z.string().describe('A concise summary of the key insights and trends from the data for the specified period.'),
-  reportDetails: z.string().describe('Detailed analysis of the health data, including specific metrics, trends, and anomalies observed during the period.'),
-  recommendations: z
-    .string()
-    .describe('Personalized recommendations based on the data analysis to help manage the user condition, considering the report period.'),
+  reportTitle: z.string().describe('The title of the generated data analysis report, reflecting the patient (if name available in healthData) and report type/period (e.g., "张三的健康周报").'),
+  reportSummary: z.string().describe('A concise overall summary of the key insights and trends from the data for the specified period, touching upon all six pillars if relevant data is present.'),
+  dietAnalysis: PillarAnalysisSchema.describe("Analysis and recommendations related to diet and nutrition."),
+  exerciseAnalysis: PillarAnalysisSchema.describe("Analysis and recommendations related to physical activity and exercise."),
+  sleepAnalysis: PillarAnalysisSchema.describe("Analysis and recommendations related to sleep patterns and quality."),
+  medicationAnalysis: PillarAnalysisSchema.describe("Analysis and recommendations related to medication adherence, effects, and potential issues."),
+  emotionAnalysis: PillarAnalysisSchema.describe("Analysis and recommendations related to emotional well-being, stress, and mental health. Avoid making clinical diagnoses."),
+  toxinAnalysis: PillarAnalysisSchema.describe("Analysis and recommendations related to exposure to toxins such as smoking, alcohol, and relevant environmental factors."),
 });
 export type GenerateDataAnalysisReportOutput = z.infer<typeof GenerateDataAnalysisReportOutputSchema>;
 
@@ -54,37 +62,35 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateDataAnalysisReportInputSchema},
   output: {schema: GenerateDataAnalysisReportOutputSchema},
   prompt: `You are an AI assistant specializing in generating health data analysis reports for doctors managing patients with chronic diseases.
+Analyze the provided health data for a patient and generate a comprehensive report structured around six key pillars: Diet, Exercise, Sleep, Medication, Emotion, and Toxins.
+The report should include a suitable title, an overall summary, and then detailed analysis and actionable recommendations for each of the six pillars.
 
-  Based on the provided health data for a patient, and the specified report type (cycle), generate a comprehensive report.
-  The report should include a suitable title, a summary of key insights, detailed analysis of trends and anomalies, and actionable recommendations.
+Patient Health Data:
+{{{healthData}}}
 
-  Health Data: {{{healthData}}}
-  Report Type: {{{reportType}}}
-  User Preferences (Doctor's Notes): {{{userPreferences}}}
+Report Type / Period Focus: {{{reportType}}}
+User Preferences / Doctor's Notes: {{{userPreferences}}}
 
-  Instructions based on Report Type:
-  - If Report Type is "daily_report": Focus on data from the last 24-48 hours. Analyze daily fluctuations, adherence to short-term goals (e.g., medication, specific diet instructions for the day). Title should reflect it's a daily report.
-  - If Report Type is "weekly_report": Focus on data from the last 7 days. Identify weekly trends, consistency in readings, and average values for key metrics over the week.
-  - If Report Type is "biweekly_report": Focus on data from the last 14-15 days. Summarize progress over the half-month period.
-  - If Report Type is "monthly_report": Focus on data from the last 30 days. Provide a broader overview of the month's progress, identify patterns, and assess if monthly targets are being met.
-  - If Report Type is "quarterly_report": Focus on data from the last 3 months. Analyze longer-term trends, effectiveness of treatment plans over this period.
-  - If Report Type is "semiannual_report": Focus on data from the last 6 months. Provide a comprehensive review of health status changes and progress towards long-term goals.
-  - If Report Type is "annual_report": Focus on data from the last 12 months. Generate a year-in-review, highlighting major changes, achievements, and areas for continued focus.
-  - If Report Type is not specified or unclear, assume a general analysis based on the most recent prominent data or a monthly summary if data spans that long.
+Instructions:
+1.  **Report Title**: Create a clear title indicating the patient (if name is identifiable in healthData) and the report period/type.
+2.  **Overall Summary**: Provide a brief overview of the patient's status for the period, highlighting significant findings across the six pillars if data allows.
+3.  **For each of the Six Pillars (Diet, Exercise, Sleep, Medication, Emotion, Toxins)**:
+    *   **Analysis**: Based on the 'Patient Health Data', analyze the patient's status concerning this pillar. Identify trends, significant data points, potential concerns, or areas of improvement. If no specific data is available for a pillar, state that information is lacking for a full analysis of this aspect.
+    *   **Recommendations**: Provide specific, actionable advice related to this pillar. Recommendations should be practical and tailored to a patient managing a chronic disease.
 
-  Key elements to include in the report:
-  1.  **Report Title**: Clearly indicate the patient (if name is in healthData) and the report period (e.g., "张三 - 健康周报 (2024-W20)").
-  2.  **Report Summary**: A brief overview of the patient's status for the period, highlighting significant findings.
-  3.  **Detailed Analysis**:
-      *   **Data Statistics**: Mention key average values, highs, lows for metrics like blood sugar, blood pressure etc., relevant to the period.
-      *   **Trend Analysis**: Describe if key metrics are stable, improving, or worsening over the period.
-      *   **Anomaly Detection**: Point out any significantly abnormal readings or concerning patterns.
-  4.  **Recommendations**: Provide actionable advice for the doctor or patient based on the analysis. This could include medication adjustments, lifestyle changes, or further tests.
+Details for each pillar:
+*   **Diet**: Analyze dietary habits, intake patterns (e.g., types of food, meal frequency, portion sizes if available), and nutritional status if inferable. Identify concerns like high intake of unhealthy foods, insufficient intake of beneficial nutrients, or irregular eating patterns. Recommendations should focus on dietary modifications, healthy food choices, meal planning, etc.
+*   **Exercise**: Evaluate physical activity levels, types of exercise, duration, frequency, and sedentary behavior. Identify if activity levels meet guidelines or if there are barriers. Recommendations should include suitable types of exercise, intensity, duration, and strategies to increase activity or overcome barriers.
+*   **Sleep**: Assess sleep patterns, duration, and perceived quality if data is available (e.g., from wearables or patient logs). Identify potential issues like insufficient sleep, irregular sleep schedules, or signs of sleep disturbances. Recommendations should cover sleep hygiene, lifestyle adjustments for better sleep, and when to seek further medical advice for sleep problems.
+*   **Medication**: Review medication adherence (if data available), reported side effects, and potential impact on health data (e.g., blood sugar changes after medication adjustment). Identify any discrepancies or concerns. Recommendations might include reminders for adherence, discussion points for the doctor regarding side effects or efficacy, and general advice on medication management. Do not suggest specific drug changes, but rather areas for the physician to review.
+*   **Emotion**: Consider any indications of emotional state, stress levels, or mental well-being from the provided data (e.g., patient's notes, reported mood, SAS scores if available). Identify potential impacts of emotional state on chronic disease management. Recommendations should focus on general stress management techniques, mindfulness, seeking social support, or suggesting a consultation with a mental health professional if significant concerns are noted. Avoid making clinical psychiatric diagnoses.
+*   **Toxins**: Analyze exposure to harmful substances like tobacco (smoking status, amount), alcohol (consumption patterns), or known environmental/occupational toxins if mentioned. Identify risks associated with these exposures. Recommendations should include strategies for cessation or reduction, support resources, and minimizing exposure.
 
-  Ensure the report is easy to understand for a medical professional and provides actionable insights.
-  Pay attention to time series data if present in the healthData to identify trends.
-  Consider any user preferences or doctor's notes specified.
-  Output should be well-formatted and clearly structured.
+Ensure the report is easy to understand for a medical professional and provides actionable insights.
+Pay attention to time series data if present in the healthData to identify trends relevant to the specified 'Report Type / Period Focus'.
+Consider any 'User Preferences / Doctor's Notes'.
+Output should be well-formatted and clearly structured according to the defined output schema.
+If specific data for a pillar is completely absent in the input, the analysis for that pillar should state "Insufficient data provided for a detailed analysis of [Pillar Name]." and recommendations might be general or state "Specific recommendations cannot be made without more data."
 `,
 });
 
@@ -103,4 +109,3 @@ const generateDataAnalysisReportFlow = ai.defineFlow(
     return output;
   }
 );
-
