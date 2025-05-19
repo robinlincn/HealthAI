@@ -12,11 +12,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
+  // FormDescription, // No longer used in CardHeader
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added CardDescription
 import { useToast } from "@/hooks/use-toast";
 import type { ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime } from "@/lib/types";
 import { useEffect } from "react";
@@ -143,7 +143,8 @@ export function ContactPreferenceForm({ initialData, onSave }: ContactPreference
     <Card className="shadow-sm mt-4">
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-base">编辑沟通偏好</CardTitle>
-        <FormDescription className="text-xs">我们的医务人员会在您个性化调理过程中支持与沟通健康进展，您希望什么样的方式来联系您？</FormDescription>
+        {/* Changed FormDescription to CardDescription */}
+        <CardDescription className="text-xs">我们的医务人员会在您个性化调理过程中支持与沟通健康进展，您希望什么样的方式来联系您？</CardDescription>
       </CardHeader>
       <CardContent className="p-4">
         <Form {...form}>
