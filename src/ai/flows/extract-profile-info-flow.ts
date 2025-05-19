@@ -5,8 +5,6 @@
  * from an uploaded document (image or PDF).
  *
  * - extractProfileInfoFlow - A function that handles document processing and information extraction.
- * - ExtractProfileInfoInputSchema - The input schema for the flow.
- * - ExtractProfileInfoOutputSchema - The output schema for the flow.
  * - ExtractProfileInfoInput - The input type for the flow.
  * - ExtractProfileInfoOutput - The return type for the flow.
  */
@@ -21,7 +19,7 @@ import type {
   ContactPreferenceMethod, ContactPreferenceFrequency, ContactPreferenceTime, ServiceSatisfactionOption, ImpactLevelOption
 } from '@/lib/types';
 
-export const ExtractProfileInfoInputSchema = z.object({
+const ExtractProfileInfoInputSchema = z.object({
   fileDataUri: z
     .string()
     .describe(
@@ -30,7 +28,7 @@ export const ExtractProfileInfoInputSchema = z.object({
 });
 export type ExtractProfileInfoInput = z.infer<typeof ExtractProfileInfoInputSchema>;
 
-export const ExtractProfileInfoOutputSchema = z.object({
+const ExtractProfileInfoOutputSchema = z.object({
   // Basic Info
   name: z.string().optional().describe("Patient's full name."),
   gender: z.enum(["male", "female", "other"] as [Gender, ...Gender[]]).optional().describe("Patient's gender ('male', 'female', 'other')."),
@@ -41,7 +39,7 @@ export const ExtractProfileInfoOutputSchema = z.object({
   bloodType: z.enum(["A", "B", "O", "AB", "unknown"] as [BloodType, ...BloodType[]]).optional().describe("Patient's blood type."),
   maritalStatus: z.enum(["unmarried", "married", "divorced", "widowed", "other"] as [MaritalStatus, ...MaritalStatus[]]).optional().describe("Patient's marital status."),
   occupation: z.string().optional().describe("Patient's occupation."),
-  educationLevel: z.string().optional().describe("Patient's education level (e.g., 'bachelor', 'master', 'primary_school')."), // Added more options
+  educationLevel: z.string().optional().describe("Patient's education level (e.g., 'bachelor', 'master', 'primary_school')."),
   hadPreviousCheckup: z.boolean().optional().describe("Whether the patient had a previous checkup at this institution."),
   agreesToIntervention: z.boolean().optional().describe("Whether the patient agrees to health intervention services."),
   recordNumber: z.string().optional().describe("Patient's medical record number (usually institution managed)."),
