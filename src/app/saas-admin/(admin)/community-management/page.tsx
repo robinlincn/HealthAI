@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquare, Search, Filter, PlusCircle, ExternalLink, List, LogIn, CheckCircle, AlertTriangle } from "lucide-react";
-import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
+import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import type { DateRange } from "react-day-picker";
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast"; // Assuming this hook is available for SAAS admin
+import { useToast } from '@/hooks/use-toast'; 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, subDays } from "date-fns";
@@ -104,12 +104,12 @@ export default function CommunityManagementPage() {
                     <div key={acc.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-md">
                         <div>
                             <p className="font-medium">{acc.name} ({acc.type === 'personal' ? '个人微信' : '企业微信'})</p>
-                            <p className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground"> {/* Changed p to div here */}
                                 状态: {getStatusBadge(acc.status)}
                                 {acc.status === 'connected' && acc.lastSync && (
                                     <span className="ml-2">上次同步: {format(new Date(acc.lastSync), "yyyy-MM-dd HH:mm")}</span>
                                 )}
-                            </p>
+                            </div>
                         </div>
                         <div className="flex gap-2 mt-2 sm:mt-0">
                             {acc.status !== 'connected' ? (
