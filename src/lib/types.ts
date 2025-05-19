@@ -31,7 +31,6 @@ export type AlcoholTypeOption = '白酒' | '黄酒' | '红酒' | '啤酒' | '其
 export type YesNoOption = '是' | '否' | '不详';
 export type SASOption = '没有或很少有时间有' | '小部分时间有' | '相当多时间有' | '绝大部分或全部时间都有';
 
-// New types for Adherence Behavior
 export type AdherenceBodyOption = '很满意' | '满意' | '尚可' | '不太好' | '很糟糕';
 export type AdherenceMindOption = '很重视' | '还算关心' | '不太在意' | '无所谓';
 export type AdherenceComplianceOption = '完全执行' | '执行一部分' | '完全不执行';
@@ -43,16 +42,16 @@ export type ServiceSatisfactionOption = '满意' | '较好' | '一般' | '不满
 export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '很大';
 
 
-export interface UserProfile { // Patient-side profile
+export interface UserProfile {
   name: string;
-  gender?: Gender; // Made optional to align with form
+  gender?: Gender; 
   dob?: string | Date; 
   address?: string;
   
   hadPreviousCheckup?: boolean;
   agreesToIntervention?: boolean;
   
-  contactPhone?: string; // Made optional based on form
+  contactPhone?: string; 
   contactEmail?: string;
   
   bloodType?: BloodType;
@@ -60,7 +59,6 @@ export interface UserProfile { // Patient-side profile
   occupation?: string;
   educationLevel?: string;
 
-  // Fields often managed by institution, visible to patient as read-only
   recordNumber?: string; 
   admissionDate?: string | Date; 
   recordDate?: string | Date; 
@@ -76,7 +74,6 @@ export interface UserProfile { // Patient-side profile
   medicationCategories?: string[];
   contactHistory?: string[];
 
-  // lifestyle
   dietaryHabits_breakfastDays?: FrequencyOption;
   dietaryHabits_lateSnackDays?: FrequencyOption;
   dietaryHabits_badHabits?: string[];
@@ -150,7 +147,6 @@ export interface UserProfile { // Patient-side profile
   otherInfo_suggestions?: string;
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
 
-  // For backward compatibility with DetailedPatientProfile if it's the source
   pastIllnesses?: string[];
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
@@ -186,12 +182,10 @@ export interface MedicationEntry {
   notes?: string;
 }
 
-export interface DetailedPatientProfile extends UserProfile { // DetailedPatientProfile can extend UserProfile or have its own distinct set
-  // Fields specific to doctor's view or more detailed institutional records
+export interface DetailedPatientProfile extends UserProfile { 
   chiefComplaint?: string;
   historyOfPresentIllness?: string;
-  pastMedicalHistoryDetails?: string; // More detailed text for past history
-  // Other fields from the large form if not covered by UserProfile
+  pastMedicalHistoryDetails?: string;
 }
 
 
@@ -271,8 +265,8 @@ export interface AiAssistantMessage {
   timestamp: Date;
   attachment?: {
     name: string;
-    type: string; // MIME type or a simpler category like 'image', 'pdf', 'audio', 'video'
-    size?: number; // in bytes
+    type: string; 
+    size?: number; 
   };
 }
 
@@ -286,7 +280,6 @@ export interface Appointment {
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
 
-// Doctor specific types
 export interface DoctorPatient {
   id: string;
   name: string;
@@ -317,8 +310,6 @@ export interface DoctorProfileDetails {
   department?: string;
 }
 
-
-// Outbound Call Plan Types
 export type CallTaskStatus = 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
 export type CallTaskRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 
@@ -363,8 +354,6 @@ export interface GroupOutboundCallTask {
   notes?: string;
 }
 
-
-// SAAS Admin Types
 export interface SaasEnterprise {
   id: string;
   name: string;
@@ -404,7 +393,7 @@ export interface SaasEmployee {
   roleTitle?: string;
   status: 'active' | 'invited' | 'disabled';
   joinDate: string;
-  creationDate?: string; // Added optional creationDate
+  creationDate?: string;
 }
 
 export interface SaasPatient {
@@ -430,14 +419,15 @@ export interface SaasServicePackage {
   maxStorageGB: number;
   maxPatients: number;
   isEnabled: boolean;
+  creationDate?: string; // Added optional creationDate
 }
 
 export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
-  enterpriseName?: string; // Optional: For easier display without join
-  servicePackageName?: string; // Optional
+  enterpriseName?: string; 
+  servicePackageName?: string;
   orderDate: string;
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
@@ -477,43 +467,87 @@ export interface SaasSopService {
   lastCallTimestamp?: string;
   callCount?: number;
   errorCount?: number;
-  parameters?: string; // JSON string for additional parameters
+  parameters?: string; 
 }
 
 export interface SaasOutboundCallTask {
   id: string;
   name: string;
   targetType: 'customer_segment' | 'employee_group' | 'custom_list' | 'individual_patient';
-  targetDetails: string; // Could be segment ID, group ID, list name, patient ID
+  targetDetails: string; 
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
   creationDate: string;
-  scheduledTime?: string; // ISO date string
-  scriptId?: string; // For Coze/Dify or other script
-  assignedTo?: string; // Employee ID for manual tasks
+  scheduledTime?: string; 
+  scriptId?: string; 
+  assignedTo?: string; 
   callCount?: number;
   successCount?: number;
   notes?: string;
 }
 
-export interface SaasLlmSettings { // Renamed from LlmSettings to avoid conflict
+export interface SaasLlmSettings { 
   apiKey: string;
   apiEndpoint: string;
   modelName: string;
 }
 
-// New type for AI Workflow API Configuration, as distinct from SaasSopService if needed,
-// or could be merged/aliased if functionality is identical.
-// For this request, creating a new specific type.
 export interface SaasAiWorkflowApiConfig {
   id: string;
   name: string;
   type: 'Dify' | 'Coze' | 'Other';
   apiEndpoint: string;
-  apiKey?: string;       // Optional API key
-  parametersJson?: string; // Optional JSON string for default parameters
-  description?: string;  // Optional description
-  creationDate: string;   // ISO date string
-  status?: 'active' | 'inactive'; // Optional status for this config entry
+  apiKey?: string;       
+  parametersJson?: string; 
+  description?: string;  
+  creationDate: string;   
+  status?: 'active' | 'inactive'; 
+}
+
+// New types for Community Management
+export interface SaasPlatformConnection {
+  id: string;
+  enterpriseId?: string; // Optional: Some connections might be platform-wide, others enterprise-specific
+  platform: 'wechat_personal_bot' | 'wechat_enterprise_app' | 'other';
+  accountName: string; // e.g., "张三的个人微信机器人", "XX医院的企业微信应用"
+  status: 'connected' | 'disconnected' | 'error' | 'requires_reauth' | 'pending_setup';
+  lastSync?: string; // ISO date string
+  associatedEmployeeId?: string; // For personal bots linked to an employee
+  notes?: string;
+}
+
+export interface SaasCommunityGroup {
+  id: string;
+  name: string; // Group Name
+  enterpriseId: string; // Belongs to which enterprise/hospital
+  managingEmployeeId?: string; // Which employee manages or is responsible for this group
+  type: 'personal_wechat_group' | 'enterprise_wechat_group' | 'other_platform_group';
+  platformGroupId?: string; // External ID of the group on the platform (e.g., WeChat group ID)
+  description?: string;
+  memberPatientIds?: string[]; // List of patient User IDs who are members
+  patientCount?: number; // Derived from memberPatientIds.length or a separate count
+  platformConnectionId?: string; // Which SaasPlatformConnection is monitoring/managing this group
+  connectionStatus: 'active_sync' | 'inactive_sync' | 'error_sync' | 'not_monitored';
+  lastLogSync?: string; // ISO date string for last message sync
+  creationDate: string; // ISO date string
+  tags?: string[]; // E.g., "高血压交流", "VIP服务"
+}
+
+export interface SaasCommunityMessageLog { // This corresponds to SaasCommunityMessageLogs in schema
+  id: string;
+  communityGroupId: string; // Link to SaasCommunityGroup
+  platform: SaasPlatformConnection['platform']; // e.g., 'wechat_personal_bot'
+  platformGroupIdExternal?: string; // External group ID
+  platformMessageIdExternal?: string; // External message ID
+  senderPlatformId?: string; // External sender ID (WeChat ID, etc.)
+  senderSaasUserId?: string; // If sender can be mapped to a SaasEmployee or SaasPatient
+  senderNameDisplay: string; // Name to display in logs
+  messageContent: string;
+  messageType: 'text' | 'image' | 'file' | 'voice' | 'system_notification';
+  fileUrl?: string;
+  timestamp: string; // ISO date string of the message
+  loggedAt: string; // ISO date string when it was logged into SAAS
+  isBotMessage?: boolean;
+  metadataJson?: string; // Raw message data or additional metadata
 }
     
 
