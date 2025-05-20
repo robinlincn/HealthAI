@@ -35,7 +35,7 @@ const dashboardChildRoutes: Array<RouteRecordRaw> = navLinksVue
 const routes: Array<RouteRecordRaw> = [
   {
     path: VUE_APP_BASE_URL,
-    redirect: `${VUE_APP_BASE_URL}dashboard`, // Default redirect to dashboard
+    redirect: `${VUE_APP_BASE_URL}auth/login`, // Default redirect to login page
   },
   {
     path: `${VUE_APP_BASE_URL}auth/login`,
