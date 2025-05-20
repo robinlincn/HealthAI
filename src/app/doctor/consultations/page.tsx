@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessagesSquare, Reply, Image as ImageIcon, Video, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users, Languages, Tv, ListFilter } from "lucide-react";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react"; // Added React import
 import { useToast } from "@/hooks/use-toast";
 import type { Consultation, ConsultationSource } from "@/lib/types";
 import { db, serverTimestamp, Timestamp as FirestoreTimestamp } from "@/lib/firebase";
@@ -56,7 +56,7 @@ const mockDoctorConsultations: Consultation[] = [
     }
 ];
 
-const MOCK_DOCTOR_ID = "doctorUser456"; 
+const MOCK_DOCTOR_ID = "doctorUser456";
 
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
@@ -144,16 +144,16 @@ export default function DoctorConsultationsPage() {
     }
 
     if (!fetchErrorOccurred && fetchedConsultationsFromDB.length === 0) {
-      setConsultations(mockDoctorConsultations); 
+      setConsultations(mockDoctorConsultations);
       toast({ title: "提示", description: "已加载模拟咨询数据用于演示。", variant: "default" });
     } else if (!fetchErrorOccurred) {
       setConsultations(fetchedConsultationsFromDB);
     }
-  }, [toast]); 
+  }, [toast]);
 
   useEffect(() => {
     fetchConsultations();
-  }, [fetchConsultations]); 
+  }, [fetchConsultations]);
 
   const filteredConsultations = useMemo(() => {
     return consultations.filter(consult =>
@@ -188,7 +188,7 @@ export default function DoctorConsultationsPage() {
         toast({ title: "错误", description: "未找到选中的咨询。", variant: "destructive" });
         return;
     }
-    
+
     const isMock = selectedConsultationId.startsWith("mock");
 
     if (isMock) {
@@ -199,7 +199,7 @@ export default function DoctorConsultationsPage() {
           ));
         toast({ title: "模拟回复已发送"});
         setIsReplying(false);
-        setReplyContent(""); 
+        setReplyContent("");
         return;
     }
 
@@ -209,8 +209,8 @@ export default function DoctorConsultationsPage() {
         reply: replyContent,
         status: "replied",
         doctorReplyTimestamp: serverTimestamp(),
-        doctorId: MOCK_DOCTOR_ID, 
-        doctorName: "当前医生" 
+        doctorId: MOCK_DOCTOR_ID,
+        doctorName: "当前医生"
       });
 
       setConsultations(prev => prev.map(c =>
@@ -218,7 +218,7 @@ export default function DoctorConsultationsPage() {
         ? { ...c, reply: replyContent, status: "replied" as Consultation['status'], doctorReplyTimestamp: new Date(), doctorId: MOCK_DOCTOR_ID, doctorName: "当前医生" }
         : c
       ));
-      setReplyContent(""); 
+      setReplyContent("");
       toast({ title: "回复已发送"});
     } catch (error) {
         console.error("Error sending reply:", error);
@@ -228,7 +228,7 @@ export default function DoctorConsultationsPage() {
     }
   };
 
-  const getStatusText = (status: Consultation['status']) => {
+  const getStatusText = (status: Consultation['status']): string => {
     const map: Record<Consultation['status'], string> = {
         scheduled: '已安排',
         completed: '已完成',
@@ -241,7 +241,7 @@ export default function DoctorConsultationsPage() {
     return map[status] || status;
   };
 
-  const getStatusBadgeColor = (status: Consultation['status']) => {
+  const getStatusBadgeColor = (status: Consultation['status']): string => {
     switch (status) {
       case 'pending_reply': return 'bg-yellow-100 text-yellow-700';
       case 'replied': return 'bg-green-100 text-green-700';
@@ -251,7 +251,7 @@ export default function DoctorConsultationsPage() {
     }
   };
 
-  const getSourceTextAndIcon = (source?: ConsultationSource) => {
+  const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon: React.ElementType } => {
     switch (source) {
       case 'app': return { text: 'APP端', icon: Smartphone };
       case 'wechat_mini_program': return { text: '小程序', icon: Tv };
@@ -441,6 +441,5 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
-    
-    
+
     
