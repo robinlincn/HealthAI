@@ -1,64 +1,30 @@
 
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessagesSquare, Reply, Image as ImageIconSvg, Video as VideoIcon, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users as UsersIconLucide, Languages, Tv, ListFilter } from "lucide-react";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
+import {
+  MessagesSquare, Reply, Image as ImageIconSvg, Video as VideoIcon, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users as UsersIconLucide, Languages, Tv, ListFilter
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Consultation, ConsultationSource } from "@/lib/types";
 import { db, serverTimestamp, Timestamp as FirestoreTimestamp } from "@/lib/firebase";
 import { collection, query, orderBy, getDocs, doc, updateDoc } from "firebase/firestore";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, subDays } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 const MOCK_DOCTOR_ID = "doctorUser456";
 
-const mockDoctorConsultations: Consultation[] = [
-    {
-        id: "mockPending1",
-        patientId: "patientMock001",
-        patientName: "模拟患者A (演示)",
-        doctorName: "当前医生",
-        date: format(new Date(new Date().setDate(new Date().getDate() - 1)), "yyyy-MM-dd"),
-        timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
-        question: "医生您好，我最近感觉有些头晕，早上起来血糖有点高，大概在8.5左右，我应该怎么办？这是模拟的问题。",
-        status: 'pending_reply',
-        attachments: [{ name: "血糖记录示例.jpg", type: 'image'}],
-        source: 'app'
-    },
-    {
-        id: "mockReplied1",
-        patientId: "patientMock002",
-        patientName: "模拟患者B (演示)",
-        doctorName: "当前医生",
-        date: format(new Date(new Date().setDate(new Date().getDate() - 2)), "yyyy-MM-dd"),
-        timestamp: new Date(new Date().setDate(new Date().getDate() - 2)),
-        question: "我按照您上次的建议调整了饮食，感觉好多了，谢谢医生！这是另一个模拟问题。",
-        status: 'replied',
-        reply: "不客气，继续保持良好的生活习惯，定期监测。这是模拟的回复。",
-        doctorReplyTimestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
-        source: 'wechat_mini_program'
-    },
-    {
-        id: "mockPending2",
-        patientId: "patientMock003",
-        patientName: "模拟患者C (演示)",
-        doctorName: "当前医生",
-        date: format(new Date(new Date().setDate(new Date().getDate())), "yyyy-MM-dd"), 
-        timestamp: new Date(),
-        question: "昨天晚上吃了火锅，今天早上起来感觉有点不舒服，需要注意什么吗？",
-        status: 'pending_reply',
-        source: 'wechat_personal'
-    }
-];
-
-// Helper functions moved to top-level of the module
 const getStatusText = (status: Consultation['status']): string => {
     const map: Record<Consultation['status'], string> = {
         scheduled: '已安排',
@@ -91,6 +57,46 @@ const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon
       default: return { text: '未知来源', icon: Languages };
     }
 };
+
+const mockDoctorConsultations: Consultation[] = [
+    {
+        id: "mockPending1",
+        patientId: "patientMock001",
+        patientName: "模拟患者A (演示)",
+        doctorName: "当前医生",
+        date: format(subDays(new Date(), 1), "yyyy-MM-dd"),
+        timestamp: subDays(new Date(), 1),
+        question: "医生您好，我最近感觉有些头晕，早上起来血糖有点高，大概在8.5左右，我应该怎么办？这是模拟的问题。",
+        status: 'pending_reply',
+        attachments: [{ name: "血糖记录示例.jpg", type: 'image'}],
+        source: 'app'
+    },
+    {
+        id: "mockReplied1",
+        patientId: "patientMock002",
+        patientName: "模拟患者B (演示)",
+        doctorName: "当前医生",
+        date: format(subDays(new Date(), 2), "yyyy-MM-dd"),
+        timestamp: subDays(new Date(), 2),
+        question: "我按照您上次的建议调整了饮食，感觉好多了，谢谢医生！这是另一个模拟问题。",
+        status: 'replied',
+        reply: "不客气，继续保持良好的生活习惯，定期监测。这是模拟的回复。",
+        doctorReplyTimestamp: subDays(new Date(), 1),
+        source: 'wechat_mini_program'
+    },
+    {
+        id: "mockPending2",
+        patientId: "patientMock003",
+        patientName: "模拟患者C (演示)",
+        doctorName: "当前医生",
+        date: format(new Date(), "yyyy-MM-dd"),
+        timestamp: new Date(),
+        question: "昨天晚上吃了火锅，今天早上起来感觉有点不舒服，需要注意什么吗？",
+        status: 'pending_reply',
+        source: 'wechat_personal'
+    }
+];
+
 
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
@@ -234,7 +240,7 @@ export default function DoctorConsultationsPage() {
         toast({ title: "模拟回复已发送"});
         setIsReplying(false);
         setReplyContent("");
-        setSelectedConsultationId(null); 
+        setSelectedConsultationId(null);
         return;
     }
 
@@ -254,7 +260,7 @@ export default function DoctorConsultationsPage() {
         : c
       ));
       setReplyContent("");
-      setSelectedConsultationId(null); 
+      setSelectedConsultationId(null);
       toast({ title: "回复已发送"});
     } catch (error) {
         console.error("Error sending reply:", error);
@@ -444,5 +450,3 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
-
-    
