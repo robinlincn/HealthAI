@@ -1,75 +1,162 @@
 <template>
-  <aside class="hidden md:flex md:flex-col md:w-64 bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border">
-    <div class="flex items-center h-16 border-b border-sidebar-border px-6">
-      <router-link to="/vue-doctor-app/dashboard" class="flex items-center space-x-2">
-        <!-- Replace with your actual logo component or SVG -->
-        <svg class="h-8 w-8 text-sidebar-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-        </svg>
-        <span class="font-bold text-lg">医生端</span>
+  <aside
+    class="fixed inset-y-0 left-0 z-40 flex h-full transform flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-transform duration-300 ease-in-out md:translate-x-0"
+    :class="sidebarClasses"
+    v-show="isMobile ? isOpen : true"
+  >
+    <div class="flex h-16 items-center border-b border-sidebar-border px-4">
+      <router-link to="/vue-doctor-app/dashboard" class="flex items-center space-x-2" aria-label="AI慢病管理系统-医生端 Home">
+        <LayoutDashboard class="h-8 w-8 text-sidebar-primary" />
+        <span 
+          class="font-bold text-lg whitespace-nowrap text-sidebar-foreground"
+          :class="{ 'hidden': !isOpen && !isMobile, 'md:inline-block': isOpen || !isMobile }"
+        >
+          医生端
+        </span>
       </router-link>
     </div>
-    <nav class="flex-1 p-2 space-y-1 overflow-y-auto">
-      <template v-for="link in navLinks" :key="link.href">
-        <router-link
-          :to="link.href"
-          custom
-          v-slot="{ href, route, navigate, isActive, isExactActive }"
-        >
-          <a
-            :href="href"
-            @click="navigate"
-            class="flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors"
-            :class="[
-              isActive || (isExactActive && route.path === link.href)
-                ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-            ]"
-          >
-            <component :is="link.icon" class="mr-3 h-5 w-5" />
-            <span>{{ link.title }}</span>
-          </a>
-        </router-link>
-      </template>
+    <nav class="flex-1 overflow-y-auto p-2">
+      <ul class="space-y-1">
+        <template v-for="(item, index) in groupedNavLinks" :key="index">
+          <li v-if="item.isLabel" class="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/70"
+              :class="{ 'text-center': !isOpen && !isMobile }">
+            <span :class="{ 'hidden': !isOpen && !isMobile }">{{ item.label }}</span>
+            <hr v-if="!isOpen && !isMobile && item.label" class="border-sidebar-border/50 my-1">
+          </li>
+          <template v-else v-for="link in item.links" :key="link.href">
+            <li>
+              <router-link
+                :to="link.href"
+                class="flex items-center rounded-md p-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                :class="[
+                  isActive(link.href) ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold' : 'text-sidebar-foreground/80',
+                  { 'justify-center': !isOpen && !isMobile }
+                ]"
+                @click="handleLinkClick"
+                :title="(!isOpen && !isMobile) ? link.title : ''"
+              >
+                <component :is="link.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isOpen || isMobile }" />
+                <span class="truncate" :class="{ 'hidden': !isOpen && !isMobile }">
+                  {{ link.title }}
+                </span>
+              </router-link>
+            </li>
+          </template>
+        </template>
+      </ul>
     </nav>
-    <div class="p-2 border-t border-sidebar-border">
-      <button class="flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-        <LogOut class="mr-3 h-5 w-5" />
-        <span>退出登录</span>
+    <div class="mt-auto border-t border-sidebar-border p-2">
+      <button
+        @click="handleLogout"
+        class="flex w-full items-center rounded-md p-2 text-sm font-medium transition-colors text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        :class="{ 'justify-center': !isOpen && !isMobile }"
+        :title="(!isOpen && !isMobile) ? '退出登录' : ''"
+      >
+        <LogOut class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isOpen || isMobile }" />
+        <span :class="{ 'hidden': !isOpen && !isMobile }">退出登录</span>
       </button>
     </div>
+    <!-- Overlay for mobile when sidebar is open -->
+     <div
+      v-if="isOpen && isMobile"
+      class="fixed inset-0 z-30 bg-black/50 md:hidden"
+      @click="closeSidebarOnMobile"
+    ></div>
   </aside>
-  <!-- Mobile sidebar placeholder -->
-  <!-- Implement Sheet component for mobile if needed -->
 </template>
 
 <script setup lang="ts">
-import { LogOut } from 'lucide-vue-next';
-import { doctorNavLinksVue as navLinks } from '@/lib/nav-links-vue-doctor';
-// Add mobile sidebar state management (e.g., with Pinia) if required
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { doctorNavLinksVue } from '@/lib/nav-links-vue-doctor';
+import type { NavItemVue } from '@/lib/types-vue';
+import { LogOut, LayoutDashboard } from 'lucide-vue-next';
+
+interface GroupedLink {
+  isLabel: boolean;
+  label?: string;
+  links?: NavItemVue[];
+}
+
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    required: true,
+  },
+});
+
+const emit = defineEmits(['toggle-sidebar']);
+
+const route = useRoute();
+const router = useRouter();
+const isMobile = ref(window.innerWidth < 768);
+
+const updateMobileStatus = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+const sidebarClasses = computed(() => ({
+  'w-64': props.isOpen || !isMobile.value, // Full width when open or on desktop
+  'w-16': !props.isOpen && !isMobile.value, // Collapsed width on desktop
+  'translate-x-0 shadow-xl': props.isOpen && isMobile.value, // Open on mobile
+  '-translate-x-full': !props.isOpen && isMobile.value, // Closed on mobile
+}));
+
+const isActive = (href: string) => {
+  if (href === '/vue-doctor-app/dashboard' && route.path === '/vue-doctor-app/dashboard') return true;
+  return route.path.startsWith(href) && href !== '/vue-doctor-app/dashboard';
+};
+
+const groupedNavLinks = computed((): GroupedLink[] => {
+  const groups: Record<string, NavItemVue[]> = {};
+  doctorNavLinksVue.forEach(link => {
+    const label = link.label || 'General';
+    if (!groups[label]) {
+      groups[label] = [];
+    }
+    groups[label].push(link);
+  });
+
+  const result: GroupedLink[] = [];
+  for (const label in groups) {
+    if (label !== 'General' || Object.keys(groups).length === 1) {
+      result.push({ isLabel: true, label: label });
+    }
+    result.push({ isLabel: false, links: groups[label] });
+  }
+  return result;
+});
+
+const handleLinkClick = () => {
+  if (isMobile.value) {
+    emit('toggle-sidebar'); // Close sidebar on mobile after link click
+  }
+};
+
+const closeSidebarOnMobile = () => {
+  if (isMobile.value && props.isOpen) {
+    emit('toggle-sidebar');
+  }
+};
+
+const handleLogout = () => {
+  console.log("Logout (Vue Doctor App) - Placeholder");
+  // router.push('/vue-doctor-app/auth/login'); // Assuming login route exists
+};
+
+onMounted(() => {
+  updateMobileStatus();
+  window.addEventListener('resize', updateMobileStatus);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMobileStatus);
+});
 </script>
 
 <style scoped>
-/* Sidebar specific styles if Tailwind classes are not enough */
-.bg-sidebar-background {
-  background-color: var(--sidebar-background);
-}
-.text-sidebar-foreground {
-  color: var(--sidebar-foreground);
-}
-.border-sidebar-border {
-  border-color: var(--sidebar-border);
-}
-.hover\:bg-sidebar-accent:hover {
-  background-color: var(--sidebar-accent);
-}
-.hover\:text-sidebar-accent-foreground:hover {
-  color: var(--sidebar-accent-foreground);
-}
-.bg-sidebar-primary {
-  background-color: var(--sidebar-primary);
-}
-.text-sidebar-primary-foreground {
-  color: var(--sidebar-primary-foreground);
+/* Ensure smooth transition for width */
+aside {
+  transition-property: width, transform;
 }
 </style>

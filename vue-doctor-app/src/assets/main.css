@@ -51,20 +51,76 @@
 
     --radius: 0.5rem;
 
-    /* Sidebar specific colors from Next.js Doctor App */
-    --sidebar-background: hsl(180, 80%, 20%); /* Darker Teal */
-    --sidebar-foreground: hsl(0, 0%, 96%);   /* Very Light Gray / Off-White */
-    --sidebar-primary: hsl(197.1, 71.4%, 65%); /* Sky Blue */
-    --sidebar-primary-foreground: hsl(180, 100%, 10%); /* Very dark teal */
-    --sidebar-accent: hsl(180, 70%, 28%); /* Lighter teal for hover */
-    --sidebar-accent-foreground: hsl(0, 0%, 98%); /* White text on hover */
-    --sidebar-border: hsl(180, 70%, 25%);
+    /* Sidebar specific colors for Doctor App (Vue) - matching Next.js doctor theme */
+    --sidebar-background: hsl(180, 100%, 18%); /* Dark Teal, darker than primary for contrast */
+    --sidebar-foreground: hsl(180, 15%, 90%); /* Light gray/off-white for text */
+    --sidebar-primary: hsl(197, 71%, 73%); /* Sky Blue (accent color) for active items */
+    --sidebar-primary-foreground: hsl(180, 100%, 10%); /* Very dark teal for text on active items */
+    --sidebar-accent: hsl(180, 80%, 25%); /* A slightly lighter, muted teal for hover */
+    --sidebar-accent-foreground: hsl(0, 0%, 100%); /* White text on hover */
+    --sidebar-border: hsl(180, 70%, 22%); /* Border color for sidebar elements */
   }
 
   /* Add .dark variables if you plan to implement dark mode, copying from globals.css */
+   .dark {
+    --background: 30 30 40;
+    --foreground: 240 240 240;
+    --card: 40 40 50;
+    --card-foreground: 240 240 240;
+    --popover: 35 35 45;
+    --popover-foreground: 240 240 240;
+    --primary: 0 128 128; /* Teal, can be made brighter if needed */
+    --primary-foreground: 255 255 255;
+    --secondary: 0 77 77;
+    --secondary-foreground: 224 242 241;
+    --muted: 50 50 60;
+    --muted-foreground: 180 180 180;
+    --accent: 135 206 235; /* Sky Blue, can be adjusted */
+    --accent-foreground: 0 70 100;
+    --destructive: 200 38 38;
+    --destructive-foreground: 255 255 255;
+    --border: 60 60 70;
+    --input: 55 55 65;
+    --ring: 0 128 128;
+
+    /* Dark Sidebar */
+    --sidebar-background: hsl(180, 100%, 12%); 
+    --sidebar-foreground: hsl(180, 10%, 85%); 
+    --sidebar-primary: hsl(197, 65%, 65%); 
+    --sidebar-primary-foreground: hsl(0, 0%, 100%);
+    --sidebar-accent: hsl(180, 70%, 20%); 
+    --sidebar-accent-foreground: hsl(0, 0%, 95%);
+    --sidebar-border: hsl(180, 60%, 18%);
+  }
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
   @apply bg-background text-foreground;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#app-doctor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Basic scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background) / 0.5);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
 }
