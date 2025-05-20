@@ -4,15 +4,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ClipboardList, Pill, CalendarCheck2, Edit, PlusCircle, MessageCircleMore, CheckSquare, UserCircle, Edit3, ListChecks, History as HistoryIcon } from "lucide-react"; // Added Edit3, ListChecks, HistoryIcon
+import { ArrowLeft, ClipboardList, Pill, CalendarCheck2, Edit, PlusCircle, MessageCircleMore, CheckSquare, UserCircle, Edit3, ListChecks, History as HistoryIcon, Trash2 } from "lucide-react"; 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useRouter } from "next/navigation";
-import type { DoctorPatient, TreatmentPlan, TreatmentPlanMedication, TreatmentAdvice } from "@/lib/types";
+import type { DoctorPatient, TreatmentPlan, TreatmentPlanMedication, TreatmentAdvice, TreatmentAdviceStatus } from "@/lib/types";
 import { format, parseISO, isValid } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TreatmentPlanFormDialog } from "@/components/doctor/treatment-plans/TreatmentPlanFormDialog";
+import { TreatmentAdviceFormDialog } from "@/components/doctor/treatment-plans/TreatmentAdviceFormDialog"; 
 import { Separator } from "@/components/ui/separator";
 
 
@@ -43,7 +44,7 @@ const getPatientDetails = (patientId: string): DoctorPatient | null => {
 };
 
 
-const mockAdvice: TreatmentAdvice[] = [
+const mockInitialAdvices: TreatmentAdvice[] = [
     { id: "adv1", patientId: "pat001", doctorId:"doc001", advice: "请于下周复查空腹血糖及餐后2小时血糖，并记录。", date: new Date(2024,4,10).toISOString(), status: "待执行" },
     { id: "adv2", patientId: "pat001", doctorId:"doc001", advice: "建议增加晨起散步30分钟，监测步数。", date: new Date(2024,4,8).toISOString(), status: "已执行", patientFeedback: "已开始散步，感觉良好。" },
 ];
@@ -54,6 +55,7 @@ const mockPlanAdjustmentHistory = [
     { date: "2024-03-01T00:00:00.000Z", change: "初次制定方案，开始使用二甲双胍和硝苯地平。", physicianName: "王医生" },
 ];
 
+const doctorIdMock = "doc001"; // Mock current doctor's ID
 
 export default function PatientTreatmentPlanDetailPage() {
   const params = useParams();
@@ -64,6 +66,11 @@ export default function PatientTreatmentPlanDetailPage() {
   const [treatmentAdvices, setTreatmentAdvices] = useState<TreatmentAdvice[]>([]);
   
   const [isPlanFormOpen, setIsPlanFormOpen] = useState(false);
+  const [editingTreatmentPlan, setEditingTreatmentPlan] = useState<TreatmentPlan | null>(null);
+
+  const [isAdviceFormOpen, setIsAdviceFormOpen] = useState(false);
+  const [editingAdvice, setEditingAdvice] = useState<TreatmentAdvice | null>(null);
+  
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
@@ -74,17 +81,17 @@ export default function PatientTreatmentPlanDetailPage() {
     if (details?.currentTreatmentPlan) {
         setCurrentTreatmentPlan(details.currentTreatmentPlan);
     } else {
-        setCurrentTreatmentPlan(null); // Ensure it's null if no plan
+        setCurrentTreatmentPlan(null); 
     }
-    setTreatmentAdvices(mockAdvice.filter(adv => adv.patientId === patientId));
+    setTreatmentAdvices(mockInitialAdvices.filter(adv => adv.patientId === patientId));
   }, [patientId]);
 
   const handleSavePlan = (planData: TreatmentPlan) => {
     setCurrentTreatmentPlan(planData);
-    // Here you would also update the main patient object or send to backend
     setPatient(prev => prev ? ({ ...prev, currentTreatmentPlan: planData }) : null);
     toast({ title: "治疗方案已保存", description: `方案 "${planData.planName}" 已成功${planData.id === currentTreatmentPlan?.id ? '更新' : '创建'}。` });
     setIsPlanFormOpen(false);
+    setEditingTreatmentPlan(null);
   };
 
   const handleOpenCreatePlanDialog = () => {
@@ -92,8 +99,6 @@ export default function PatientTreatmentPlanDetailPage() {
     setIsPlanFormOpen(true);
   };
   
-  const [editingTreatmentPlan, setEditingTreatmentPlan] = useState<TreatmentPlan | null>(null);
-
   const handleOpenEditPlanDialog = () => {
     if (currentTreatmentPlan) {
       setEditingTreatmentPlan(currentTreatmentPlan);
@@ -102,6 +107,57 @@ export default function PatientTreatmentPlanDetailPage() {
       toast({ title: "无方案可编辑", description: "请先创建治疗方案。", variant: "destructive" });
     }
   };
+
+  const handleOpenAddAdviceDialog = () => {
+    setEditingAdvice(null);
+    setIsAdviceFormOpen(true);
+  };
+
+  const handleOpenEditAdviceDialog = (advice: TreatmentAdvice) => {
+    setEditingAdvice(advice);
+    setIsAdviceFormOpen(true);
+  };
+
+  const handleSaveAdvice = (adviceData: Partial<TreatmentAdvice>) => {
+    if (editingAdvice) {
+      setTreatmentAdvices(prev => prev.map(adv => adv.id === editingAdvice.id ? { ...editingAdvice, ...adviceData } as TreatmentAdvice : adv));
+      toast({ title: "建议已更新" });
+    } else {
+      const newAdvice: TreatmentAdvice = {
+        id: `adv-${Date.now()}`,
+        patientId: patientId,
+        doctorId: doctorIdMock,
+        date: new Date().toISOString(),
+        ...adviceData,
+      } as TreatmentAdvice; // Cast to ensure all required fields are there
+      setTreatmentAdvices(prev => [newAdvice, ...prev]);
+      toast({ title: "建议已添加" });
+    }
+    setIsAdviceFormOpen(false);
+    setEditingAdvice(null);
+  };
+
+  const handleDeleteAdvice = (adviceId: string) => {
+    if (window.confirm("确定要删除此条建议吗？")) {
+      setTreatmentAdvices(prev => prev.filter(adv => adv.id !== adviceId));
+      toast({ title: "建议已删除" });
+    }
+  };
+  
+  const getAdviceStatusBadge = (status: TreatmentAdviceStatus) => {
+    switch(status) {
+        case '待执行': return <Badge variant="outline" className="text-yellow-600 border-yellow-400">待执行</Badge>;
+        case '已执行': return <Badge variant="default" className="bg-green-500 hover:bg-green-600">已执行</Badge>;
+        case '已取消': return <Badge variant="outline" className="text-gray-500 border-gray-400">已取消</Badge>;
+        // Handle other statuses from Patient side if needed
+        case 'pending': return <Badge variant="outline">待处理 (病人端)</Badge>;
+        case 'acknowledged': return <Badge variant="secondary">病人已确认</Badge>;
+        case 'implemented': return <Badge variant="default" className="bg-green-500 hover:bg-green-600">病人已执行</Badge>;
+        case 'rejected': return <Badge variant="destructive">病人已拒绝</Badge>;
+        default: return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
 
   if (!isClient) {
     return (
@@ -126,7 +182,6 @@ export default function PatientTreatmentPlanDetailPage() {
     );
   }
   
-  const doctorIdMock = "doc001"; // Mock current doctor's ID
 
   return (
     <div className="space-y-6 p-1 md:p-4">
@@ -142,7 +197,7 @@ export default function PatientTreatmentPlanDetailPage() {
       </div>
 
       <Tabs defaultValue="treatmentPlan" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3"> {/* Adjusted for three tabs */}
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3"> 
           <TabsTrigger value="treatmentPlan"><ListChecks className="mr-2 h-4 w-4" /> 方案管理</TabsTrigger>
           <TabsTrigger value="adjustmentHistory"><HistoryIcon className="mr-2 h-4 w-4" /> 调整历史</TabsTrigger>
           <TabsTrigger value="treatmentAdvice"><MessageCircleMore className="mr-2 h-4 w-4" /> 治疗建议</TabsTrigger>
@@ -190,7 +245,7 @@ export default function PatientTreatmentPlanDetailPage() {
                   {currentTreatmentPlan.shortTermGoals && <section><h3 className="text-md font-semibold mb-1">短期治疗目标</h3><p className="text-sm whitespace-pre-wrap">{currentTreatmentPlan.shortTermGoals}</p></section>}
                   {currentTreatmentPlan.longTermGoals && <section><h3 className="text-md font-semibold mb-1">长期治疗目标</h3><p className="text-sm whitespace-pre-wrap">{currentTreatmentPlan.longTermGoals}</p></section>}
                   {typeof currentTreatmentPlan.isActive === 'boolean' && 
-                    <div className="text-sm mt-2"> {/* Changed from p to div */}
+                    <div className="text-sm mt-2"> 
                       <strong>当前激活:</strong> 
                       {currentTreatmentPlan.isActive ? <Badge className="bg-green-500 ml-1">是</Badge> : <Badge variant="outline" className="ml-1">否</Badge>}
                     </div>
@@ -232,27 +287,29 @@ export default function PatientTreatmentPlanDetailPage() {
           <Card>
             <CardHeader className="flex flex-row justify-between items-center">
               <CardTitle>治疗建议记录</CardTitle>
-              <Button variant="outline" disabled><PlusCircle className="mr-2 h-4 w-4" /> 新增建议</Button>
+              <Button variant="outline" onClick={handleOpenAddAdviceDialog}><PlusCircle className="mr-2 h-4 w-4" /> 新增建议</Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {treatmentAdvices.length > 0 ? treatmentAdvices.map(advice => ( 
-                <Card key={advice.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm">{advice.advice}</p>
-                      <p className="text-xs text-muted-foreground">建议时间: {format(parseISO(advice.date), "yyyy-MM-dd")}</p>
-                       {advice.patientFeedback && <p className="text-xs mt-1">病人反馈: {advice.patientFeedback}</p>}
-                    </div>
-                    <div className="text-right">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${advice.status === "已执行" || advice.status === "acknowledged" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                            {advice.status}
-                        </span>
-                        <Button variant="ghost" size="sm" className="mt-1" disabled><CheckSquare className="mr-1 h-3 w-3"/> 更新状态</Button>
-                    </div>
+                <Card key={advice.id} className="p-3 shadow-sm">
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="text-sm pr-2">{advice.advice}</p>
+                    {getAdviceStatusBadge(advice.status)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    建议时间: {isClient ? format(parseISO(advice.date), "yyyy-MM-dd HH:mm") : '...'}
+                  </p>
+                  {advice.patientFeedback && <p className="text-xs mt-1 italic">病人反馈: {advice.patientFeedback}</p>}
+                  <div className="mt-2 flex justify-end space-x-2">
+                    <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => handleOpenEditAdviceDialog(advice)}>
+                        <Edit className="mr-1 h-3 w-3"/> 编辑
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-xs h-7 text-destructive hover:text-destructive" onClick={() => handleDeleteAdvice(advice.id)}>
+                        <Trash2 className="mr-1 h-3 w-3"/> 删除
+                    </Button>
                   </div>
                 </Card>
-              )) : <p className="text-muted-foreground text-center">暂无该病人的治疗建议。</p>}
-              <p className="text-center text-muted-foreground text-sm pt-4">建议内容编辑、病人反馈跟踪等功能正在建设中。</p>
+              )) : <p className="text-muted-foreground text-center py-6">暂无该病人的治疗建议。</p>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -263,9 +320,19 @@ export default function PatientTreatmentPlanDetailPage() {
           isOpen={isPlanFormOpen}
           onClose={() => setIsPlanFormOpen(false)}
           onSubmit={handleSavePlan}
-          initialData={editingTreatmentPlan} // Pass current plan for editing, or null for new
+          initialData={editingTreatmentPlan} 
           patientId={patient.id}
           doctorId={doctorIdMock} 
+        />
+      )}
+      {isClient && isAdviceFormOpen && (
+        <TreatmentAdviceFormDialog
+          isOpen={isAdviceFormOpen}
+          onClose={() => setIsAdviceFormOpen(false)}
+          onSubmit={handleSaveAdvice}
+          initialData={editingAdvice}
+          patientId={patient.id}
+          doctorId={doctorIdMock}
         />
       )}
     </div>

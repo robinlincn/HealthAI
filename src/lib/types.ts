@@ -264,15 +264,16 @@ export interface TreatmentPlan {
   updatedAt?: string;   // ISO string date
 }
 
+export type TreatmentAdviceStatus = '待执行' | '已执行' | '已取消' | 'pending' | 'acknowledged' | 'implemented' | 'rejected';
 
 export interface TreatmentAdvice {
   id: string;
-  patientName?: string; // Added optional patientName
-  patientId: string;   // Added patientId
-  doctorId: string;    // Added doctorId
-  advice: string;
-  date: string; // ISO string date
-  status: 'pending' | 'acknowledged' | 'implemented' | 'rejected' | '待执行' | '已执行'; // Expanded status
+  patientName?: string; 
+  patientId: string;   
+  doctorId: string;    
+  advice: string; // Advice content
+  date: string; // ISO string date for when the advice was given
+  status: TreatmentAdviceStatus;
   patientFeedback?: string;
 }
 
@@ -326,7 +327,7 @@ export interface DoctorPatient {
   healthDataSummary?: string;
   reports?: ExaminationReport[];
   detailedProfile?: DetailedPatientProfile;
-  currentTreatmentPlan?: TreatmentPlan; // Added for doctor-side patient overview
+  currentTreatmentPlan?: TreatmentPlan; 
 }
 
 
