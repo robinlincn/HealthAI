@@ -9,19 +9,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { MessagesSquare, Send, UserCircle, Phone, Video, FileText as FileTextIcon, Loader2, MessageCircle, Users, Filter, AlertTriangle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added this line
+import { MessagesSquare, Send, UserCircle, Phone, Video as VideoIcon, FileText as FileTextIcon, Loader2, MessageCircle, Users, Filter, AlertTriangle, ListFilter } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, differenceInDays, isToday, isYesterday } from "date-fns";
 import type { Consultation, ConsultationSource } from "@/lib/types";
-import { db, serverTimestamp, Timestamp as FirestoreTimestamp } from "@/lib/firebase";
-import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc, serverTimestamp as firestoreServerTimestamp } from "firebase/firestore";
+import { db, serverTimestamp as firestoreServerTimestamp, Timestamp as FirestoreTimestamp } from "@/lib/firebase";
+import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc } from "firebase/firestore";
 
-// Mock doctor ID for sending replies
 const MOCK_DOCTOR_ID = "doctorUser789";
 const MOCK_DOCTOR_NAME = "王医生";
 
-const mockDoctorConsultations: Consultation[] = [
+const initialMockConsultations: Consultation[] = [
   { id: "consult-001", patientId: "pat001", patientName: "张三", doctorId: MOCK_DOCTOR_ID, doctorName: MOCK_DOCTOR_NAME, date: new Date(Date.now() - 86400000 * 2).toISOString(), timestamp: new Date(Date.now() - 86400000 * 2), question: "医生您好，我最近感觉血糖控制不太好，餐后经常超过10mmol/L，应该怎么办？这是我最近一周的血糖记录附件。", status: "pending_reply", attachments: [{ name: "血糖记录.pdf", type: "document" }], source: "app" },
   { id: "consult-002", patientId: "pat002", patientName: "李四", doctorId: MOCK_DOCTOR_ID, doctorName: MOCK_DOCTOR_NAME, date: new Date(Date.now() - 86400000 * 1).toISOString(), timestamp: new Date(Date.now() - 86400000 * 1), question: "我按照您上次的建议调整了饮食，感觉好多了，谢谢医生！", status: "replied", reply: "不客气，李女士。很高兴听到您的反馈，请继续保持良好的生活习惯，如有不适随时联系。", doctorReplyTimestamp: new Date(Date.now() - 86400000 * 0.8), source: "wechat_personal" },
   { id: "consult-003", patientId: "pat003", patientName: "王五", doctorId: MOCK_DOCTOR_ID, doctorName: MOCK_DOCTOR_NAME, date: new Date(Date.now() - 86400000 * 5).toISOString(), timestamp: new Date(Date.now() - 86400000 * 5), question: "这个药吃了以后有点头晕，是副作用吗？", status: "closed", reply: "王先生您好，轻微头晕可能是药物初期反应，一般几天后会缓解。如果持续不适或加重，请及时停药并联系我或就近就医。我们也可以考虑调整用药方案。", doctorReplyTimestamp: new Date(Date.now() - 86400000 * 4.5), source: "app" },
@@ -55,17 +55,25 @@ const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon
   if (!source) return { text: "未知来源", icon: AlertTriangle };
   switch (source) {
     case 'app': return { text: "App端", icon: MessageCircle };
-    case 'wechat_mini_program': return { text: "微信小程序", icon: MessageCircle }; // Could use a specific WeChat icon if available
+    case 'wechat_mini_program': return { text: "微信小程序", icon: MessageCircle };
     case 'wechat_personal': return { text: "个人微信", icon: Users };
     case 'wechat_group': return { text: "微信群", icon: Users };
     default: return { text: source, icon: AlertTriangle };
   }
 };
 
+const formatDisplayDate = (isoDate: string | Date) => {
+    const date = typeof isoDate === 'string' ? parseISO(isoDate) : isoDate;
+    if (isToday(date)) return `今天 ${format(date, "HH:mm")}`;
+    if (isYesterday(date)) return `昨天 ${format(date, "HH:mm")}`;
+    if (differenceInDays(new Date(), date) < 7) return format(date, "EEEE HH:mm");
+    return format(date, "yyyy-MM-dd HH:mm");
+};
+
 
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
-  const [consultations, setConsultations] = useState<Consultation[]>(mockDoctorConsultations);
+  const [consultations, setConsultations] = useState<Consultation[]>(initialMockConsultations);
   const [selectedConsultationId, setSelectedConsultationId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -76,8 +84,6 @@ export default function DoctorConsultationsPage() {
 
   const fetchConsultations = useCallback(() => {
     setIsLoading(true);
-    // Simulating fetch, in real app this would be an API call or Firestore listener
-    // For Firestore real-time updates:
     const q = query(collection(db, "consultations"), orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedConsultations: Consultation[] = [];
@@ -86,38 +92,31 @@ export default function DoctorConsultationsPage() {
         fetchedConsultations.push({
           ...data,
           id: doc.id,
-          // Ensure timestamps are converted to Date objects
           timestamp: data.timestamp instanceof FirestoreTimestamp ? data.timestamp.toDate() : new Date(data.timestamp as string),
           doctorReplyTimestamp: data.doctorReplyTimestamp && (data.doctorReplyTimestamp instanceof FirestoreTimestamp ? data.doctorReplyTimestamp.toDate() : new Date(data.doctorReplyTimestamp as string)),
         } as Consultation);
       });
-      setConsultations(prevConsultations => {
-        // Basic merge to avoid full replacement if not desired,
-        // or use a more sophisticated merging strategy
-        const newConsultationsMap = new Map(fetchedConsultations.map(c => [c.id, c]));
-        const updated = prevConsultations.map(pc => newConsultationsMap.get(pc.id) || pc);
-        const added = fetchedConsultations.filter(fc => !prevConsultations.some(pc => pc.id === fc.id));
-        return [...updated, ...added].sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime());
-      });
+      
+      // Merge initial mock data with fetched data to ensure UI always has something if DB is empty
+      const combinedMap = new Map<string, Consultation>();
+      initialMockConsultations.forEach(mock => combinedMap.set(mock.id, mock)); // Add mocks first
+      fetchedConsultations.forEach(fetched => combinedMap.set(fetched.id, fetched)); // Fetched data overrides mocks
+
+      setConsultations(Array.from(combinedMap.values()).sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime()));
       setIsLoading(false);
     }, (error) => {
       console.error("Error fetching consultations:", error);
       toast({ title: "获取咨询列表失败", description: "请检查网络连接或稍后重试。", variant: "destructive" });
+      setConsultations(initialMockConsultations.sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime())); // Fallback to mock on error
       setIsLoading(false);
     });
-    return unsubscribe; // Return unsubscribe function for cleanup
+    return unsubscribe;
   }, [toast]);
 
-
   useEffect(() => {
-    // Set initial mock data and then start listening or simulate initial fetch
-    setConsultations(mockDoctorConsultations.sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime()));
-    setIsLoading(false); // Assume mock data is loaded
-    
-    // Uncomment below to use real Firestore listener
-    // const unsubscribe = fetchConsultations();
-    // return () => unsubscribe(); 
-  }, []); // Removed fetchConsultations from dependency array to avoid re-triggering on every render
+    const unsubscribe = fetchConsultations();
+    return () => unsubscribe();
+  }, [fetchConsultations]);
 
   const selectedConsultation = useMemo(() => {
     return consultations.find(c => c.id === selectedConsultationId) || null;
@@ -125,7 +124,7 @@ export default function DoctorConsultationsPage() {
 
   const filteredConsultations = useMemo(() => {
     return consultations.filter(c => {
-      const nameMatch = c.patientName.toLowerCase().includes(searchTerm.toLowerCase());
+      const nameMatch = c.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
       const statusMatch = filterStatus === "all" || c.status === filterStatus;
       const sourceMatch = filterSource === "all" || c.source === filterSource;
       return nameMatch && statusMatch && sourceMatch;
@@ -134,7 +133,7 @@ export default function DoctorConsultationsPage() {
 
   const handleSelectConsultation = (consultationId: string) => {
     setSelectedConsultationId(consultationId);
-    setReplyContent(""); // Clear reply input when selecting a new consultation
+    setReplyContent(consultations.find(c => c.id === consultationId)?.reply || ""); // Pre-fill reply if exists
   };
 
   const handleSendReply = useCallback(async () => {
@@ -152,18 +151,20 @@ export default function DoctorConsultationsPage() {
         doctorId: MOCK_DOCTOR_ID,
         doctorName: MOCK_DOCTOR_NAME,
       });
-
-      // Optimistically update UI, or rely on Firestore listener from fetchConsultations
-       setConsultations(prev => prev.map(c => c.id === selectedConsultationId ? {
-           ...c, 
-           reply: replyContent, 
-           status: 'replied', 
-           doctorReplyTimestamp: new Date(),
-           doctorId: MOCK_DOCTOR_ID,
-           doctorName: MOCK_DOCTOR_NAME,
-       } : c));
       
-      setReplyContent("");
+      // Firestore listener will update the UI, so manually setting state here can be removed
+      // or be kept for immediate optimistic update if preferred, but might conflict if not handled well.
+      // For now, we'll rely on the listener from fetchConsultations.
+      // setConsultations(prev => prev.map(c => c.id === selectedConsultationId ? {
+      //     ...c, 
+      //     reply: replyContent, 
+      //     status: 'replied', 
+      //     doctorReplyTimestamp: new Date(),
+      //     doctorId: MOCK_DOCTOR_ID,
+      //     doctorName: MOCK_DOCTOR_NAME,
+      // } : c));
+      
+      // setReplyContent(""); // Clear after successful send, or keep for further editing by doctor
       toast({ title: "回复已发送", description: "您的回复已成功发送给病人。" });
     } catch (error) {
       console.error("Error sending reply:", error);
@@ -173,14 +174,6 @@ export default function DoctorConsultationsPage() {
     }
   }, [selectedConsultationId, replyContent, toast]);
   
-  const formatDisplayDate = (isoDate: string | Date) => {
-    const date = typeof isoDate === 'string' ? parseISO(isoDate) : isoDate;
-    if (isToday(date)) return `今天 ${format(date, "HH:mm")}`;
-    if (isYesterday(date)) return `昨天 ${format(date, "HH:mm")}`;
-    if (differenceInDays(new Date(), date) < 7) return format(date, "EEEE HH:mm");
-    return format(date, "yyyy-MM-dd HH:mm");
-  };
-
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -212,7 +205,7 @@ export default function DoctorConsultationsPage() {
               </SelectContent>
             </Select>
             <Select value={filterSource} onValueChange={(value) => setFilterSource(value as ConsultationSource | "all")}>
-              <SelectTrigger><Filter className="mr-2 h-4 w-4"/>来源筛选</SelectTrigger>
+              <SelectTrigger><ListFilter className="mr-2 h-4 w-4"/>来源筛选</SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">所有来源</SelectItem>
                 <SelectItem value="app">App端</SelectItem>
@@ -241,7 +234,7 @@ export default function DoctorConsultationsPage() {
                         <Badge variant="outline" className={`text-xs ${getStatusBadgeColor(consult.status)}`}>{getStatusText(consult.status)}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground truncate mt-0.5" title={consult.question}>{consult.question}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{formatDisplayDate(consult.timestamp)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{formatDisplayDate(consult.timestamp as Date)}</p>
                     </div>
                   ))}
                 </ScrollArea>
@@ -256,8 +249,11 @@ export default function DoctorConsultationsPage() {
                   <CardHeader>
                     <CardTitle className="text-lg">咨询详情: {selectedConsultation.patientName}</CardTitle>
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
-                      <span>{formatDisplayDate(selectedConsultation.timestamp)}</span>
-                      <Badge variant="outline" className="capitalize text-xs">{getSourceTextAndIcon(selectedConsultation.source).text}</Badge>
+                      <span>{formatDisplayDate(selectedConsultation.timestamp as Date)}</span>
+                      <Badge variant="outline" className="capitalize text-xs">
+                         {getSourceTextAndIcon(selectedConsultation.source).icon && React.createElement(getSourceTextAndIcon(selectedConsultation.source).icon as React.ElementType, {className: "h-3 w-3 mr-1 inline-block"})}
+                         {getSourceTextAndIcon(selectedConsultation.source).text}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -269,12 +265,11 @@ export default function DoctorConsultationsPage() {
                           <p className="text-xs font-medium text-muted-foreground">附件:</p>
                           <ul className="list-none space-y-1 mt-1">
                             {selectedConsultation.attachments.map((att, idx) => {
-                              const Icon = att.type === 'image' ? ImageIcon : att.type === 'video' ? Video : FileTextIcon;
+                              const Icon = att.type === 'image' ? ImageIcon : att.type === 'video' ? VideoIcon : FileTextIcon;
                               return (
                                 <li key={idx} className="text-xs flex items-center p-1.5 bg-muted/20 rounded-md hover:bg-muted/40">
                                   <Icon className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
                                   <span className="truncate" title={att.name}>{att.name}</span>
-                                  {/* <Button variant="link" size="xs" className="ml-auto h-auto p-0 text-xs">查看</Button> */}
                                 </li>
                               );
                             })}
@@ -289,7 +284,7 @@ export default function DoctorConsultationsPage() {
                         <p className="text-sm whitespace-pre-wrap bg-primary/5 p-3 rounded-md mt-1">{selectedConsultation.reply}</p>
                         {selectedConsultation.doctorReplyTimestamp && (
                           <p className="text-xs text-muted-foreground text-right mt-1">
-                            回复于: {formatDisplayDate(selectedConsultation.doctorReplyTimestamp)}
+                            回复于: {formatDisplayDate(selectedConsultation.doctorReplyTimestamp as Date)}
                           </p>
                         )}
                       </div>
@@ -341,5 +336,3 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
-
-    
