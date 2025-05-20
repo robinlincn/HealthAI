@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,16 @@ export default function HomePage() {
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
+
+  if (currentYear === null) {
+    // Return a placeholder or null during server-side rendering or before hydration
+    // to avoid potential hydration mismatches if currentYear is only set client-side.
+    return (
+      <div className="flex flex-col items-center justify-between min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+        {/* Placeholder content or spinner can go here */}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-between min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
@@ -33,28 +44,31 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-4">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base">
-              <Link href="/auth/login"><span>病人端登录 (Next.js版)</span></Link>
+              <Link href="/auth/login">病人登录 (Next.js版)</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10 px-8 py-3 text-base">
-              <Link href="/auth/register"><span>病人端注册 (Next.js版)</span></Link>
+              <Link href="/auth/register">病人注册 (Next.js版)</Link>
             </Button>
           </div>
           <div className="pt-8 flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4">
               <Button asChild size="sm" variant="ghost" className="text-muted-foreground hover:text-primary">
-                  <Link href="/doctor/auth/login"><span>医生端入口 &rarr;</span></Link>
+                  <Link href="/doctor/auth/login">医生端入口 (Next.js版) &rarr;</Link>
               </Button>
               <Button asChild size="sm" variant="ghost" className="text-accent-foreground hover:text-accent">
-                <a href="/vue-patient-app/" rel="noopener noreferrer"><span>病人端入口 (Vue版) &rarr;</span></a>
+                <a href="/vue-patient-app/" rel="noopener noreferrer">病人端入口 (Vue版) &rarr;</a>
+              </Button>
+              <Button asChild size="sm" variant="ghost" className="text-orange-600 hover:text-orange-700">
+                <a href="/vue-doctor-app/" rel="noopener noreferrer">医生端入口 (Vue版) &rarr;</a>
               </Button>
               <Button asChild size="sm" variant="ghost" className="text-muted-foreground hover:text-primary">
-                  <Link href="/saas-admin"><span>SAAS管理后台 (Next.js版) &rarr;</span></Link>
+                  <Link href="/saas-admin">SAAS管理后台 (Next.js版) &rarr;</Link>
               </Button>
           </div>
         </div>
       </main>
 
       <footer className="w-full text-center text-xs text-muted-foreground py-6">
-        <p>&copy; {currentYear !== null ? currentYear : new Date().getFullYear()} AI慢病管理系统. 保留所有权利。</p>
+        <p>&copy; {currentYear} AI慢病管理系统. 保留所有权利。</p>
         <p className="mt-1">本系统提供的健康信息仅供参考，不能替代专业医疗建议。</p>
       </footer>
     </div>
