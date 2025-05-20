@@ -60,6 +60,7 @@ export interface UserProfile {
   occupation?: string;
   educationLevel?: string;
 
+  // Fields usually managed by institution, patient-side read-only or not present
   recordNumber?: string; 
   admissionDate?: string; // Store as YYYY-MM-DD string from form
   recordDate?: string; // Store as YYYY-MM-DD string from form
@@ -211,6 +212,8 @@ export interface MealEntry {
   notes?: string;
 }
 
+export type ConsultationSource = 'app' | 'wechat_mini_program' | 'wechat_personal' | 'wechat_group';
+
 export interface Consultation {
   id: string;
   patientId: string;
@@ -224,6 +227,7 @@ export interface Consultation {
   reply?: string;
   doctorReplyTimestamp?: Timestamp | Date; 
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
+  source?: ConsultationSource; // New field for consultation source
 }
 
 
