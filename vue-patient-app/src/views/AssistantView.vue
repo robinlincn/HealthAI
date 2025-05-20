@@ -1,41 +1,37 @@
 <template>
   <div class="flex flex-col h-full">
-    <VCard class="flex-grow flex flex-col">
-      <VCardHeader>
-        <VCardTitle>AI小助手</VCardTitle>
-        <VCardDescription>您的智能健康伙伴。</VCardDescription>
-      </VCardHeader>
-      <VCardContent class="flex-grow overflow-y-auto space-y-4">
-        <!-- Chat messages will go here -->
-        <div class="flex justify-start">
-          <div class="bg-muted p-3 rounded-lg max-w-[80%]">
-            <p class="text-sm">你好！我是AI健康助手，有什么可以帮您？</p>
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <div class="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%]">
-            <p class="text-sm">我最近血糖有点高怎么办？</p>
-          </div>
-        </div>
-         <div class="flex justify-start">
-          <div class="bg-muted p-3 rounded-lg max-w-[80%]">
-            <p class="text-sm">请注意饮食，多监测。具体建议请咨询医生。 (AI模拟回复)</p>
-          </div>
-        </div>
-      </VCardContent>
-      <VCardFooter class="p-4 border-t">
-        <div class="flex w-full space-x-2">
-          <VInput placeholder="输入您的问题..." class="flex-grow" />
-          <VButton><Send class="h-4 w-4" /></VButton>
-        </div>
-      </VCardFooter>
-    </VCard>
+    <p class="text-muted-foreground p-4 text-center">AI小助手聊天界面正在建设中 (Vue版)。</p>
+    <!-- Basic chat UI structure -->
+    <div class="flex-grow overflow-y-auto p-4 space-y-2 bg-muted/30">
+      <!-- Placeholder messages -->
+      <div class="flex justify-start">
+        <div class="bg-card p-2 rounded-lg max-w-[80%]">AI: 你好！有什么可以帮您？</div>
+      </div>
+      <div class="flex justify-end">
+        <div class="bg-primary text-primary-foreground p-2 rounded-lg max-w-[80%]">我：我想问一下...</div>
+      </div>
+    </div>
+    <div class="border-t p-2 space-y-1">
+      <div class="flex items-center space-x-1">
+        <input type="text" placeholder="输入您的问题..." class="flex-grow border p-2 rounded-md h-10 text-sm" />
+        <button class="bg-primary text-primary-foreground p-2 rounded-md h-10 w-10 flex items-center justify-center">
+          <Send class="h-4 w-4" />
+        </button>
+      </div>
+      <div class="flex justify-start space-x-1">
+        <button class="btn-outline-sm"><ImageIcon :size="16" class="mr-1"/>图片</button>
+        <button class="btn-outline-sm"><Paperclip :size="16" class="mr-1"/>文档</button>
+        <button class="btn-outline-sm"><Mic :size="16" class="mr-1"/>语音</button>
+        <button class="btn-outline-sm"><VideoIcon :size="16" class="mr-1"/>视频</button>
+      </div>
+    </div>
   </div>
 </template>
-
 <script setup lang="ts">
-import { VCard, VCardContent, VCardHeader, VCardTitle, VCardDescription, VCardFooter } from '@/components/ui/VCard';
-import VInput from '@/components/ui/VInput.vue';
-import VButton from '@/components/ui/VButton.vue';
-import { Send } from 'lucide-vue-next';
+import { Send, ImageIcon, Paperclip, Mic, Video as VideoIcon } from 'lucide-vue-next';
 </script>
+<style scoped>
+.btn-outline-sm {
+  @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground text-xs h-8 px-2 rounded-md flex items-center;
+}
+</style>

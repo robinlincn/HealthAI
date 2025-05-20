@@ -4,67 +4,43 @@
       <VCard class="shadow-xl">
         <VCardHeader class="space-y-1 text-center p-6">
           <img 
-            src="https://picsum.photos/seed/registerbanner/400/150" 
+            src="https://picsum.photos/seed/registerbanner-vue/400/150" 
             alt="健康生活" 
             class="rounded-t-lg object-cover w-full h-32 mb-4"
             data-ai-hint="medical icons"
           />
-          <VCardTitle class="text-2xl">注册您的专属AI管家</VCardTitle>
-          <VCardDescription>开启您的个性化慢病管理之旅</VCardDescription>
+          <VCardTitle class="text-2xl">注册您的专属AI管家 (Vue)</VCardTitle>
+          <VCardDescription>
+            开启您的个性化慢病管理之旅
+          </VCardDescription>
         </VCardHeader>
         <VCardContent class="p-6">
           <form @submit.prevent="handleRegister" class="space-y-4">
+            <!-- Form fields (name, age, gender, etc.) go here -->
             <div class="space-y-2">
-              <VLabel for="phone">手机号</VLabel>
-              <VInput id="phone" name="phone" type="tel" placeholder="请输入您的手机号" v-model="formData.phone" required :disabled="isLoading" />
+              <label for="phone-reg" class="block text-sm font-medium text-foreground">手机号</label>
+              <input id="phone-reg" type="tel" v-model="formData.phone" placeholder="请输入手机号" required class="input-field" />
             </div>
             <div class="space-y-2">
-              <VLabel for="password">密码</VLabel>
-              <VInput id="password" name="password" type="password" placeholder="请输入密码 (至少6位)" v-model="formData.password" required minlength="6" :disabled="isLoading" />
+              <label for="password-reg" class="block text-sm font-medium text-foreground">密码</label>
+              <input id="password-reg" type="password" v-model="formData.password" placeholder="请输入密码" required minlength="6" class="input-field" />
             </div>
-            <div class="space-y-2">
-              <VLabel for="confirmPassword">确认密码</VLabel>
-              <VInput id="confirmPassword" name="confirmPassword" type="password" placeholder="请再次输入密码" v-model="formData.confirmPassword" required minlength="6" :disabled="isLoading" />
+             <div class="space-y-2">
+              <label for="confirmPassword-reg" class="block text-sm font-medium text-foreground">确认密码</label>
+              <input id="confirmPassword-reg" type="password" v-model="formData.confirmPassword" placeholder="请再次输入密码" required minlength="6" class="input-field" />
             </div>
-            <div class="space-y-2">
-              <VLabel for="name">姓名</VLabel>
-              <VInput id="name" name="name" type="text" placeholder="请输入您的姓名" v-model="formData.name" required :disabled="isLoading" />
-            </div>
-            <div class="space-y-2">
-              <VLabel for="age">年龄</VLabel>
-              <VInput id="age" name="age" type="number" placeholder="请输入您的年龄" v-model="formData.age" required min="1" max="120" :disabled="isLoading" />
-            </div>
-            <div class="space-y-2">
-              <VLabel for="gender">性别</VLabel>
-              <VSelect id="gender" name="gender" v-model="formData.gender" required :disabled="isLoading">
-                <option value="" disabled selected>请选择性别</option>
-                <option value="male">男</option>
-                <option value="female">女</option>
-                <option value="other">其他</option>
-              </VSelect>
-            </div>
-            <div class="space-y-2">
-              <VLabel for="concernedDisease">关注病种</VLabel>
-              <VSelect id="concernedDisease" name="concernedDisease" v-model="formData.concernedDisease" required :disabled="isLoading">
-                <option value="" disabled selected>请选择您关注的病种</option>
-                <option value="diabetes">糖尿病</option>
-                <option value="hypertension">高血压</option>
-                <option value="hyperlipidemia">高血脂</option>
-                <option value="copd">慢阻肺</option>
-                <option value="other">其他</option>
-              </VSelect>
-            </div>
-            <VButton type="submit" class="w-full" :disabled="isLoading">
+            <!-- Add more fields as in Next.js version -->
+            <button type="submit" class="w-full btn-primary" :disabled="isLoading">
               <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
               <UserPlus v-else class="mr-2 h-4 w-4" />
               {{ isLoading ? "注册中..." : "完成注册" }}
-            </VButton>
+            </button>
           </form>
         </VCardContent>
         <VCardFooter class="flex justify-center p-6 pt-0">
           <p class="text-sm text-muted-foreground">
             已有账户？
-            <router-link :to="loginPath" class="text-primary hover:underline p-0 h-auto">立即登录</router-link>
+            <RouterLink :to="VUE_APP_BASE_URL + 'auth/login'" class="font-medium text-primary hover:underline">立即登录</RouterLink>
           </p>
         </VCardFooter>
       </VCard>
@@ -74,41 +50,42 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { VCard, VCardContent, VCardHeader, VCardTitle, VCardDescription, VCardFooter } from '@/components/ui/VCard';
-import VButton from '@/components/ui/VButton.vue';
-import VInput from '@/components/ui/VInput.vue';
-import VLabel from '@/components/ui/VLabel.vue';
-import VSelect from '@/components/ui/VSelect.vue'; // Basic select component
-import { Loader2, UserPlus } from 'lucide-vue-next';
+import { useRouter, RouterLink } from 'vue-router';
+import { UserPlus, Loader2 } from 'lucide-vue-next';
+import { VCard, VCardHeader, VCardTitle, VCardDescription, VCardContent, VCardFooter } from '@/components/ui/VCard';
 
 const VUE_APP_BASE_URL = import.meta.env.BASE_URL || '/vue-patient-app/';
-
 const router = useRouter();
 const formData = ref({
-  phone: "",
-  password: "",
-  confirmPassword: "",
-  name: "",
-  age: "",
-  gender: "",
-  concernedDisease: "",
+  phone: '',
+  password: '',
+  confirmPassword: '',
+  name: '',
+  age: '',
+  gender: '',
+  concernedDisease: '',
 });
 const isLoading = ref(false);
-
-const loginPath = `${VUE_APP_BASE_URL}auth/login`;
 
 const handleRegister = async () => {
   isLoading.value = true;
   if (formData.value.password !== formData.value.confirmPassword) {
-    alert("两次输入的密码不一致。"); // Replace with toast in real app
+    // toast error
+    console.error("密码不匹配");
     isLoading.value = false;
     return;
   }
-  // Mock registration logic
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  console.log("Registration data:", formData.value);
-  alert("注册成功 (模拟)，即将跳转到登录页面。"); // Replace with toast
-  router.push(loginPath);
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  console.log("注册成功 (Vue)", formData.value);
+  router.push(VUE_APP_BASE_URL + 'auth/login');
 };
 </script>
+
+<style scoped>
+.input-field {
+  @apply mt-1 block w-full rounded-md border-border bg-input px-3 py-2 text-foreground placeholder-muted-foreground shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-11;
+}
+.btn-primary {
+  @apply flex w-full justify-center items-center rounded-md border border-transparent bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70 h-11;
+}
+</style>

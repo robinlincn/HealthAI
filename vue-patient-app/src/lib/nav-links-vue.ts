@@ -12,7 +12,8 @@ import {
   Users,
   HelpCircle,
   BellRing,
-  Bot, // Use Bot icon for AI Assistant
+  Bot,
+  Pill, // Added Pill icon
 } from 'lucide-vue-next';
 
 export const navLinksVue: NavItemVue[] = [
@@ -32,6 +33,11 @@ export const navLinksVue: NavItemVue[] = [
     icon: Apple,
   },
   {
+    title: '用药计划', // New Medication Plan link
+    href: '/vue-patient-app/dashboard/medication-plan',
+    icon: Pill,
+  },
+  {
     title: '检查报告',
     href: '/vue-patient-app/dashboard/reports',
     icon: FileText,
@@ -49,7 +55,7 @@ export const navLinksVue: NavItemVue[] = [
   {
     title: 'AI小助手',
     href: '/vue-patient-app/dashboard/assistant',
-    icon: Bot, // Changed to Bot icon
+    icon: Bot,
   },
   {
     title: '健康提醒',
@@ -66,15 +72,15 @@ export const navLinksVue: NavItemVue[] = [
     href: '/vue-patient-app/dashboard/community',
     icon: Users,
   },
-  {
+   {
     title: '我的',
     href: '/vue-patient-app/dashboard/profile',
     icon: UserCircle,
   },
-  { // This is a sub-page, usually navigated to from '我的'
-    title: '编辑资料',
+  { 
+    title: '编辑资料', // Sub-page of profile
     href: '/vue-patient-app/dashboard/profile/edit-details',
-    icon: UserCircle, // Or specific edit icon
+    icon: UserCircle, // Often shares parent icon or use specific like 'Edit'
   },
   {
     title: '系统设置',
@@ -92,6 +98,6 @@ export const navLinksVue: NavItemVue[] = [
 export const bottomNavLinksVue: NavItemVue[] = [
   { title: '仪表盘', href: '/vue-patient-app/dashboard', icon: LayoutDashboard },
   { title: '健康数据', href: '/vue-patient-app/dashboard/health-data', icon: LineChart },
-  { title: 'AI助手', href: '/vue-patient-app/dashboard/assistant', icon: Bot }, // Changed to Bot icon
+  { title: 'AI助手', href: '/vue-patient-app/dashboard/assistant', icon: Bot },
   { title: '我的', href: '/vue-patient-app/dashboard/profile', icon: UserCircle },
 ];
