@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react"; // Ensure React is imported
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added this line
-import { MessagesSquare, Send, UserCircle, Phone, Video as VideoIcon, FileText as FileTextIcon, Loader2, MessageCircle, Users, Filter, AlertTriangle, ListFilter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MessagesSquare, Send, UserCircle, Phone, Video as VideoIcon, FileText as FileTextIcon, Loader2, MessageCircle, Users, Filter, AlertTriangle, ListFilter, ImageIcon } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, differenceInDays, isToday, isYesterday } from "date-fns";
@@ -55,18 +56,18 @@ const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon
   if (!source) return { text: "未知来源", icon: AlertTriangle };
   switch (source) {
     case 'app': return { text: "App端", icon: MessageCircle };
-    case 'wechat_mini_program': return { text: "微信小程序", icon: MessageCircle };
+    case 'wechat_mini_program': return { text: "微信小程序", icon: MessageCircle }; // Could use a specific WeChat icon if available
     case 'wechat_personal': return { text: "个人微信", icon: Users };
     case 'wechat_group': return { text: "微信群", icon: Users };
     default: return { text: source, icon: AlertTriangle };
   }
 };
 
-const formatDisplayDate = (isoDate: string | Date) => {
+const formatDisplayDate = (isoDate: string | Date): string => {
     const date = typeof isoDate === 'string' ? parseISO(isoDate) : isoDate;
     if (isToday(date)) return `今天 ${format(date, "HH:mm")}`;
     if (isYesterday(date)) return `昨天 ${format(date, "HH:mm")}`;
-    if (differenceInDays(new Date(), date) < 7) return format(date, "EEEE HH:mm");
+    if (differenceInDays(new Date(), date) < 7) return format(date, "EEEE HH:mm"); // EEEE gives full day name e.g. "星期一"
     return format(date, "yyyy-MM-dd HH:mm");
 };
 
@@ -97,17 +98,16 @@ export default function DoctorConsultationsPage() {
         } as Consultation);
       });
       
-      // Merge initial mock data with fetched data to ensure UI always has something if DB is empty
       const combinedMap = new Map<string, Consultation>();
-      initialMockConsultations.forEach(mock => combinedMap.set(mock.id, mock)); // Add mocks first
-      fetchedConsultations.forEach(fetched => combinedMap.set(fetched.id, fetched)); // Fetched data overrides mocks
+      initialMockConsultations.forEach(mock => combinedMap.set(mock.id, mock));
+      fetchedConsultations.forEach(fetched => combinedMap.set(fetched.id, fetched));
 
       setConsultations(Array.from(combinedMap.values()).sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime()));
       setIsLoading(false);
     }, (error) => {
       console.error("Error fetching consultations:", error);
       toast({ title: "获取咨询列表失败", description: "请检查网络连接或稍后重试。", variant: "destructive" });
-      setConsultations(initialMockConsultations.sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime())); // Fallback to mock on error
+      setConsultations(initialMockConsultations.sort((a,b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime()));
       setIsLoading(false);
     });
     return unsubscribe;
@@ -133,7 +133,7 @@ export default function DoctorConsultationsPage() {
 
   const handleSelectConsultation = (consultationId: string) => {
     setSelectedConsultationId(consultationId);
-    setReplyContent(consultations.find(c => c.id === consultationId)?.reply || ""); // Pre-fill reply if exists
+    setReplyContent(consultations.find(c => c.id === consultationId)?.reply || "");
   };
 
   const handleSendReply = useCallback(async () => {
@@ -152,19 +152,6 @@ export default function DoctorConsultationsPage() {
         doctorName: MOCK_DOCTOR_NAME,
       });
       
-      // Firestore listener will update the UI, so manually setting state here can be removed
-      // or be kept for immediate optimistic update if preferred, but might conflict if not handled well.
-      // For now, we'll rely on the listener from fetchConsultations.
-      // setConsultations(prev => prev.map(c => c.id === selectedConsultationId ? {
-      //     ...c, 
-      //     reply: replyContent, 
-      //     status: 'replied', 
-      //     doctorReplyTimestamp: new Date(),
-      //     doctorId: MOCK_DOCTOR_ID,
-      //     doctorName: MOCK_DOCTOR_NAME,
-      // } : c));
-      
-      // setReplyContent(""); // Clear after successful send, or keep for further editing by doctor
       toast({ title: "回复已发送", description: "您的回复已成功发送给病人。" });
     } catch (error) {
       console.error("Error sending reply:", error);
@@ -336,3 +323,5 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
+
+    
