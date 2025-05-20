@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import {
-  MessagesSquare, Reply, Image as ImageIconSvg, Video as VideoIcon, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users as UsersIconLucide, Languages, Tv, ListFilter
+  MessagesSquare, Reply, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users as UsersIconLucide, Languages, Tv, ListFilter, Image as ImageIconSvg, Video as VideoIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Consultation, ConsultationSource } from "@/lib/types";
@@ -215,7 +215,7 @@ export default function DoctorConsultationsPage() {
     }
   }, [selectedConsultation]);
 
-  const handleSendReply = async () => {
+  const handleSendReply = useCallback(async () => {
     if (!selectedConsultationId || !replyContent.trim()) {
         toast({ title: "请输入回复内容", variant: "destructive" });
         return;
@@ -268,8 +268,8 @@ export default function DoctorConsultationsPage() {
     } finally {
         setIsReplying(false);
     }
-  };
-
+  }, [selectedConsultationId, replyContent, toast, consultations]);
+  
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -450,3 +450,5 @@ export default function DoctorConsultationsPage() {
     </div>
   );
 }
+
+    
