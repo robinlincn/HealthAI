@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessagesSquare, Reply, Image as ImageIcon, Video, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users, Languages, Tv, ListFilter } from "lucide-react";
-import React, { useState, useEffect, useCallback, useMemo } from "react"; // Added React import
+import { MessagesSquare, Reply, Image as ImageIconSvg, Video as VideoIcon, Filter, Search, MessageCircleQuestion, Loader2, Smartphone, Users as UsersIconLucide, Languages, Tv, ListFilter } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Consultation, ConsultationSource } from "@/lib/types";
 import { db, serverTimestamp, Timestamp as FirestoreTimestamp } from "@/lib/firebase";
-import { collection, query, orderBy, getDocs, doc, updateDoc, addDoc } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, doc, updateDoc } from "firebase/firestore";
 import { format, parseISO } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+
+const MOCK_DOCTOR_ID = "doctorUser456";
 
 const mockDoctorConsultations: Consultation[] = [
     {
@@ -48,7 +50,7 @@ const mockDoctorConsultations: Consultation[] = [
         patientId: "patientMock003",
         patientName: "模拟患者C (演示)",
         doctorName: "当前医生",
-        date: format(new Date(new Date().setDate(new Date().getDate())), "yyyy-MM-dd"), // Today
+        date: format(new Date(new Date().setDate(new Date().getDate())), "yyyy-MM-dd"), 
         timestamp: new Date(),
         question: "昨天晚上吃了火锅，今天早上起来感觉有点不舒服，需要注意什么吗？",
         status: 'pending_reply',
@@ -56,18 +58,51 @@ const mockDoctorConsultations: Consultation[] = [
     }
 ];
 
-const MOCK_DOCTOR_ID = "doctorUser456";
+// Helper functions
+const getStatusText = (status: Consultation['status']): string => {
+    const map: Record<Consultation['status'], string> = {
+        scheduled: '已安排',
+        completed: '已完成',
+        pending_reply: '待回复',
+        replied: '已回复',
+        closed: '已关闭',
+        pending_confirmation: '待确认',
+        cancelled: '已取消'
+    };
+    return map[status] || status;
+};
+
+const getStatusBadgeColor = (status: Consultation['status']): string => {
+    switch (status) {
+      case 'pending_reply': return 'bg-yellow-100 text-yellow-700';
+      case 'replied': return 'bg-green-100 text-green-700';
+      case 'closed': return 'bg-gray-100 text-gray-700';
+      case 'pending_confirmation': return 'bg-orange-100 text-orange-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+};
+
+const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon: React.ElementType } => {
+    switch (source) {
+      case 'app': return { text: 'APP端', icon: Smartphone };
+      case 'wechat_mini_program': return { text: '小程序', icon: Tv };
+      case 'wechat_personal': return { text: '个人微信', icon: MessageCircleQuestion };
+      case 'wechat_group': return { text: '微信群', icon: UsersIconLucide };
+      default: return { text: '未知来源', icon: Languages };
+    }
+};
+
 
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<Consultation['status'] | "all">("all");
   const [filterSource, setFilterSource] = useState<ConsultationSource | "all">("all");
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [selectedConsultationId, setSelectedConsultationId] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isReplying, setIsReplying] = useState(false);
+  const [replyContent, setReplyContent] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isReplying, setIsReplying] = useState<boolean>(false);
 
   const fetchConsultations = useCallback(async () => {
     setIsLoading(true);
@@ -200,6 +235,7 @@ export default function DoctorConsultationsPage() {
         toast({ title: "模拟回复已发送"});
         setIsReplying(false);
         setReplyContent("");
+        setSelectedConsultationId(null); 
         return;
     }
 
@@ -213,51 +249,19 @@ export default function DoctorConsultationsPage() {
         doctorName: "当前医生"
       });
 
-      setConsultations(prev => prev.map(c =>
+       setConsultations(prev => prev.map(c =>
         c.id === selectedConsultationId
         ? { ...c, reply: replyContent, status: "replied" as Consultation['status'], doctorReplyTimestamp: new Date(), doctorId: MOCK_DOCTOR_ID, doctorName: "当前医生" }
         : c
       ));
       setReplyContent("");
+      setSelectedConsultationId(null); 
       toast({ title: "回复已发送"});
     } catch (error) {
         console.error("Error sending reply:", error);
         toast({ title: "回复发送失败", variant: "destructive" });
     } finally {
         setIsReplying(false);
-    }
-  };
-
-  const getStatusText = (status: Consultation['status']): string => {
-    const map: Record<Consultation['status'], string> = {
-        scheduled: '已安排',
-        completed: '已完成',
-        pending_reply: '待回复',
-        replied: '已回复',
-        closed: '已关闭',
-        pending_confirmation: '待确认',
-        cancelled: '已取消'
-    };
-    return map[status] || status;
-  };
-
-  const getStatusBadgeColor = (status: Consultation['status']): string => {
-    switch (status) {
-      case 'pending_reply': return 'bg-yellow-100 text-yellow-700';
-      case 'replied': return 'bg-green-100 text-green-700';
-      case 'closed': return 'bg-gray-100 text-gray-700';
-      case 'pending_confirmation': return 'bg-orange-100 text-orange-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon: React.ElementType } => {
-    switch (source) {
-      case 'app': return { text: 'APP端', icon: Smartphone };
-      case 'wechat_mini_program': return { text: '小程序', icon: Tv };
-      case 'wechat_personal': return { text: '个人微信', icon: MessageCircleQuestion };
-      case 'wechat_group': return { text: '微信群', icon: Users };
-      default: return { text: '未知来源', icon: Languages };
     }
   };
 
@@ -379,8 +383,8 @@ export default function DoctorConsultationsPage() {
                         <p className="text-xs font-medium">附件:</p>
                         {selectedConsultation.attachments.map((att, idx) => (
                              <span key={idx} className="mr-2 p-1 bg-muted rounded text-muted-foreground text-xs">
-                                {att.type === 'image' && <ImageIcon className="inline h-3 w-3 mr-1"/>}
-                                {att.type === 'video' && <Video className="inline h-3 w-3 mr-1"/>}
+                                {att.type === 'image' && <ImageIconSvg className="inline h-3 w-3 mr-1"/>}
+                                {att.type === 'video' && <VideoIcon className="inline h-3 w-3 mr-1"/>}
                                 {att.name}
                             </span>
                         ))}
@@ -414,8 +418,8 @@ export default function DoctorConsultationsPage() {
                     {selectedConsultation.status !== 'closed' && (
                         <div className="flex justify-between items-center pt-2">
                             <div className="flex space-x-2">
-                                <Button variant="outline" size="sm" disabled><ImageIcon className="mr-1 h-4 w-4"/> 图片</Button>
-                                <Button variant="outline" size="sm" disabled><Video className="mr-1 h-4 w-4"/> 视频</Button>
+                                <Button variant="outline" size="sm" disabled><ImageIconSvg className="mr-1 h-4 w-4"/> 图片</Button>
+                                <Button variant="outline" size="sm" disabled><VideoIcon className="mr-1 h-4 w-4"/> 视频</Button>
                             </div>
                             <Button onClick={handleSendReply} disabled={isReplying || !replyContent.trim()}>
                                 {isReplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Reply className="mr-2 h-4 w-4" />}
