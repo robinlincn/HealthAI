@@ -58,7 +58,7 @@ const mockDoctorConsultations: Consultation[] = [
     }
 ];
 
-// Helper functions
+// Helper functions moved to top-level of the module
 const getStatusText = (status: Consultation['status']): string => {
     const map: Record<Consultation['status'], string> = {
         scheduled: '已安排',
@@ -91,7 +91,6 @@ const getSourceTextAndIcon = (source?: ConsultationSource): { text: string; icon
       default: return { text: '未知来源', icon: Languages };
     }
 };
-
 
 export default function DoctorConsultationsPage() {
   const { toast } = useToast();
