@@ -1,64 +1,64 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true, // Recommended for highlighting potential problems
-  swcMinify: true, // Enable SWC minifier for faster builds
-  // output: 'standalone', // Uncomment if you plan to deploy to a Docker container or similar
+  reactStrictMode: true,
+  swcMinify: true,
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'picsum.photos',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      }
     ],
   },
   async rewrites() {
-    // For development, proxy /vue-patient-app to the Vue dev server
-    // The Vue dev server should be running (e.g., via `npm run dev:vue`)
-    // Ensure VUE_DEV_SERVER_URL if set, does not have a trailing slash for consistent URL construction.
     let vueDevServerUrl = (process.env.VUE_DEV_SERVER_URL || 'http://localhost:9003').replace(/\/$/, "");
-    let saasAdminServerUrl = (process.env.SAAS_ADMIN_DEV_SERVER_URL || 'http://localhost:3000').replace(/\/$/, "");
+    let vueDoctorDevServerUrl = (process.env.VUE_DOCTOR_DEV_SERVER_URL || 'http://localhost:9004').replace(/\/$/, "");
+    // SAAS Admin is now part of the main Next.js app, so no rewrite for it unless deployed separately.
 
     try {
-      // Validate if vueDevServerUrl is a proper URL structure.
       new URL(vueDevServerUrl);
     } catch (e) {
       console.error(
         `[Next.js Config] Invalid VUE_DEV_SERVER_URL: "${process.env.VUE_DEV_SERVER_URL}". ` +
         `Error: ${(e instanceof Error ? e.message : String(e))}. ` +
-        `Defaulting to 'http://localhost:9003'. ` +
-        `Please ensure VUE_DEV_SERVER_URL is a complete and valid URL (e.g., http://localhost:9003).`
+        `Defaulting to 'http://localhost:9003'.`
       );
-      vueDevServerUrl = 'http://localhost:9003'; // Default without trailing slash
+      vueDevServerUrl = 'http://localhost:9003';
     }
 
     try {
-      new URL(saasAdminServerUrl);
+      new URL(vueDoctorDevServerUrl);
     } catch (e) {
-       console.error(
-        `[Next.js Config] Invalid SAAS_ADMIN_DEV_SERVER_URL: "${process.env.SAAS_ADMIN_DEV_SERVER_URL}". ` +
+      console.error(
+        `[Next.js Config] Invalid VUE_DOCTOR_DEV_SERVER_URL: "${process.env.VUE_DOCTOR_DEV_SERVER_URL}". ` +
         `Error: ${(e instanceof Error ? e.message : String(e))}. ` +
-        `Defaulting to 'http://localhost:3000'. ` +
-        `Please ensure SAAS_ADMIN_DEV_SERVER_URL is a complete and valid URL (e.g., http://localhost:3000).`
+        `Defaulting to 'http://localhost:9004'.`
       );
-      saasAdminServerUrl = 'http://localhost:3000';
+      vueDoctorDevServerUrl = 'http://localhost:9004';
     }
     
     return [
+      // Vue Patient App rewrites
       {
-        source: '/saas-admin', // Matches /saas-admin (no trailing slash)
-        destination: `${saasAdminServerUrl}/saas-admin/`, // Proxies to SAAS admin dev server with trailing slash
+        source: '/vue-patient-app',
+        destination: `${vueDevServerUrl}/vue-patient-app/`, 
       },
       {
-        source: '/saas-admin/:path*', // Matches /saas-admin/anything
-        destination: `${saasAdminServerUrl}/saas-admin/:path*`, // Proxies to SAAS admin dev server
+        source: '/vue-patient-app/:path*',
+        destination: `${vueDevServerUrl}/vue-patient-app/:path*`,
+      },
+      // Vue Doctor App rewrites
+      {
+        source: '/vue-doctor-app',
+        destination: `${vueDoctorDevServerUrl}/vue-doctor-app/`,
       },
       {
-        source: '/vue-patient-app', // Matches /vue-patient-app (no trailing slash)
-        destination: `${vueDevServerUrl}/vue-patient-app/`, // Proxies to Vue dev server base with trailing slash
-      },
-      {
-        source: '/vue-patient-app/:path*', // Matches /vue-patient-app/anything
-        destination: `${vueDevServerUrl}/vue-patient-app/:path*`, // Proxies to Vue dev server
+        source: '/vue-doctor-app/:path*',
+        destination: `${vueDoctorDevServerUrl}/vue-doctor-app/:path*`,
       },
     ];
   },

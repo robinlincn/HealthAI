@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 240 240; /* #F0F0F0 Light Gray */
+    --foreground: 30 30 40; /* Dark grayish blue for text */
+    
+    --primary: 0 128 128; /* Teal #008080 */
+    --primary-rgb: 0, 128, 128;
+    --primary-foreground: 255 255 255; /* White */
+    --primary-foreground-rgb: 255, 255, 255;
+
+    --secondary: 224 242 241; /* Lighter teal #E0F2F1 */
+    --secondary-rgb: 224, 242, 241;
+    --secondary-foreground: 0 77 77; /* Darker teal */
+    --secondary-foreground-rgb: 0, 77, 77;
+
+    --accent: 135 206 235; /* Sky Blue #87CEEB */
+    --accent-rgb: 135, 206, 235;
+    --accent-foreground: 0 70 100; /* Dark teal/blue */
+    --accent-foreground-rgb: 0, 70, 100;
+
+    --muted: 222 222 222; /* Slightly darker gray for muted elements */
+    --muted-rgb: 222, 222, 222;
+    --muted-foreground: 100 100 100; /* Gray for muted text */
+    --muted-foreground-rgb: 100, 100, 100;
+
+    --border: 200 200 200; /* Gray border */
+    --border-rgb: 200, 200, 200;
+    --input: 230 230 230; /* Light gray input background */
+    --input-rgb: 230, 230, 230;
+    --ring: 0 128 128; /* Teal for focus rings */
+    --ring-rgb: 0, 128, 128;
+
+    --card: 255 255 255; /* White */
+    --card-rgb: 255, 255, 255;
+    --card-foreground: 30 30 40;
+    --card-foreground-rgb: 30, 30, 40;
+
+    --popover: 255 255 255; /* White */
+    --popover-rgb: 255, 255, 255;
+    --popover-foreground: 30 30 40;
+    --popover-foreground-rgb: 30, 30, 40;
+
+    --destructive: 220 38 38; /* Red */
+    --destructive-rgb: 220, 38, 38;
+    --destructive-foreground: 255 255 255; /* White */
+    --destructive-foreground-rgb: 255, 255, 255;
+
+    --radius: 0.5rem;
+
+    /* Sidebar specific colors from Next.js Doctor App */
+    --sidebar-background: hsl(180, 80%, 20%); /* Darker Teal */
+    --sidebar-foreground: hsl(0, 0%, 96%);   /* Very Light Gray / Off-White */
+    --sidebar-primary: hsl(197.1, 71.4%, 65%); /* Sky Blue */
+    --sidebar-primary-foreground: hsl(180, 100%, 10%); /* Very dark teal */
+    --sidebar-accent: hsl(180, 70%, 28%); /* Lighter teal for hover */
+    --sidebar-accent-foreground: hsl(0, 0%, 98%); /* White text on hover */
+    --sidebar-border: hsl(180, 70%, 25%);
+  }
+
+  /* Add .dark variables if you plan to implement dark mode, copying from globals.css */
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-background text-foreground;
+}
