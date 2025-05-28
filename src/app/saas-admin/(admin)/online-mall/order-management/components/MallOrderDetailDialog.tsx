@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // Removed DialogDescription
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,9 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, Edit, Users, Package, FileText, UserCircle, RotateCcw, CornerDownLeft, ShieldAlert, Gift, CheckCircle } from "lucide-react";
+import { Truck, Edit, Users, Package, FileText, UserCircle, RotateCcw, CornerDownLeft, ShieldAlert, Gift, CheckCircle, XCircle, Clock, AlertTriangle, PhoneCall } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 
@@ -48,21 +48,27 @@ export function MallOrderDetailDialog({
   if (!isOpen || !order) return null;
 
   const getOrderStatusBadge = (status: SaasMallOrder['status']) => {
+    let text = status;
+    let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "outline";
+    let badgeClasses = "";
+    let Icon = AlertTriangle;
+
     switch (status) {
-        case 'pending_payment': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">待支付</Badge>;
-        case 'paid': return <Badge className="bg-blue-100 text-blue-700">已支付</Badge>;
-        case 'processing': return <Badge className="bg-sky-100 text-sky-700">处理中</Badge>;
-        case 'shipped': return <Badge className="bg-indigo-100 text-indigo-700">已发货</Badge>;
-        case 'delivered': return <Badge className="bg-teal-100 text-teal-700">已送达</Badge>;
-        case 'completed': return <Badge className="bg-green-100 text-green-700">已完成</Badge>;
-        case 'cancelled_user': case 'cancelled_admin': return <Badge variant="outline" className="text-gray-600 border-gray-400">已取消</Badge>;
-        case 'refund_pending': return <Badge variant="secondary" className="bg-orange-100 text-orange-700">退款中</Badge>;
-        case 'refunded': return <Badge className="bg-pink-100 text-pink-700">已退款</Badge>;
-        case 'return_requested': return <Badge variant="secondary" className="bg-purple-100 text-purple-700">退货申请中</Badge>;
-        case 'return_approved': return <Badge className="bg-purple-100 text-purple-700">退货已批准</Badge>;
-        case 'return_completed': return <Badge className="bg-purple-100 text-purple-700">退货已完成</Badge>;
-        default: return <Badge variant="outline">{status}</Badge>;
+        case 'pending_payment': text = "待支付"; badgeVariant = "secondary"; badgeClasses = "bg-yellow-100 text-yellow-700 border-yellow-300"; Icon = Clock; break;
+        case 'paid': text = "已支付"; badgeVariant = "default"; badgeClasses = "bg-blue-100 text-blue-700 border-blue-300"; Icon = CreditCard; break;
+        case 'processing': text = "处理中"; badgeVariant = "default"; badgeClasses = "bg-sky-100 text-sky-700 border-sky-300"; Icon = Package; break;
+        case 'shipped': text = "已发货"; badgeVariant = "default"; badgeClasses = "bg-indigo-100 text-indigo-700 border-indigo-300"; Icon = Truck; break;
+        case 'delivered': text = "已送达"; badgeVariant = "default"; badgeClasses = "bg-teal-100 text-teal-700 border-teal-300"; Icon = CheckCircle; break;
+        case 'completed': text = "已完成"; badgeVariant = "default"; badgeClasses = "bg-green-100 text-green-700 border-green-300"; Icon = CheckCircle; break;
+        case 'cancelled_user': case 'cancelled_admin': text = "已取消"; badgeVariant = "outline"; badgeClasses = "text-gray-600 border-gray-400"; Icon = XCircle; break;
+        case 'refund_pending': text = "退款中"; badgeVariant = "secondary"; badgeClasses = "bg-orange-100 text-orange-700 border-orange-300"; Icon = RotateCcw; break;
+        case 'refunded': text = "已退款"; badgeVariant = "default"; badgeClasses = "bg-pink-100 text-pink-700 border-pink-300"; Icon = CheckCircle; break;
+        case 'return_requested': text = "退货申请中"; badgeVariant = "secondary"; badgeClasses = "bg-purple-100 text-purple-600 border-purple-300"; Icon = CornerDownLeft; break;
+        case 'return_approved': text = "退货已批准"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; Icon = CheckCircle; break;
+        case 'return_completed': text = "退货已完成"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; Icon = Gift; break;
+        default: text = "未知状态"; badgeVariant = "outline"; break;
     }
+    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}>{Icon && <Icon className="mr-1 h-3 w-3"/>}{text}</Badge>;
   };
   
   const handleMarkAsShipped = () => {
@@ -96,7 +102,7 @@ export function MallOrderDetailDialog({
       <DialogContent className="sm:max-w-2xl md:max-w-3xl">
         <DialogHeader>
           <DialogTitle>订单详情: {order.orderNumber}</DialogTitle>
-          {/* Replaced DialogDescription with a div to avoid invalid nesting */}
+          {/* Replaced DialogDescription with a div to avoid invalid nesting with Badge */}
           <div className="text-sm text-muted-foreground">
             状态: {getOrderStatusBadge(order.status)} | 下单于: {format(parseISO(order.orderDate), 'yyyy-MM-dd HH:mm')}
           </div>
@@ -105,14 +111,10 @@ export function MallOrderDetailDialog({
             <div className="space-y-4 py-4 text-sm">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><p><strong>订单ID:</strong> <span className="font-mono text-xs">{order.id}</span></p></div>
-                    <div><p><strong>所属企业:</strong> {enterprise?.name || order.enterpriseId}</p></div>
+                    <div><p><strong>所属企业:</strong> {enterprise?.name || order.enterpriseName || '加载中...'}</p></div>
                     <div><p><strong>客户名称:</strong> {order.customerName || order.customerId}</p></div>
                     <div><p><strong>客户联系:</strong> {order.customerContact || 'N/A'}</p></div>
                     <div><p><strong>下单时间:</strong> {format(parseISO(order.orderDate), 'yyyy-MM-dd HH:mm:ss')}</p></div>
-                    <div className="flex items-center">
-                        <strong className="mr-1">订单状态:</strong>
-                        {getOrderStatusBadge(order.status)}
-                    </div>
                      {(order.salespersonEmployeeId || order.salespersonName) && (
                         <div>
                             <p className="flex items-center">
@@ -250,3 +252,5 @@ export function MallOrderDetailDialog({
     </Dialog>
   );
 }
+
+    

@@ -1,25 +1,26 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription as UiCardDescription, CardFooter } from "@/components/ui/card"; // Renamed CardDescription to avoid conflict
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // DialogDescription is NOT imported if not used as <p>
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ListOrdered, Eye, X, ChevronRight, PackageSearch, ShoppingCart, CreditCard, Truck, RotateCcw, Star } from "lucide-react";
+import { ListOrdered, Eye, X, ChevronRight, PackageSearch, ShoppingCart, CreditCard, Truck, RotateCcw, Star, Package, CheckCircle, AlertTriangle, PhoneCall } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
-import type { SaasMallOrder, SaasMallOrderItem, SaasMallOrderStatus } from '@/lib/types'; // Ensure SaasMallOrder is comprehensive
+import type { SaasMallOrder, SaasMallOrderItem, SaasMallOrderStatus } from '@/lib/types';
 
-const MOCK_CURRENT_PATIENT_ID = "patientUser123"; // Assume this is the logged-in patient's ID
+const MOCK_CURRENT_PATIENT_ID = "patientUser123";
 
 const mockPatientOrders: SaasMallOrder[] = [
   {
     id: "mord-user-001",
     orderNumber: "SN20240715001",
-    enterpriseId: "ent-001", // Not directly displayed to user but useful for context
+    enterpriseId: "ent-001",
     customerId: MOCK_CURRENT_PATIENT_ID,
     customerName: "示例用户",
     products: [
@@ -88,17 +89,19 @@ const mockPatientOrders: SaasMallOrder[] = [
 const orderStatusOptions: { value: SaasMallOrderStatus | "all"; label: string }[] = [
   { value: "all", label: "所有订单" },
   { value: "pending_payment", label: "待付款" },
-  { value: "paid", label: "待发货" }, // Simplified for patient view
+  { value: "paid", label: "待发货" },
+  { value: "processing", label: "处理中"},
   { value: "shipped", label: "待收货" },
-  { value: "delivered", label: "已送达" }, // Or can be "待评价"
+  { value: "delivered", label: "已送达" },
   { value: "completed", label: "已完成" },
   { value: "cancelled_user", label: "已取消" },
-  { value: "cancelled_admin", label: "已取消(系统)" },
-  { value: "refunded", label: "已退款/售后" },
+  { value: "refund_pending", label: "退款中"},
+  { value: "refunded", label: "已退款"},
 ];
 
+
 export default function MyOrdersPage() {
-  const [orders, setOrders] = useState<SaasMallOrder[]>([]);
+  const [orders, setOrders] = useState<SaasMallOrder[]>(mockPatientOrders);
   const [selectedOrder, setSelectedOrder] = useState<SaasMallOrder | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<SaasMallOrderStatus | "all">("all");
@@ -107,8 +110,6 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     setIsClient(true);
-    // In a real app, fetch orders for the current patient
-    setOrders(mockPatientOrders.filter(o => o.customerId === MOCK_CURRENT_PATIENT_ID).sort((a, b) => parseISO(b.orderDate).getTime() - parseISO(a.orderDate).getTime()));
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -125,21 +126,22 @@ export default function MyOrdersPage() {
     let text = status;
     let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "outline";
     let badgeClasses = "";
+    let Icon = null;
 
     switch (status) {
-      case 'pending_payment': text = "待付款"; badgeVariant = "secondary"; badgeClasses = "bg-yellow-500 hover:bg-yellow-600 text-white"; break;
-      case 'paid': text = "待发货"; badgeVariant = "default"; badgeClasses = "bg-blue-500 hover:bg-blue-600"; break;
-      case 'processing': text = "处理中"; badgeVariant = "default"; badgeClasses = "bg-sky-500 hover:bg-sky-600"; break;
-      case 'shipped': text = "待收货"; badgeVariant = "default"; badgeClasses = "bg-indigo-500 hover:bg-indigo-600"; break;
-      case 'delivered': text = "已送达"; badgeVariant = "default"; badgeClasses = "bg-teal-500 hover:bg-teal-600"; break;
-      case 'completed': text = "已完成"; badgeVariant = "default"; badgeClasses = "bg-green-500 hover:bg-green-600"; break;
+      case 'pending_payment': text = "待付款"; badgeVariant = "secondary"; badgeClasses = "bg-yellow-100 text-yellow-700 border-yellow-300"; Icon = Clock; break;
+      case 'paid': text = "待发货"; badgeVariant = "default"; badgeClasses = "bg-blue-100 text-blue-700 border-blue-300"; Icon = Package; break;
+      case 'processing': text = "处理中"; badgeVariant = "default"; badgeClasses = "bg-sky-100 text-sky-700 border-sky-300"; Icon = Package; break;
+      case 'shipped': text = "待收货"; badgeVariant = "default"; badgeClasses = "bg-indigo-100 text-indigo-700 border-indigo-300"; Icon = Truck; break;
+      case 'delivered': text = "已送达"; badgeVariant = "default"; badgeClasses = "bg-teal-100 text-teal-700 border-teal-300"; Icon = CheckCircle; break;
+      case 'completed': text = "已完成"; badgeVariant = "default"; badgeClasses = "bg-green-100 text-green-700 border-green-300"; Icon = CheckCircle; break;
       case 'cancelled_user': 
-      case 'cancelled_admin': text = "已取消"; badgeVariant = "outline"; badgeClasses = "text-gray-600 border-gray-400"; break;
-      case 'refund_pending': text = "退款中"; badgeVariant = "secondary"; badgeClasses = "bg-orange-500 hover:bg-orange-600"; break;
-      case 'refunded': text = "已退款"; badgeVariant = "default"; badgeClasses = "bg-pink-500 hover:bg-pink-600"; break;
-      default: text = "未知状态"; break;
+      case 'cancelled_admin': text = "已取消"; badgeVariant = "outline"; badgeClasses = "text-gray-600 border-gray-400"; Icon = XCircle; break;
+      case 'refund_pending': text = "退款中"; badgeVariant = "secondary"; badgeClasses = "bg-orange-100 text-orange-700 border-orange-300"; Icon = RotateCcw; break;
+      case 'refunded': text = "已退款"; badgeVariant = "default"; badgeClasses = "bg-pink-100 text-pink-700 border-pink-300"; Icon = CheckCircle; break;
+      default: text = "未知状态"; Icon = AlertTriangle; break;
     }
-    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}>{text}</Badge>;
+    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}>{Icon && <Icon className="mr-1 h-3 w-3"/>}{text}</Badge>;
   };
 
   const handleOrderAction = (action: string) => {
@@ -148,6 +150,7 @@ export default function MyOrdersPage() {
 
   return (
     <div className="space-y-4">
+      <UiCardDescription className="p-0 m-0 text-center sr-only">我的订单列表</UiCardDescription> {/* For semantic purposes, hidden */}
       <Card className="shadow-sm">
         <CardHeader className="p-4 flex flex-row justify-between items-center">
           <CardTitle className="text-base flex items-center">
@@ -214,17 +217,16 @@ export default function MyOrdersPage() {
           <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
             <DialogHeader>
               <DialogTitle className="text-lg">订单详情: {selectedOrder.orderNumber}</DialogTitle>
-              <DialogDescription className="text-xs">
-                状态: {getOrderStatusTextAndBadge(selectedOrder.status)} | 下单于: {format(parseISO(selectedOrder.orderDate), "yyyy-MM-dd HH:mm")}
-              </DialogDescription>
+              {/* Replaced DialogDescription with a div to avoid invalid nesting with Badge */}
+              <div className="text-xs text-muted-foreground">
+                状态: {getOrderStatusTextAndBadge(selectedOrder.status)} | 下单于: {isClient ? format(parseISO(selectedOrder.orderDate), "yyyy-MM-dd HH:mm") : "..."}
+              </div>
             </DialogHeader>
             <ScrollArea className="flex-grow pr-3">
               <div className="space-y-3 text-sm py-2">
                 <h4 className="font-semibold text-sm">商品列表</h4>
-                <Table className="text-xs">
-                  <TableHeader>
-                    <TableRow><TableHead>商品</TableHead><TableHead className="text-center">数量</TableHead><TableHead className="text-right">小计</TableHead></TableRow>
-                  </TableHeader>
+                <Table>
+                  <TableHeader><TableRow><TableHead>商品</TableHead><TableHead className="text-center">数量</TableHead><TableHead className="text-right">小计</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {selectedOrder.products.map((item, idx) => (
                       <TableRow key={idx}>
@@ -240,7 +242,7 @@ export default function MyOrdersPage() {
                 {selectedOrder.shippingAddress && (
                     <>
                         <h4 className="font-semibold text-sm pt-2">收货信息</h4>
-                        <div className="text-xs bg-muted/50 p-2 rounded-md space-y-0.5">
+                        <div className="text-xs bg-muted/30 p-2 rounded-md space-y-0.5">
                             <p>{selectedOrder.shippingAddress.recipientName}, {selectedOrder.shippingAddress.phone}</p>
                             <p>{selectedOrder.shippingAddress.province} {selectedOrder.shippingAddress.city}</p>
                             <p>{selectedOrder.shippingAddress.addressLine1}</p>
@@ -249,11 +251,14 @@ export default function MyOrdersPage() {
                         </div>
                     </>
                 )}
-                <h4 className="font-semibold text-sm pt-2">支付与配送</h4>
-                <div className="text-xs space-y-0.5">
+                 <h4 className="font-semibold text-sm pt-2">支付与配送</h4>
+                 <div className="text-xs space-y-0.5">
                     <p>支付方式: {selectedOrder.paymentMethod || "N/A"}</p>
+                    {selectedOrder.paymentTransactionId && <p>支付交易号: {selectedOrder.paymentTransactionId}</p>}
                     <p>配送方式: {selectedOrder.shippingMethod || "N/A"}</p>
-                    {selectedOrder.trackingNumber && <p>运单号: {selectedOrder.trackingNumber} ({selectedOrder.carrier || '未知物流'})</p>}
+                    {selectedOrder.shippingFee !== undefined && <p>运费: ¥{selectedOrder.shippingFee.toFixed(2)}</p>}
+                    <p>承运商: {selectedOrder.carrier || 'N/A'}</p>
+                    <p>运单号: {selectedOrder.trackingNumber || 'N/A'}</p>
                 </div>
               </div>
             </ScrollArea>
@@ -293,3 +298,5 @@ export default function MyOrdersPage() {
     </div>
   );
 }
+
+    
