@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Star, ShoppingBag, UserPlus, Save, RefreshCcw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form"; // Added this import
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Separator } from '@/components/ui/separator';
@@ -45,19 +46,41 @@ export default function PointsRulesManagementPage() {
 
   useEffect(() => {
     setIsClient(true);
-    const storedEarning = localStorage.getItem(POINTS_EARNING_KEY);
-    if (storedEarning) earningForm.reset(JSON.parse(storedEarning));
-    const storedRedemption = localStorage.getItem(POINTS_REDEMPTION_KEY);
-    if (storedRedemption) redemptionForm.reset(JSON.parse(storedRedemption));
+    if (typeof window !== 'undefined') {
+        const storedEarning = localStorage.getItem(POINTS_EARNING_KEY);
+        if (storedEarning) {
+            try {
+                earningForm.reset(JSON.parse(storedEarning));
+            } catch (e) {
+                console.error("Error parsing stored earning rules:", e);
+                // Optionally clear the invalid item from localStorage
+                // localStorage.removeItem(POINTS_EARNING_KEY);
+            }
+        }
+        const storedRedemption = localStorage.getItem(POINTS_REDEMPTION_KEY);
+        if (storedRedemption) {
+            try {
+                redemptionForm.reset(JSON.parse(storedRedemption));
+            } catch (e) {
+                console.error("Error parsing stored redemption rules:", e);
+                // Optionally clear the invalid item from localStorage
+                // localStorage.removeItem(POINTS_REDEMPTION_KEY);
+            }
+        }
+    }
   }, [earningForm, redemptionForm]);
 
   const onEarningSubmit = (data: PointsEarningValues) => {
-    localStorage.setItem(POINTS_EARNING_KEY, JSON.stringify(data));
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(POINTS_EARNING_KEY, JSON.stringify(data));
+    }
     toast({ title: "积分获取规则已保存" });
   };
 
   const onRedemptionSubmit = (data: PointsRedemptionValues) => {
-    localStorage.setItem(POINTS_REDEMPTION_KEY, JSON.stringify(data));
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(POINTS_REDEMPTION_KEY, JSON.stringify(data));
+    }
     toast({ title: "积分兑换规则已保存" });
   };
 
@@ -144,5 +167,3 @@ export default function PointsRulesManagementPage() {
     </div>
   );
 }
-
-    
