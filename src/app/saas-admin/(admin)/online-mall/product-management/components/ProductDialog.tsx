@@ -21,14 +21,14 @@ const productSchema = z.object({
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
   name: z.string().min(2, { message: "商品名称至少需要2个字符。" }),
   description: z.string().optional(),
-  category: z.string().optional(), // Added category
+  category: z.string().optional(),
   price: z.coerce.number().min(0, { message: "价格不能为负。" }),
   stock: z.coerce.number().int().min(0, { message: "库存不能为负。" }),
   status: z.enum(['active', 'draft', 'archived'] as [SaasProductStatus, ...SaasProductStatus[]]),
   images: z.array(z.object({ url: z.string().url("请输入有效的图片URL").or(z.literal('')) })).optional().default([]),
   sku: z.string().optional(),
   tags: z.string().optional().describe("多个标签用逗号分隔"),
-  assignedEmployeeIds: z.array(z.string()).optional().default([]), // Added assignedEmployeeIds
+  assignedEmployeeIds: z.array(z.string()).optional().default([]),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -42,11 +42,25 @@ interface ProductDialogProps {
   allEmployees: SaasEmployee[];
 }
 
+// Mock categories - in a real app, this would come from a data source or category management module
+const MOCK_PRODUCT_CATEGORIES = [
+  "医疗器械",
+  "膳食包",
+  "药膳包",
+  "康复用具",
+  "保健品",
+  "健康书籍",
+  "在线服务",
+  "智能穿戴",
+  "其他辅具",
+];
+
 export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises, allEmployees }: ProductDialogProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: product ? {
       ...product,
+      enterpriseId: product.enterpriseId || (enterprises.length > 0 ? enterprises[0].id : ''),
       images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
       tags: product.tags?.join(', ') || '',
       category: product.category || '',
@@ -59,7 +73,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       price: 0,
       stock: 0,
       status: 'draft',
-      images: [],
+      images: [{ url: 'https://placehold.co/600x400.png' }], // Default with one placeholder image
       sku: '',
       tags: '',
       assignedEmployeeIds: [],
@@ -83,14 +97,14 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       form.reset(product ? {
         ...product,
         enterpriseId: product.enterpriseId || (enterprises.length > 0 ? enterprises[0].id : ''),
-        images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
+        images: product.images?.map(imgUrl => ({ url: imgUrl })) || [{ url: 'https://placehold.co/600x400.png' }],
         tags: product.tags?.join(', ') || '',
         category: product.category || '',
         assignedEmployeeIds: product.assignedEmployeeIds || [],
       } : {
         enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
         name: '', description: '', category: '', price: 0, stock: 0, status: 'draft',
-        images: [], sku: '', tags: '', assignedEmployeeIds: [],
+        images: [{ url: 'https://placehold.co/600x400.png' }], sku: '', tags: '', assignedEmployeeIds: [],
       });
     }
   }, [product, isOpen, enterprises, form]);
@@ -130,7 +144,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                     <Select
                         onValueChange={(value) => {
                             field.onChange(value);
-                            form.setValue('assignedEmployeeIds', []); // Reset assigned employees when enterprise changes
+                            form.setValue('assignedEmployeeIds', []); 
                         }}
                         value={field.value}
                     >
@@ -144,8 +158,24 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                 <FormField control={form.control} name="name" render={({field}) => (
                   <FormItem><FormLabel>商品名称</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
-                <FormField control={form.control} name="category" render={({field}) => (
-                  <FormItem><FormLabel>商品分类 (可选)</FormLabel><FormControl><Input placeholder="例如: 医疗器械, 营养膳食包" {...field} /></FormControl><FormMessage/></FormItem>
+                <FormField control={form.control} name="category" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>商品分类</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="选择一个商品分类" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">无分类</SelectItem>
+                        {MOCK_PRODUCT_CATEGORIES.map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}/>
                 <FormField control={form.control} name="description" render={({field}) => (
                   <FormItem><FormLabel>商品描述 (可选)</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage/></FormItem>
@@ -186,13 +216,13 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                         render={({ field: itemField }) => (
                           <FormItem className="flex-grow">
                             <FormControl>
-                              <Input placeholder="https://placehold.co/600x400.png" {...itemField} />
+                              <Input placeholder="图片URL, 如 https://placehold.co/600x400.png" {...itemField} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      {imageFields.length > 0 && (
+                      {imageFields.length > 1 && (
                         <Button type="button" variant="ghost" size="icon" onClick={() => removeImage(index)} className="text-destructive h-8 w-8">
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -220,7 +250,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                         {employeesForSelectedEnterprise.length > 0 ? employeesForSelectedEnterprise.map((employee) => (
                           <div key={employee.id} className="flex items-center space-x-2 py-1">
                             <Checkbox
-                              id={`employee-${employee.id}`}
+                              id={`employee-${employee.id}-${product?.id || 'new'}`} // Ensure unique ID
                               checked={field.value?.includes(employee.id)}
                               onCheckedChange={(checked) => {
                                 const currentValues = field.value || [];
@@ -231,7 +261,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                                     );
                               }}
                             />
-                            <label htmlFor={`employee-${employee.id}`} className="text-sm font-medium leading-none">
+                            <label htmlFor={`employee-${employee.id}-${product?.id || 'new'}`} className="text-sm font-medium leading-none">
                               {employee.name} <span className="text-xs text-muted-foreground">({employee.email})</span>
                             </label>
                           </div>
@@ -259,5 +289,5 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
     </Dialog>
   );
 }
-
+    
     
