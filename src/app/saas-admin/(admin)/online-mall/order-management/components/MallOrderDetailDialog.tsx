@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // Removed DialogDescription
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardTitle here
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck, Edit, Users, Package, FileText, UserCircle, RotateCcw, CornerDownLeft, ShieldAlert, Gift, CheckCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -96,9 +96,10 @@ export function MallOrderDetailDialog({
       <DialogContent className="sm:max-w-2xl md:max-w-3xl">
         <DialogHeader>
           <DialogTitle>订单详情: {order.orderNumber}</DialogTitle>
-          <DialogDescription>
-            查看订单的详细信息和处理订单。
-          </DialogDescription>
+          {/* Replaced DialogDescription with a div to avoid invalid nesting */}
+          <div className="text-sm text-muted-foreground">
+            状态: {getOrderStatusBadge(order.status)} | 下单于: {format(parseISO(order.orderDate), 'yyyy-MM-dd HH:mm')}
+          </div>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-3">
             <div className="space-y-4 py-4 text-sm">
@@ -249,5 +250,3 @@ export function MallOrderDetailDialog({
     </Dialog>
   );
 }
-
-
