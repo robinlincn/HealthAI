@@ -21,14 +21,14 @@ const productSchema = z.object({
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
   name: z.string().min(2, { message: "商品名称至少需要2个字符。" }),
   description: z.string().optional(),
-  category: z.string().optional(),
+  category: z.string().optional(), // Added category
   price: z.coerce.number().min(0, { message: "价格不能为负。" }),
   stock: z.coerce.number().int().min(0, { message: "库存不能为负。" }),
   status: z.enum(['active', 'draft', 'archived'] as [SaasProductStatus, ...SaasProductStatus[]]),
   images: z.array(z.object({ url: z.string().url("请输入有效的图片URL").or(z.literal('')) })).optional().default([]),
   sku: z.string().optional(),
   tags: z.string().optional().describe("多个标签用逗号分隔"),
-  assignedEmployeeIds: z.array(z.string()).optional().default([]),
+  assignedEmployeeIds: z.array(z.string()).optional().default([]), // Added assignedEmployeeIds
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -39,7 +39,7 @@ interface ProductDialogProps {
   onSubmit: (data: SaasProduct) => void;
   product?: SaasProduct | null;
   enterprises: SaasEnterprise[];
-  allEmployees: SaasEmployee[]; // Added allEmployees prop
+  allEmployees: SaasEmployee[];
 }
 
 export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises, allEmployees }: ProductDialogProps) {
@@ -49,6 +49,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       ...product,
       images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
       tags: product.tags?.join(', ') || '',
+      category: product.category || '',
       assignedEmployeeIds: product.assignedEmployeeIds || [],
     } : {
       enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
@@ -81,8 +82,10 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
     if (isOpen) {
       form.reset(product ? {
         ...product,
+        enterpriseId: product.enterpriseId || (enterprises.length > 0 ? enterprises[0].id : ''),
         images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
         tags: product.tags?.join(', ') || '',
+        category: product.category || '',
         assignedEmployeeIds: product.assignedEmployeeIds || [],
       } : {
         enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
@@ -124,11 +127,11 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                 <FormField control={form.control} name="enterpriseId" render={({ field }) => (
                   <FormItem>
                     <FormLabel>所属企业</FormLabel>
-                    <Select 
+                    <Select
                         onValueChange={(value) => {
                             field.onChange(value);
                             form.setValue('assignedEmployeeIds', []); // Reset assigned employees when enterprise changes
-                        }} 
+                        }}
                         value={field.value}
                     >
                       <FormControl><SelectTrigger><SelectValue placeholder="选择企业" /></SelectTrigger></FormControl>
@@ -142,7 +145,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                   <FormItem><FormLabel>商品名称</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
                 <FormField control={form.control} name="category" render={({field}) => (
-                  <FormItem><FormLabel>商品分类 (可选)</FormLabel><FormControl><Input placeholder="例如: 医疗器械, 营养膳食包, 康复用具" {...field} /></FormControl><FormMessage/></FormItem>
+                  <FormItem><FormLabel>商品分类 (可选)</FormLabel><FormControl><Input placeholder="例如: 医疗器械, 营养膳食包" {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
                 <FormField control={form.control} name="description" render={({field}) => (
                   <FormItem><FormLabel>商品描述 (可选)</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage/></FormItem>
@@ -220,10 +223,11 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                               id={`employee-${employee.id}`}
                               checked={field.value?.includes(employee.id)}
                               onCheckedChange={(checked) => {
+                                const currentValues = field.value || [];
                                 return checked
-                                  ? field.onChange([...(field.value || []), employee.id])
+                                  ? field.onChange([...currentValues, employee.id])
                                   : field.onChange(
-                                      (field.value || []).filter((id) => id !== employee.id)
+                                      currentValues.filter((id) => id !== employee.id)
                                     );
                               }}
                             />
@@ -255,3 +259,5 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
     </Dialog>
   );
 }
+
+    

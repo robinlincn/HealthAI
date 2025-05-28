@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductTable } from "./components/ProductTable";
 import { ProductDialog } from "./components/ProductDialog";
-import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types'; // Added SaasEmployee
+import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types';
 import { PackageSearch, PlusCircle, Search, Filter, Briefcase } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
@@ -19,11 +19,10 @@ const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
 ];
 
-// Mock employees - ensure this list covers employees from mockEnterprises
 const mockEmployees: SaasEmployee[] = [
-    { id: 'emp-saas-001', enterpriseId: 'ent-001', name: '王医生 (医院A)', email: 'wang@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
-    { id: 'emp-saas-002', enterpriseId: 'ent-001', name: '李护士 (医院A)', email: 'li@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
-    { id: 'emp-saas-003', enterpriseId: 'ent-002', name: '赵顾问 (中心B)', email: 'zhao@healthb.com', status: 'active', joinDate: new Date().toISOString() },
+    { id: 'emp-saas-001', enterpriseId: 'ent-001', name: '王医生 (医院A)', email: 'wang@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+    { id: 'emp-saas-002', enterpriseId: 'ent-001', name: '李护士 (医院A)', email: 'li@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+    { id: 'emp-saas-003', enterpriseId: 'ent-002', name: '赵顾问 (中心B)', email: 'zhao@healthb.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
 ];
 
 
@@ -84,7 +83,7 @@ export default function ProductManagementPage() {
       if (p.id === productId) {
         let newStatus: SaasProductStatus = 'draft';
         if (p.status === 'draft') newStatus = 'active';
-        else if (p.status === 'active') newStatus = 'archived'; // Cycle: draft -> active -> archived -> draft
+        else if (p.status === 'active') newStatus = 'archived'; 
         else if (p.status === 'archived') newStatus = 'draft';
         return { ...p, status: newStatus };
       }
@@ -98,7 +97,7 @@ export default function ProductManagementPage() {
       setProducts(prev => prev.map(p => (p.id === editingProduct.id ? data : p)));
       toast({ title: '更新成功', description: `商品 "${data.name}" 信息已更新。`});
     } else {
-      const newProductWithDate = { ...data, creationDate: new Date().toISOString() };
+      const newProductWithDate = { ...data, id: `prod-${Date.now()}`, creationDate: new Date().toISOString() };
       setProducts(prev => [newProductWithDate, ...prev]);
       toast({ title: '创建成功', description: `新商品 "${data.name}" 已添加。`});
     }
@@ -196,3 +195,4 @@ export default function ProductManagementPage() {
   );
 }
 
+    
