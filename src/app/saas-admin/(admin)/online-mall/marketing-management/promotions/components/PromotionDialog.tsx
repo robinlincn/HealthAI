@@ -14,6 +14,8 @@ import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage, FormDes
 import type { SaasPromotion, SaasEnterprise, SaasPromotionType, SaasPromotionStatus } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 
+const PLATFORM_WIDE_ENTERPRISE_ID = "__PLATFORM_WIDE_PROMOTION__"; // Special value for platform-wide
+
 const promotionSchema = z.object({
   name: z.string().min(2, { message: "活动名称至少需要2个字符。" }),
   enterpriseId: z.string().optional(), // Platform-wide or enterprise-specific
@@ -22,7 +24,6 @@ const promotionSchema = z.object({
   startDate: z.string().refine((date) => !isNaN(parseISO(date).valueOf()), {message: "请输入有效的开始日期时间"}),
   endDate: z.string().optional().refine((date) => !date || !isNaN(parseISO(date).valueOf()), {message: "若填写，需为有效结束日期时间"}),
   status: z.enum(['active', 'inactive', 'scheduled'] as [Exclude<SaasPromotionStatus, 'expired'>, ...Exclude<SaasPromotionStatus, 'expired'>[]]), // Admin can't set to 'expired' directly
-  // For simplicity, conditions and actions will be text for now.
   rulesDescription: z.string().optional().describe("例如: 满100减10; 全场8折; 买2赠1指定商品"),
   applicableProducts: z.string().optional().describe("逗号分隔的商品ID列表，留空则全场适用"),
 });
@@ -42,13 +43,14 @@ export function PromotionDialog({ isOpen, onClose, onSubmit, promotion, enterpri
     resolver: zodResolver(promotionSchema),
     defaultValues: promotion ? {
       ...promotion,
+      enterpriseId: promotion.enterpriseId || PLATFORM_WIDE_ENTERPRISE_ID,
       startDate: promotion.startDate ? format(parseISO(promotion.startDate), "yyyy-MM-dd'T'HH:mm") : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
       endDate: promotion.endDate ? format(parseISO(promotion.endDate), "yyyy-MM-dd'T'HH:mm") : undefined,
       rulesDescription: promotion.actions?.map(a => `${a.type}: ${a.value}`).join('; ') || '', // Simplified
       applicableProducts: promotion.applicableProducts?.join(', ') || '',
     } : {
       name: '',
-      enterpriseId: undefined,
+      enterpriseId: PLATFORM_WIDE_ENTERPRISE_ID,
       description: '',
       type: 'full_reduction',
       startDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -64,6 +66,7 @@ export function PromotionDialog({ isOpen, onClose, onSubmit, promotion, enterpri
       if (promotion) {
         form.reset({
           ...promotion,
+          enterpriseId: promotion.enterpriseId || PLATFORM_WIDE_ENTERPRISE_ID,
           startDate: promotion.startDate ? format(parseISO(promotion.startDate), "yyyy-MM-dd'T'HH:mm") : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
           endDate: promotion.endDate ? format(parseISO(promotion.endDate), "yyyy-MM-dd'T'HH:mm") : undefined,
           rulesDescription: promotion.actions?.map(a => `${a.type}: ${a.value}`).join('; ') || '',
@@ -71,9 +74,15 @@ export function PromotionDialog({ isOpen, onClose, onSubmit, promotion, enterpri
         });
       } else {
         form.reset({
-          name: '', enterpriseId: undefined, description: '', type: 'full_reduction',
-          startDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"), endDate: undefined, status: 'scheduled',
-          rulesDescription: '', applicableProducts: '',
+          name: '', 
+          enterpriseId: PLATFORM_WIDE_ENTERPRISE_ID, 
+          description: '', 
+          type: 'full_reduction',
+          startDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"), 
+          endDate: undefined, 
+          status: 'scheduled',
+          rulesDescription: '', 
+          applicableProducts: '',
         });
       }
     }
@@ -84,12 +93,11 @@ export function PromotionDialog({ isOpen, onClose, onSubmit, promotion, enterpri
       ...promotion, 
       id: promotion?.id || `promo-${Date.now().toString()}`,
       ...data,
+      enterpriseId: data.enterpriseId === PLATFORM_WIDE_ENTERPRISE_ID ? undefined : data.enterpriseId,
       startDate: parseISO(data.startDate).toISOString(),
       endDate: data.endDate ? parseISO(data.endDate).toISOString() : undefined,
-      // For simplicity, we are not parsing rulesDescription or applicableProducts into complex objects for mock
-      // In a real app, these would be structured.
-      actions: [{type: 'fixed_amount_off', value: 0}], // Dummy action
-      conditions: [{type: 'min_purchase_amount', value: 0}], // Dummy condition
+      actions: data.rulesDescription ? [{type: 'custom_description', value: data.rulesDescription as any}] : [], // Simplified
+      conditions: [], // Simplified
       applicableProducts: data.applicableProducts?.split(',').map(s=>s.trim()).filter(s=>s) || [],
     };
     onSubmit(promotionToSubmit);
@@ -117,7 +125,7 @@ export function PromotionDialog({ isOpen, onClose, onSubmit, promotion, enterpri
                 <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="平台通用活动" /></SelectTrigger></FormControl>
                   <SelectContent>
-                    <SelectItem value="">平台通用活动</SelectItem>
+                    <SelectItem value={PLATFORM_WIDE_ENTERPRISE_ID}>平台通用活动</SelectItem>
                     {enterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
                   </SelectContent>
                 </Select>
@@ -184,5 +192,4 @@ export function PromotionDialog({ isOpen, onClose, onSubmit, promotion, enterpri
     </Dialog>
   );
 }
-
     
