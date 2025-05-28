@@ -15,7 +15,8 @@ import {
   Users, 
   HelpCircle, 
   BellRing, 
-  Pill, // Added Pill icon
+  Pill,
+  Store, // Added Store icon for Online Mall
 } from 'lucide-react';
 
 export const navLinks: NavItem[] = [
@@ -35,9 +36,14 @@ export const navLinks: NavItem[] = [
     icon: Apple,
   },
   {
-    title: '用药计划', // New Medication Plan link
+    title: '用药计划',
     href: '/dashboard/medication-plan',
     icon: Pill,
+  },
+  {
+    title: '在线商城', // New Online Mall link
+    href: '/dashboard/mall',
+    icon: Store,
   },
   {
     title: '检查报告', 

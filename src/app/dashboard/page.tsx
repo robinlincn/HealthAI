@@ -12,17 +12,18 @@ export default function DashboardPage() {
     link.href !== '/dashboard' &&
     (link.href === '/dashboard/health-data' ||
      link.href === '/dashboard/nutrition' ||
-     link.href === '/dashboard/medication-plan' || // Added medication-plan here
+     link.href === '/dashboard/medication-plan' ||
+     link.href === '/dashboard/mall' || // Added Online Mall
      link.href === '/dashboard/reports' ||
      link.href === '/dashboard/reminders' ||
      link.href === '/dashboard/consultations')
-  ).slice(0, 5); 
+  ).slice(0, 6); // Increased slice to 6 to accommodate the new link
 
   const overviewData = [
     { title: "血糖", value: "5.8", unit: "mmol/L", description: "餐前", icon: Droplets, color: "text-blue-500", href: "/dashboard/health-data" },
     { title: "血压", value: "125/80", unit: "mmHg", description: "最新记录", icon: HeartPulse, color: "text-red-500", href: "/dashboard/health-data" },
     { title: "体重", value: "70.2", unit: "kg", description: "稳定", icon: Scale, color: "text-green-500", href: "/dashboard/health-data" },
-    { title: "今日步数", value: "3450", unit: "步", description: "加油！", icon: Footprints, color: "text-orange-500", href: "/dashboard/health-data" }, // Assuming steps are part of general health data
+    { title: "今日步数", value: "3450", unit: "步", description: "加油！", icon: Footprints, color: "text-orange-500", href: "/dashboard/health-data" },
   ];
 
   return (
@@ -72,9 +73,9 @@ export default function DashboardPage() {
             <Link href={link.href} key={link.title} legacyBehavior>
               <a className="block">
                 <Card className="hover:shadow-md active:bg-muted/60 transition-all shadow-sm">
-                  <CardContent className="p-3 flex items-center space-x-3"> {/* Reduced padding from p-4 to p-3 */}
-                      <Icon className="h-6 w-6 text-primary flex-shrink-0" /> {/* Reduced icon size from h-7 w-7 */}
-                      <span className="text-sm font-semibold text-foreground">{link.title}</span> {/* Reduced text size from text-base */}
+                  <CardContent className="p-3 flex items-center space-x-3">
+                      <Icon className="h-6 w-6 text-primary flex-shrink-0" /> 
+                      <span className="text-sm font-semibold text-foreground">{link.title}</span>
                   </CardContent>
                 </Card>
               </a>
