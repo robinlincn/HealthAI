@@ -17,7 +17,9 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Added this import
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const PLATFORM_WIDE_COUPON_ENTERPRISE_ID = "__PLATFORM_WIDE_COUPON__";
 
 const couponSchema = z.object({
   name: z.string().min(2, { message: "优惠券名称至少需要2个字符。" }),
@@ -57,15 +59,16 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
     resolver: zodResolver(couponSchema),
     defaultValues: coupon ? {
       ...coupon,
+      enterpriseId: coupon.enterpriseId || PLATFORM_WIDE_COUPON_ENTERPRISE_ID,
       validFrom: coupon.validFrom ? parseISO(coupon.validFrom) : new Date(),
       validTo: coupon.validTo ? parseISO(coupon.validTo) : addDays(new Date(), 30),
-      value: coupon.type === 'percentage' ? coupon.value : coupon.value, // No change for percentage display
+      value: coupon.type === 'percentage' ? coupon.value : coupon.value, 
       applicableProducts: coupon.applicableProducts?.join(', ') || '',
       applicableCategories: coupon.applicableCategories?.join(', ') || '',
     } : {
       name: '',
-      code: `NEW${Date.now().toString().slice(-6)}`, // Auto-generate simple code
-      enterpriseId: undefined,
+      code: `NEW${Date.now().toString().slice(-6)}`, 
+      enterpriseId: PLATFORM_WIDE_COUPON_ENTERPRISE_ID,
       description: '',
       type: 'fixed_amount',
       value: 0,
@@ -85,6 +88,7 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
       if (coupon) {
         form.reset({
           ...coupon,
+          enterpriseId: coupon.enterpriseId || PLATFORM_WIDE_COUPON_ENTERPRISE_ID,
           validFrom: coupon.validFrom ? parseISO(coupon.validFrom) : new Date(),
           validTo: coupon.validTo ? parseISO(coupon.validTo) : addDays(new Date(), 30),
           value: coupon.type === 'percentage' ? coupon.value : coupon.value,
@@ -93,7 +97,9 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
         });
       } else {
         form.reset({
-          name: '', code: `NEW${Date.now().toString().slice(-6)}`, enterpriseId: undefined, description: '',
+          name: '', code: `NEW${Date.now().toString().slice(-6)}`, 
+          enterpriseId: PLATFORM_WIDE_COUPON_ENTERPRISE_ID, 
+          description: '',
           type: 'fixed_amount', value: 0, minPurchaseAmount: undefined,
           validFrom: new Date(), validTo: addDays(new Date(), 30),
           maxUses: undefined, usesPerUser: 1, status: 'active',
@@ -108,11 +114,12 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
       ...coupon, 
       id: coupon?.id || `coupon-${Date.now().toString()}`,
       ...data,
+      enterpriseId: data.enterpriseId === PLATFORM_WIDE_COUPON_ENTERPRISE_ID ? undefined : data.enterpriseId,
       validFrom: data.validFrom.toISOString(),
       validTo: data.validTo.toISOString(),
       applicableProducts: data.applicableProducts?.split(',').map(s=>s.trim()).filter(s=>s) || [],
       applicableCategories: data.applicableCategories?.split(',').map(s=>s.trim()).filter(s=>s) || [],
-      totalUsed: coupon?.totalUsed || 0, // Keep existing or default to 0
+      totalUsed: coupon?.totalUsed || 0,
     };
     onSubmit(couponToSubmit);
   };
@@ -140,7 +147,10 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
                         <FormItem><FormLabel>所属企业 (可选)</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="平台通用券" /></SelectTrigger></FormControl>
-                            <SelectContent> <SelectItem value="">平台通用券</SelectItem> {enterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))} </SelectContent>
+                            <SelectContent> 
+                                <SelectItem value={PLATFORM_WIDE_COUPON_ENTERPRISE_ID}>平台通用券</SelectItem> 
+                                {enterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))} 
+                            </SelectContent>
                             </Select><FormMessage />
                         </FormItem>
                     )}/>
@@ -217,3 +227,5 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
     </Dialog>
   );
 }
+
+    
