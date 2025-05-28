@@ -12,9 +12,9 @@ import { Badge } from '@/components/ui/badge';
 interface MallOrderTableProps {
   orders: SaasMallOrder[];
   enterprises: SaasEnterprise[];
-  employees: SaasEmployee[]; // Added employees prop
+  employees: SaasEmployee[];
   onViewDetails: (order: SaasMallOrder) => void;
-  onUpdateStatus: (orderId: string, newStatus: SaasMallOrder['status']) => void; 
+  onUpdateStatus: (orderId: string, newStatus: SaasMallOrder['status']) => void;
 }
 
 export function MallOrderTable({ orders, enterprises, employees, onViewDetails, onUpdateStatus }: MallOrderTableProps) {
@@ -27,7 +27,7 @@ export function MallOrderTable({ orders, enterprises, employees, onViewDetails, 
     if (!employeeId) return 'N/A';
     return employees.find(e => e.id === employeeId)?.name || '未知员工';
   };
-  
+
   const getOrderStatusBadge = (status: SaasMallOrder['status']) => {
     switch (status) {
       case 'pending_payment': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">待支付</Badge>;
@@ -55,16 +55,7 @@ export function MallOrderTable({ orders, enterprises, employees, onViewDetails, 
     <div className="overflow-x-auto border rounded-md">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>订单号</TableHead>
-            <TableHead>客户名称</TableHead>
-            <TableHead>所属企业</TableHead>
-            <TableHead>销售人员</TableHead> {/* New Column */}
-            <TableHead>总金额</TableHead>
-            <TableHead>订单状态</TableHead>
-            <TableHead>下单时间</TableHead>
-            <TableHead className="text-right">操作</TableHead>
-          </TableRow>
+          <TableRow><TableHead>订单号</TableHead><TableHead>客户名称</TableHead><TableHead>所属企业</TableHead><TableHead>销售人员</TableHead><TableHead>总金额</TableHead><TableHead>订单状态</TableHead><TableHead>下单时间</TableHead><TableHead className="text-right">操作</TableHead></TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
@@ -107,7 +98,6 @@ export function MallOrderTable({ orders, enterprises, employees, onViewDetails, 
                     <DropdownMenuItem onClick={() => onViewDetails(order)}>
                       <Eye className="mr-2 h-4 w-4" />查看详情
                     </DropdownMenuItem>
-                    {/* Example for status update - can be expanded */}
                     {order.status === 'paid' && (
                       <DropdownMenuItem onClick={() => onUpdateStatus(order.id, 'processing')}>
                         <Package className="mr-2 h-4 w-4" />标记为处理中
@@ -131,3 +121,4 @@ export function MallOrderTable({ orders, enterprises, employees, onViewDetails, 
     </div>
   );
 }
+    
