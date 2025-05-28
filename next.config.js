@@ -15,19 +15,20 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    let vueDevServerUrl = (process.env.VUE_DEV_SERVER_URL || 'http://localhost:9003').replace(/\/$/, "");
+    // Corrected environment variable name for Vue patient app dev server
+    let vuePatientDevServerUrl = (process.env.VUE_PATIENT_DEV_SERVER_URL || 'http://localhost:9003').replace(/\/$/, "");
     let vueDoctorDevServerUrl = (process.env.VUE_DOCTOR_DEV_SERVER_URL || 'http://localhost:9004').replace(/\/$/, "");
-    // SAAS Admin is now part of the main Next.js app, so no rewrite for it unless deployed separately.
-
+    
     try {
-      new URL(vueDevServerUrl);
+      new URL(vuePatientDevServerUrl);
     } catch (e) {
       console.error(
-        `[Next.js Config] Invalid VUE_DEV_SERVER_URL: "${process.env.VUE_DEV_SERVER_URL}". ` +
+        // Corrected environment variable name in the log message
+        `[Next.js Config] Invalid VUE_PATIENT_DEV_SERVER_URL: "${process.env.VUE_PATIENT_DEV_SERVER_URL}". ` +
         `Error: ${(e instanceof Error ? e.message : String(e))}. ` +
         `Defaulting to 'http://localhost:9003'.`
       );
-      vueDevServerUrl = 'http://localhost:9003';
+      vuePatientDevServerUrl = 'http://localhost:9003';
     }
 
     try {
@@ -45,11 +46,13 @@ const nextConfig = {
       // Vue Patient App rewrites
       {
         source: '/vue-patient-app',
-        destination: `${vueDevServerUrl}/vue-patient-app/`, 
+        // Use the corrected variable name here
+        destination: `${vuePatientDevServerUrl}/vue-patient-app/`, 
       },
       {
         source: '/vue-patient-app/:path*',
-        destination: `${vueDevServerUrl}/vue-patient-app/:path*`,
+        // Use the corrected variable name here
+        destination: `${vuePatientDevServerUrl}/vue-patient-app/:path*`,
       },
       // Vue Doctor App rewrites
       {
