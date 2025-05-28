@@ -14,17 +14,17 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import type { DateRange } from 'react-day-picker';
-import { addDays, format, subDays, parseISO } from 'date-fns';
+import { format, subDays, parseISO, startOfDay, endOfDay } from 'date-fns';
 
-
-// Mock data for enterprises and service packages (reuse or adapt from other pages)
+// Mock data for enterprises and service packages
 const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-001', name: '示例医院A', contactPerson: '张三', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
-  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
+  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
 ];
 const mockProducts: SaasProduct[] = [
   { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', category: '医疗器械', price: 299.00, stock: 150, status: 'active', creationDate: new Date().toISOString()},
   { id: 'prod-002', enterpriseId: 'ent-001', name: '控糖膳食营养包 (7日)', category: '膳食包', price: 199.00, stock: 80, status: 'active', creationDate: new Date().toISOString()},
+  { id: 'prod-003', enterpriseId: 'ent-002', name: '养心安神药膳包', category: '药膳包', price: 99.00, stock: 200, status: 'draft', creationDate: new Date().toISOString() },
 ];
 const mockEmployees: SaasEmployee[] = [
     { id: 'emp-saas-001', enterpriseId: 'ent-001', name: '王医生 (医院A)', email: 'wang@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
@@ -124,6 +124,7 @@ export default function MallOrderManagementPage() {
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
+  
   useEffect(() => {
     setIsClient(true);
     setMallOrders(mockInitialMallOrders);
@@ -156,12 +157,14 @@ export default function MallOrderManagementPage() {
       
       let dateMatch = true;
       if (dateRange?.from && order.orderDate) {
-        dateMatch = new Date(order.orderDate) >= dateRange.from;
+        const orderDateOnly = startOfDay(parseISO(order.orderDate)); // Use startOfDay for comparison
+        const fromDateOnly = startOfDay(dateRange.from);
+        dateMatch = orderDateOnly >= fromDateOnly;
       }
       if (dateRange?.to && order.orderDate && dateMatch) {
-        const toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999);
-        dateMatch = new Date(order.orderDate) <= toDate;
+        const orderDateOnly = startOfDay(parseISO(order.orderDate)); // Use startOfDay for comparison
+        const toDateOnly = endOfDay(dateRange.to); 
+        dateMatch = orderDateOnly <= toDateOnly;
       }
 
       return searchMatch && enterpriseMatch && statusMatch && dateMatch;
@@ -213,13 +216,15 @@ export default function MallOrderManagementPage() {
               </Select>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2"> {/* Date picker takes more space */}
                 <Label htmlFor="mallOrderDateRange" className="block text-xs font-medium mb-1 text-muted-foreground">下单日期范围</Label>
                 <DatePickerWithRange id="mallOrderDateRange" date={dateRange} onDateChange={setDateRange} className="w-full" />
               </div>
-              <Button variant="outline" onClick={() => toast({title: '提示', description: '导出功能开发中'})} className="w-full lg:w-auto self-end">
-                <Download className="mr-2 h-4 w-4"/>导出订单
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto lg:self-end">
+                <Button variant="outline" onClick={() => toast({title: '提示', description: '导出功能开发中'})} className="w-full sm:w-auto">
+                    <Download className="mr-2 h-4 w-4"/>导出
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -241,3 +246,9 @@ export default function MallOrderManagementPage() {
         productsData={mockProducts}
         employeesData={mockEmployees}
         onUpdateStatus={handleUpdateStatus}
+      />
+    </div>
+  );
+}
+
+    

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Truck, Edit, Users, Package, FileText, UserCircle, RotateRight, CornerDownLeft, ShieldAlert, Gift } from "lucide-react";
+import { Truck, Edit, Users, Package, FileText, UserCircle, RotateCcw, CornerDownLeft, ShieldAlert, Gift, CheckCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 
@@ -208,12 +208,12 @@ export function MallOrderDetailDialog({
                 )}
 
                 <Card className="mt-4">
-                    <CardHeader className="pb-2"><CardTitle className="text-base flex items-center"><ShieldAlert className="mr-2 h-5 w-5 text-muted-foreground"/>售后处理 (模拟)</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-base flex items-center"><ShieldAlert className="mr-2 h-5 w-5 text-muted-foreground"/>售后处理</CardTitle></CardHeader>
                     <CardContent className="text-sm space-y-2">
                         <div className="flex flex-wrap gap-2">
                              {canRequestRefund && (
                                 <Button size="sm" variant="outline" className="border-orange-400 text-orange-600 hover:bg-orange-50" onClick={() => onUpdateStatus(order.id, 'refund_pending')}>
-                                    <RotateRight className="mr-1 h-4 w-4"/> 申请退款
+                                    <RotateCcw className="mr-1 h-4 w-4"/> 申请退款
                                 </Button>
                             )}
                             {canApproveRefund && (
@@ -249,5 +249,3 @@ export function MallOrderDetailDialog({
     </Dialog>
   );
 }
-
-    
