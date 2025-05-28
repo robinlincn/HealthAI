@@ -17,6 +17,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Added this import
 
 // Mock Ad Slots - In a real app, these would be fetched or managed elsewhere
 const mockAdSlots: SaasAdSlot[] = [
