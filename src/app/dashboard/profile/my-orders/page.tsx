@@ -2,20 +2,21 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription as UiCardDescription, CardFooter } from "@/components/ui/card";
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription as UiCardDescription, CardFooter } from "@/components/ui/card"; // CardDescription aliased to avoid conflict
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog"; // Added DialogFooter
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ListOrdered, Eye, X, ChevronRight, PackageSearch, ShoppingCart, CreditCard, Truck, RotateCcw, Star, Package, CheckCircle, AlertTriangle, PhoneCall, XCircle, Clock } from "lucide-react"; // Added Clock
+import { ListOrdered, Eye, X, ChevronRight, PackageSearch, ShoppingCart, CreditCard, Truck, RotateCcw, Star, Package, CheckCircle, XCircle, AlertTriangle, PhoneCall, Clock, Filter } from "lucide-react";
 import { format, parseISO, subDays } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
 import type { SaasMallOrder, SaasMallOrderItem, SaasMallOrderStatus } from '@/lib/types';
 import Image from 'next/image';
 
-const MOCK_CURRENT_PATIENT_ID = "patientUser123"; // Example, replace with actual logic
+const MOCK_CURRENT_PATIENT_ID = "patientUser123"; 
 
 // Mock products for order details (simplified)
 const mockProductsData: Record<string, { name: string, image?: string, dataAiHint?: string }> = {
@@ -23,6 +24,7 @@ const mockProductsData: Record<string, { name: string, image?: string, dataAiHin
   "prod-002": { name: "高蛋白营养奶粉 (糖尿病适用)", image: "https://placehold.co/100x100.png?text=营养奶粉", dataAiHint: "protein powder" },
   "prod-004": { name: "无糖膳食纤维饼干 (2盒装)", image: "https://placehold.co/100x100.png?text=无糖饼干", dataAiHint: "sugar-free biscuits" },
   "prod-005": { name: "医用级一次性外科口罩 (50只)", image: "https://placehold.co/100x100.png?text=外科口罩", dataAiHint: "surgical masks" },
+  "prod-003": { name: "便携式电子血压计 (臂式)", image: "https://placehold.co/100x100.png?text=血压计", dataAiHint: "blood pressure monitor"},
 };
 
 
@@ -30,7 +32,7 @@ const mockPatientOrders: SaasMallOrder[] = [
   {
     id: "mord-user-001",
     orderNumber: "SN20240715001",
-    enterpriseId: "ent-001", // Assuming these are enterprise IDs from SAAS context
+    enterpriseId: "ent-001", 
     customerId: MOCK_CURRENT_PATIENT_ID,
     customerName: "示例用户",
     products: [
@@ -99,18 +101,14 @@ const mockPatientOrders: SaasMallOrder[] = [
 const orderStatusOptions: { value: SaasMallOrderStatus | "all"; label: string }[] = [
   { value: "all", label: "所有订单" },
   { value: "pending_payment", label: "待付款" },
-  { value: "paid", label: "待发货" }, // "已支付" usually means "待发货" from user perspective
-  { value: "processing", label: "处理中" }, // May not be shown to user directly
+  { value: "paid", label: "待发货" }, 
+  { value: "processing", label: "处理中" }, 
   { value: "shipped", label: "待收货" },
   { value: "delivered", label: "已送达" },
   { value: "completed", label: "已完成" },
   { value: "cancelled_user", label: "已取消" },
-  { value: "cancelled_admin", label: "已取消(系统)" }, // Differentiate if needed
   { value: "refund_pending", label: "退款中" },
   { value: "refunded", label: "已退款" },
-  { value: "return_requested", label: "退货申请中" },
-  { value: "return_approved", label: "退货已批准" },
-  { value: "return_completed", label: "退货已完成" },
 ];
 
 
@@ -140,40 +138,43 @@ export default function MyOrdersPage() {
     let text = status;
     let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "outline";
     let badgeClasses = "";
-    let Icon = AlertTriangle;
+    let IconComponent = AlertTriangle; // Default icon
 
     switch (status) {
-      case 'pending_payment': text = "待付款"; badgeVariant = "secondary"; badgeClasses = "bg-yellow-100 text-yellow-700 border-yellow-300"; Icon = Clock; break;
-      case 'paid': text = "待发货"; badgeVariant = "default"; badgeClasses = "bg-blue-100 text-blue-700 border-blue-300"; Icon = Package; break;
-      case 'processing': text = "处理中"; badgeVariant = "default"; badgeClasses = "bg-sky-100 text-sky-700 border-sky-300"; Icon = Package; break;
-      case 'shipped': text = "待收货"; badgeVariant = "default"; badgeClasses = "bg-indigo-100 text-indigo-700 border-indigo-300"; Icon = Truck; break;
-      case 'delivered': text = "已送达"; badgeVariant = "default"; badgeClasses = "bg-teal-100 text-teal-700 border-teal-300"; Icon = CheckCircle; break;
-      case 'completed': text = "已完成"; badgeVariant = "default"; badgeClasses = "bg-green-100 text-green-700 border-green-300"; Icon = CheckCircle; break;
+      case 'pending_payment': text = "待付款"; badgeVariant = "secondary"; badgeClasses = "bg-yellow-100 text-yellow-700 border-yellow-300"; IconComponent = Clock; break;
+      case 'paid': text = "待发货"; badgeVariant = "default"; badgeClasses = "bg-blue-100 text-blue-700 border-blue-300"; IconComponent = Package; break;
+      case 'processing': text = "处理中"; badgeVariant = "default"; badgeClasses = "bg-sky-100 text-sky-700 border-sky-300"; IconComponent = Package; break;
+      case 'shipped': text = "待收货"; badgeVariant = "default"; badgeClasses = "bg-indigo-100 text-indigo-700 border-indigo-300"; IconComponent = Truck; break;
+      case 'delivered': text = "已送达"; badgeVariant = "default"; badgeClasses = "bg-teal-100 text-teal-700 border-teal-300"; IconComponent = CheckCircle; break;
+      case 'completed': text = "已完成"; badgeVariant = "default"; badgeClasses = "bg-green-100 text-green-700 border-green-300"; IconComponent = CheckCircle; break;
       case 'cancelled_user': 
-      case 'cancelled_admin': text = "已取消"; badgeVariant = "outline"; badgeClasses = "text-gray-600 border-gray-400"; Icon = XCircle; break;
-      case 'refund_pending': text = "退款中"; badgeVariant = "secondary"; badgeClasses = "bg-orange-100 text-orange-700 border-orange-300"; Icon = RotateCcw; break;
-      case 'refunded': text = "已退款"; badgeVariant = "default"; badgeClasses = "bg-pink-100 text-pink-700 border-pink-300"; Icon = CheckCircle; break;
-      case 'return_requested': text = "退货中"; badgeVariant = "secondary"; badgeClasses = "bg-purple-100 text-purple-600 border-purple-300"; Icon = RotateCcw; break;
-      case 'return_approved': text = "退货已批准"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; Icon = CheckCircle; break;
-      case 'return_completed': text = "退货已完成"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; Icon = CheckCircle; break;
-      default: text = "未知状态"; Icon = AlertTriangle; break;
+      case 'cancelled_admin': text = "已取消"; badgeVariant = "outline"; badgeClasses = "text-gray-600 border-gray-400"; IconComponent = XCircle; break;
+      case 'refund_pending': text = "退款中"; badgeVariant = "secondary"; badgeClasses = "bg-orange-100 text-orange-700 border-orange-300"; IconComponent = RotateCcw; break;
+      case 'refunded': text = "已退款"; badgeVariant = "default"; badgeClasses = "bg-pink-100 text-pink-700 border-pink-300"; IconComponent = CheckCircle; break;
+      case 'return_requested': text = "退货申请中"; badgeVariant = "secondary"; badgeClasses = "bg-purple-100 text-purple-600 border-purple-300"; IconComponent = RotateCcw; break;
+      case 'return_approved': text = "退货已批准"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; IconComponent = CheckCircle; break;
+      case 'return_completed': text = "退货已完成"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; IconComponent = CheckCircle; break;
+      default: text = "未知状态"; IconComponent = AlertTriangle; break;
     }
-    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}><Icon className="mr-1 h-3 w-3"/>{text}</Badge>;
+    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}><IconComponent className="mr-1 h-3 w-3"/>{text}</Badge>;
   };
 
-  const handleOrderAction = (orderId: string, action: string, newStatus?: SaasMallOrderStatus) => {
-    toast({ title: "操作提示 (模拟)", description: `订单 ${orderId} 已执行 "${action}" 操作。实际功能开发中。` });
-    if (newStatus) {
-      setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder(prev => prev ? {...prev, status: newStatus} : null);
+  const handleOrderAction = (orderId: string, actionText: string, newStatus?: SaasMallOrderStatus) => {
+    // Mock action
+    const orderToUpdate = orders.find(o => o.id === orderId);
+    if (orderToUpdate) {
+      toast({ title: "操作提示 (模拟)", description: `订单 ${orderToUpdate.orderNumber} 已执行 "${actionText}" 操作。` });
+      if (newStatus) {
+        setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus, lastUpdatedAt: new Date().toISOString()} : o));
+        if(selectedOrder?.id === orderId) {
+          setSelectedOrder(prev => prev ? {...prev, status: newStatus, lastUpdatedAt: new Date().toISOString()} : null);
+        }
       }
     }
   };
 
   return (
     <div className="space-y-4">
-      <UiCardDescription className="p-0 m-0 text-center sr-only">我的订单列表</UiCardDescription> 
       <Card className="shadow-sm">
         <CardHeader className="p-4 flex flex-row justify-between items-center">
           <CardTitle className="text-base flex items-center">
@@ -183,6 +184,7 @@ export default function MyOrdersPage() {
           <div className="w-40">
             <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as SaasMallOrderStatus | "all")}>
               <SelectTrigger className="h-8 text-xs">
+                 <Filter className="mr-1 h-3 w-3"/>
                 <SelectValue placeholder="筛选状态" />
               </SelectTrigger>
               <SelectContent>
@@ -195,7 +197,7 @@ export default function MyOrdersPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isClient && filteredOrders.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-15rem)] sm:h-[calc(100vh-16rem)]"> 
+            <ScrollArea className="h-[calc(100vh-13rem)] sm:h-[calc(100vh-14rem)]"> 
               <div className="space-y-3 p-4">
                 {filteredOrders.map((order) => (
                   <Card key={order.id} className="shadow-xs hover:shadow-sm transition-shadow">
@@ -237,18 +239,18 @@ export default function MyOrdersPage() {
 
       {selectedOrder && isClient && (
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-          <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+          <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
             <DialogHeader>
               <DialogTitle className="text-lg">订单详情: {selectedOrder.orderNumber}</DialogTitle>
               <div className="text-xs text-muted-foreground">
-                状态: {getOrderStatusTextAndBadge(selectedOrder.status)} | 下单于: {format(parseISO(selectedOrder.orderDate), "yyyy-MM-dd HH:mm")}
+                状态: {getOrderStatusTextAndBadge(selectedOrder.status)} | 下单于: {isClient ? format(parseISO(selectedOrder.orderDate), "yyyy-MM-dd HH:mm") : "..."}
               </div>
             </DialogHeader>
-            <ScrollArea className="flex-grow pr-3">
+            <ScrollArea className="flex-grow pr-3 my-3">
               <div className="space-y-3 text-sm py-2">
                 <h4 className="font-semibold text-sm">商品列表</h4>
                 <Table>
-                  <TableHeader><TableRow><TableHead className="p-1.5">商品</TableHead><TableHead className="text-center p-1.5">数量</TableHead><TableHead className="text-right p-1.5">小计</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead className="p-1.5 text-xs">商品</TableHead><TableHead className="text-center p-1.5 text-xs">数量</TableHead><TableHead className="text-right p-1.5 text-xs">小计</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {selectedOrder.products.map((item, idx) => (
                       <TableRow key={idx}>
@@ -328,5 +330,3 @@ export default function MyOrdersPage() {
     </div>
   );
 }
-
-    
