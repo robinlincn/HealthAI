@@ -2,25 +2,35 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription as UiCardDescription, CardFooter } from "@/components/ui/card"; // Renamed CardDescription to avoid conflict
+import { Card, CardContent, CardHeader, CardTitle, CardDescription as UiCardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // DialogDescription is NOT imported if not used as <p>
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ListOrdered, Eye, X, ChevronRight, PackageSearch, ShoppingCart, CreditCard, Truck, RotateCcw, Star, Package, CheckCircle, AlertTriangle, PhoneCall } from "lucide-react";
+import { ListOrdered, Eye, X, ChevronRight, PackageSearch, ShoppingCart, CreditCard, Truck, RotateCcw, Star, Package, CheckCircle, AlertTriangle, PhoneCall, XCircle, Clock } from "lucide-react"; // Added Clock
 import { format, parseISO, subDays } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
 import type { SaasMallOrder, SaasMallOrderItem, SaasMallOrderStatus } from '@/lib/types';
+import Image from 'next/image';
 
-const MOCK_CURRENT_PATIENT_ID = "patientUser123";
+const MOCK_CURRENT_PATIENT_ID = "patientUser123"; // Example, replace with actual logic
+
+// Mock products for order details (simplified)
+const mockProductsData: Record<string, { name: string, image?: string, dataAiHint?: string }> = {
+  "prod-001": { name: "家用智能血糖仪套装 (含50试纸)", image: "https://placehold.co/100x100.png?text=血糖仪", dataAiHint: "blood glucose meter" },
+  "prod-002": { name: "高蛋白营养奶粉 (糖尿病适用)", image: "https://placehold.co/100x100.png?text=营养奶粉", dataAiHint: "protein powder" },
+  "prod-004": { name: "无糖膳食纤维饼干 (2盒装)", image: "https://placehold.co/100x100.png?text=无糖饼干", dataAiHint: "sugar-free biscuits" },
+  "prod-005": { name: "医用级一次性外科口罩 (50只)", image: "https://placehold.co/100x100.png?text=外科口罩", dataAiHint: "surgical masks" },
+};
+
 
 const mockPatientOrders: SaasMallOrder[] = [
   {
     id: "mord-user-001",
     orderNumber: "SN20240715001",
-    enterpriseId: "ent-001",
+    enterpriseId: "ent-001", // Assuming these are enterprise IDs from SAAS context
     customerId: MOCK_CURRENT_PATIENT_ID,
     customerName: "示例用户",
     products: [
@@ -77,7 +87,7 @@ const mockPatientOrders: SaasMallOrder[] = [
     customerId: MOCK_CURRENT_PATIENT_ID,
     customerName: "示例用户",
     products: [
-      { productId: "prod-003", productName: "便携式电子血压计 (臂式)", quantity: 1, priceAtOrder: 239.00 },
+      { productId: "prod-003", productName: "便携式电子血压计 (臂式)", priceAtOrder: 239.00, quantity: 1 },
     ],
     totalAmount: 239.00,
     status: 'completed',
@@ -89,19 +99,23 @@ const mockPatientOrders: SaasMallOrder[] = [
 const orderStatusOptions: { value: SaasMallOrderStatus | "all"; label: string }[] = [
   { value: "all", label: "所有订单" },
   { value: "pending_payment", label: "待付款" },
-  { value: "paid", label: "待发货" },
-  { value: "processing", label: "处理中"},
+  { value: "paid", label: "待发货" }, // "已支付" usually means "待发货" from user perspective
+  { value: "processing", label: "处理中" }, // May not be shown to user directly
   { value: "shipped", label: "待收货" },
   { value: "delivered", label: "已送达" },
   { value: "completed", label: "已完成" },
   { value: "cancelled_user", label: "已取消" },
-  { value: "refund_pending", label: "退款中"},
-  { value: "refunded", label: "已退款"},
+  { value: "cancelled_admin", label: "已取消(系统)" }, // Differentiate if needed
+  { value: "refund_pending", label: "退款中" },
+  { value: "refunded", label: "已退款" },
+  { value: "return_requested", label: "退货申请中" },
+  { value: "return_approved", label: "退货已批准" },
+  { value: "return_completed", label: "退货已完成" },
 ];
 
 
 export default function MyOrdersPage() {
-  const [orders, setOrders] = useState<SaasMallOrder[]>(mockPatientOrders);
+  const [orders, setOrders] = useState<SaasMallOrder[]>(mockPatientOrders.filter(o => o.customerId === MOCK_CURRENT_PATIENT_ID));
   const [selectedOrder, setSelectedOrder] = useState<SaasMallOrder | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<SaasMallOrderStatus | "all">("all");
@@ -122,11 +136,11 @@ export default function MyOrdersPage() {
     setIsDetailDialogOpen(true);
   };
   
-  const getOrderStatusTextAndBadge = (status: SaasMallOrderStatus) => {
+  const getOrderStatusTextAndBadge = (status: SaasMallOrder['status']) => {
     let text = status;
     let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "outline";
     let badgeClasses = "";
-    let Icon = null;
+    let Icon = AlertTriangle;
 
     switch (status) {
       case 'pending_payment': text = "待付款"; badgeVariant = "secondary"; badgeClasses = "bg-yellow-100 text-yellow-700 border-yellow-300"; Icon = Clock; break;
@@ -139,22 +153,31 @@ export default function MyOrdersPage() {
       case 'cancelled_admin': text = "已取消"; badgeVariant = "outline"; badgeClasses = "text-gray-600 border-gray-400"; Icon = XCircle; break;
       case 'refund_pending': text = "退款中"; badgeVariant = "secondary"; badgeClasses = "bg-orange-100 text-orange-700 border-orange-300"; Icon = RotateCcw; break;
       case 'refunded': text = "已退款"; badgeVariant = "default"; badgeClasses = "bg-pink-100 text-pink-700 border-pink-300"; Icon = CheckCircle; break;
+      case 'return_requested': text = "退货中"; badgeVariant = "secondary"; badgeClasses = "bg-purple-100 text-purple-600 border-purple-300"; Icon = RotateCcw; break;
+      case 'return_approved': text = "退货已批准"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; Icon = CheckCircle; break;
+      case 'return_completed': text = "退货已完成"; badgeVariant = "default"; badgeClasses = "bg-purple-100 text-purple-700 border-purple-300"; Icon = CheckCircle; break;
       default: text = "未知状态"; Icon = AlertTriangle; break;
     }
-    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}>{Icon && <Icon className="mr-1 h-3 w-3"/>}{text}</Badge>;
+    return <Badge variant={badgeVariant} className={`text-xs ${badgeClasses}`}><Icon className="mr-1 h-3 w-3"/>{text}</Badge>;
   };
 
-  const handleOrderAction = (action: string) => {
-    toast({ title: "操作提示 (模拟)", description: `已执行 "${action}" 操作。此功能正在完善中。` });
+  const handleOrderAction = (orderId: string, action: string, newStatus?: SaasMallOrderStatus) => {
+    toast({ title: "操作提示 (模拟)", description: `订单 ${orderId} 已执行 "${action}" 操作。实际功能开发中。` });
+    if (newStatus) {
+      setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(prev => prev ? {...prev, status: newStatus} : null);
+      }
+    }
   };
 
   return (
     <div className="space-y-4">
-      <UiCardDescription className="p-0 m-0 text-center sr-only">我的订单列表</UiCardDescription> {/* For semantic purposes, hidden */}
+      <UiCardDescription className="p-0 m-0 text-center sr-only">我的订单列表</UiCardDescription> 
       <Card className="shadow-sm">
         <CardHeader className="p-4 flex flex-row justify-between items-center">
           <CardTitle className="text-base flex items-center">
-            <ListOrdered className="mr-2 h-5 w-5 text-primary" />
+            <ListOrdered className="mr-2 h-5 w-5 text-muted-foreground" />
             我的订单
           </CardTitle>
           <div className="w-40">
@@ -172,7 +195,7 @@ export default function MyOrdersPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isClient && filteredOrders.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-15rem)] sm:h-[calc(100vh-16rem)]"> {/* Adjusted height */}
+            <ScrollArea className="h-[calc(100vh-15rem)] sm:h-[calc(100vh-16rem)]"> 
               <div className="space-y-3 p-4">
                 {filteredOrders.map((order) => (
                   <Card key={order.id} className="shadow-xs hover:shadow-sm transition-shadow">
@@ -182,7 +205,7 @@ export default function MyOrdersPage() {
                         {getOrderStatusTextAndBadge(order.status)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        下单时间: {format(parseISO(order.orderDate), "yyyy-MM-dd HH:mm")}
+                        下单时间: {isClient ? format(parseISO(order.orderDate), "yyyy-MM-dd HH:mm") : "..."}
                       </p>
                     </CardHeader>
                     <CardContent className="p-3 pt-0">
@@ -212,40 +235,47 @@ export default function MyOrdersPage() {
         </CardContent>
       </Card>
 
-      {selectedOrder && (
+      {selectedOrder && isClient && (
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
           <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
             <DialogHeader>
               <DialogTitle className="text-lg">订单详情: {selectedOrder.orderNumber}</DialogTitle>
-              {/* Replaced DialogDescription with a div to avoid invalid nesting with Badge */}
               <div className="text-xs text-muted-foreground">
-                状态: {getOrderStatusTextAndBadge(selectedOrder.status)} | 下单于: {isClient ? format(parseISO(selectedOrder.orderDate), "yyyy-MM-dd HH:mm") : "..."}
+                状态: {getOrderStatusTextAndBadge(selectedOrder.status)} | 下单于: {format(parseISO(selectedOrder.orderDate), "yyyy-MM-dd HH:mm")}
               </div>
             </DialogHeader>
             <ScrollArea className="flex-grow pr-3">
               <div className="space-y-3 text-sm py-2">
                 <h4 className="font-semibold text-sm">商品列表</h4>
                 <Table>
-                  <TableHeader><TableRow><TableHead>商品</TableHead><TableHead className="text-center">数量</TableHead><TableHead className="text-right">小计</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead className="p-1.5">商品</TableHead><TableHead className="text-center p-1.5">数量</TableHead><TableHead className="text-right p-1.5">小计</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {selectedOrder.products.map((item, idx) => (
                       <TableRow key={idx}>
-                        <TableCell className="py-1">{item.productName}</TableCell>
-                        <TableCell className="text-center py-1">{item.quantity}</TableCell>
-                        <TableCell className="text-right py-1">¥{(item.quantity * item.priceAtOrder).toFixed(2)}</TableCell>
+                        <TableCell className="py-1 px-1.5">
+                          <div className="flex items-center text-xs">
+                             {mockProductsData[item.productId]?.image ? (
+                                <Image src={mockProductsData[item.productId]?.image as string} alt={item.productName} width={32} height={32} className="h-8 w-8 rounded-md mr-1.5 object-cover" data-ai-hint={mockProductsData[item.productId]?.dataAiHint || "product"} />
+                            ) : (
+                                <Package className="h-4 w-4 mr-1.5 text-muted-foreground"/>
+                            )}
+                            <span className="truncate max-w-[120px] sm:max-w-[150px]">{item.productName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center py-1 px-1.5 text-xs">{item.quantity}</TableCell>
+                        <TableCell className="text-right py-1 px-1.5 text-xs">¥{(item.quantity * item.priceAtOrder).toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-                <p className="text-right font-semibold">订单总额: ¥{selectedOrder.totalAmount.toFixed(2)}</p>
+                <p className="text-right font-semibold text-base mt-1">订单总额: <span className="text-primary">¥{selectedOrder.totalAmount.toFixed(2)}</span></p>
                 
                 {selectedOrder.shippingAddress && (
                     <>
                         <h4 className="font-semibold text-sm pt-2">收货信息</h4>
                         <div className="text-xs bg-muted/30 p-2 rounded-md space-y-0.5">
                             <p>{selectedOrder.shippingAddress.recipientName}, {selectedOrder.shippingAddress.phone}</p>
-                            <p>{selectedOrder.shippingAddress.province} {selectedOrder.shippingAddress.city}</p>
-                            <p>{selectedOrder.shippingAddress.addressLine1}</p>
+                            <p>{selectedOrder.shippingAddress.province} {selectedOrder.shippingAddress.city} {selectedOrder.shippingAddress.addressLine1}</p>
                             {selectedOrder.shippingAddress.addressLine2 && <p>{selectedOrder.shippingAddress.addressLine2}</p>}
                             <p>邮编: {selectedOrder.shippingAddress.postalCode}</p>
                         </div>
@@ -253,38 +283,38 @@ export default function MyOrdersPage() {
                 )}
                  <h4 className="font-semibold text-sm pt-2">支付与配送</h4>
                  <div className="text-xs space-y-0.5">
-                    <p>支付方式: {selectedOrder.paymentMethod || "N/A"}</p>
-                    {selectedOrder.paymentTransactionId && <p>支付交易号: {selectedOrder.paymentTransactionId}</p>}
-                    <p>配送方式: {selectedOrder.shippingMethod || "N/A"}</p>
-                    {selectedOrder.shippingFee !== undefined && <p>运费: ¥{selectedOrder.shippingFee.toFixed(2)}</p>}
-                    <p>承运商: {selectedOrder.carrier || 'N/A'}</p>
-                    <p>运单号: {selectedOrder.trackingNumber || 'N/A'}</p>
+                    <p><strong>支付方式:</strong> {selectedOrder.paymentMethod || 'N/A'}</p>
+                    {selectedOrder.paymentTransactionId && <p><strong>支付交易号:</strong> {selectedOrder.paymentTransactionId}</p>}
+                    <p><strong>配送方式:</strong> {selectedOrder.shippingMethod || 'N/A'}</p>
+                    {selectedOrder.shippingFee !== undefined && <p><strong>运费:</strong> ¥{selectedOrder.shippingFee.toFixed(2)}</p>}
+                    <p><strong>承运商:</strong> {selectedOrder.carrier || 'N/A'}</p>
+                    <p><strong>运单号:</strong> {selectedOrder.trackingNumber || 'N/A'}</p>
                 </div>
               </div>
             </ScrollArea>
             <DialogFooter className="mt-auto pt-3 border-t flex-wrap justify-end gap-2">
+                 {selectedOrder.status === 'pending_payment' && (
+                    <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" onClick={() => handleOrderAction(selectedOrder.id, "去支付", "paid")}>
+                        <CreditCard className="mr-1 h-3.5 w-3.5"/>去支付 (模拟)
+                    </Button>
+                )}
                 {selectedOrder.status === 'pending_payment' && (
-                    <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" onClick={() => handleOrderAction("去支付")}>
-                        <CreditCard className="mr-1 h-3.5 w-3.5"/>去支付
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleOrderAction(selectedOrder.id, "取消订单", "cancelled_user")}>
+                        <XCircle className="mr-1 h-3.5 w-3.5"/>取消订单
                     </Button>
                 )}
-                {(selectedOrder.status === 'pending_payment' || selectedOrder.status === 'paid' || selectedOrder.status === 'processing') && (
-                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleOrderAction("取消订单")}>
-                        <X className="mr-1 h-3.5 w-3.5"/>取消订单
-                    </Button>
-                )}
-                 {selectedOrder.status === 'shipped' && (
-                    <Button size="sm" className="h-8 text-xs" onClick={() => handleOrderAction("确认收货")}>
+                {selectedOrder.status === 'shipped' && (
+                    <Button size="sm" className="h-8 text-xs" onClick={() => handleOrderAction(selectedOrder.id, "确认收货", "delivered")}>
                         <Truck className="mr-1 h-3.5 w-3.5"/>确认收货
                     </Button>
                 )}
-                 {selectedOrder.status === 'delivered' && (
-                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleOrderAction("评价订单")}>
+                 {(selectedOrder.status === 'delivered' || selectedOrder.status === 'completed') && (
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleOrderAction(selectedOrder.id, "评价订单")}>
                         <Star className="mr-1 h-3.5 w-3.5"/>评价订单
                     </Button>
                 )}
                 {(selectedOrder.status === 'delivered' || selectedOrder.status === 'completed') && (
-                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleOrderAction("申请售后")}>
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleOrderAction(selectedOrder.id, "申请售后")}>
                         <RotateCcw className="mr-1 h-3.5 w-3.5"/>申请售后
                     </Button>
                 )}
