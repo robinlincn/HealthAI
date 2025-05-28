@@ -3,9 +3,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import {
   UserCircle,
   MessageSquare,
@@ -16,11 +15,14 @@ import {
   LogOut,
   Stethoscope,
   FileText,
-  Pill, // Added Pill icon
+  Pill,
+  ListOrdered, // For My Orders
+  MapPin,      // For My Addresses
+  Heart        // For My Favorites
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 const mockUser = {
   name: "王小宝",
@@ -29,7 +31,7 @@ const mockUser = {
 };
 
 const mockDoctor = {
-  name: "王医生", // Changed to match WelcomeBanner for consistency
+  name: "王医生",
   avatarUrl: "https://picsum.photos/seed/doctorprofilemain/80/80",
   dataAiHint: "doctor professional",
 };
@@ -41,9 +43,24 @@ const profileLinks = [
     href: "/dashboard/profile/edit-details",
   },
   {
-    title: "用药计划", // Added Medication Plan link
+    title: "用药计划",
     icon: Pill,
     href: "/dashboard/medication-plan",
+  },
+  {
+    title: "我的订单",
+    icon: ListOrdered,
+    href: "/dashboard/profile/my-orders",
+  },
+  {
+    title: "我的地址",
+    icon: MapPin,
+    href: "/dashboard/profile/my-addresses",
+  },
+  {
+    title: "我的收藏",
+    icon: Heart,
+    href: "/dashboard/profile/my-favorites",
   },
   {
     title: "在线咨询",
@@ -51,17 +68,17 @@ const profileLinks = [
     href: "/dashboard/consultations",
   },
   {
-    title: "我的打卡", // This likely refers to reminders or logs
+    title: "我的打卡",
     icon: CheckSquare,
-    href: "/dashboard/reminders", // Pointing to reminders page for now
+    href: "/dashboard/reminders",
   },
   {
-    title: "健康指数", // This likely refers to health data overview
+    title: "健康指数",
     icon: Activity,
     href: "/dashboard/health-data",
   },
   {
-    title: "联系我们", // This likely refers to help/support
+    title: "联系我们",
     icon: Smile,
     href: "/dashboard/help",
   },
@@ -81,8 +98,8 @@ export default function ProfilePage() {
         <Image
           src="https://picsum.photos/seed/profileheader/600/240"
           alt="健康背景"
-          fill // Changed from layout="fill"
-          style={{objectFit:"cover"}} // Changed from objectFit="cover"
+          fill
+          style={{objectFit:"cover"}}
           className="opacity-80"
           data-ai-hint="health medical"
           priority
