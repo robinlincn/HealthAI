@@ -30,7 +30,10 @@ import {
   LineChart,
   ListFilter,
   Share2,
-  Percent // Icon for Promotions
+  Percent,
+  Ticket, // Added for Coupons
+  Star,   // Added for Points Marketing
+  Presentation // Added for Advertisements
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -124,18 +127,29 @@ export const saasNavLinks: SaasNavItem[] = [
       },
       {
         title: '营销管理',
-        href: `${baseSaasPath}/online-mall/marketing-management`, // This will now be a parent
+        href: `${baseSaasPath}/online-mall/marketing-management`,
         icon: Megaphone,
         children: [
            {
             title: '促销活动',
             href: `${baseSaasPath}/online-mall/marketing-management/promotions`,
-            icon: Percent, // Or Tag, or another relevant icon
+            icon: Percent,
           },
-          // Placeholder for other marketing sub-menus if needed later
-          // { title: '优惠券管理', href: `${baseSaasPath}/online-mall/marketing-management/coupons`, icon: Tag },
-          // { title: '积分规则', href: `${baseSaasPath}/online-mall/marketing-management/points`, icon: Star },
-          // { title: '广告位', href: `${baseSaasPath}/online-mall/marketing-management/ads`, icon: Annoyed },
+          {
+            title: '优惠券管理',
+            href: `${baseSaasPath}/online-mall/marketing-management/coupons`,
+            icon: Ticket,
+          },
+          {
+            title: '积分营销',
+            href: `${baseSaasPath}/online-mall/marketing-management/points-rules`,
+            icon: Star,
+          },
+          {
+            title: '广告管理',
+            href: `${baseSaasPath}/online-mall/marketing-management/advertisements`,
+            icon: Presentation,
+          },
         ]
       },
       {
