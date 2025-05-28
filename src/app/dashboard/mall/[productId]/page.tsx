@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, ShoppingCart, Star, Tag, ShieldCheck } from "lucide-react";
-import type { SaasProduct } from "@/lib/types"; // Assuming SaasProduct is comprehensive enough
+import { ArrowLeft, ShoppingCart, Star, Tag, ShieldCheck, Flame, Truck } from "lucide-react";
+import type { SaasProduct } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Corrected import
 import { Badge } from "@/components/ui/badge";
 
 // Re-using mock product data from mall/page.tsx for simplicity.
@@ -94,7 +94,7 @@ export default function ProductDetailPage() {
               alt={product.name}
               fill
               sizes="100vw"
-              className="object-contain" // Use object-contain to see full image
+              className="object-contain" 
               priority
               data-ai-hint={product.dataAiHint || "product detail image"}
             />
