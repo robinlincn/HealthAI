@@ -62,8 +62,8 @@ export interface UserProfile {
 
   // Fields usually managed by institution, patient-side read-only or not present
   recordNumber?: string; 
-  admissionDate?: string; // Store as YYYY-MM-DD string from form or Date
-  recordDate?: string; // Store as YYYY-MM-DD string from form or Date
+  admissionDate?: string; // Store as Date object for form, but ISO string for storage
+  recordDate?: string; // Store as Date object for form, but ISO string for storage
   informant?: string;
   reliability?: ReliabilityOption;
 
@@ -629,6 +629,7 @@ export interface SaasProduct {
   updatedAt?: string; // ISO string
   sku?: string; 
   tags?: string[];
+  assignedEmployeeIds?: string[]; // New field for assigned sales staff
 }
 
 export interface SaasMallOrderItem {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductTable } from "./components/ProductTable";
 import { ProductDialog } from "./components/ProductDialog";
-import type { SaasProduct, SaasEnterprise, SaasProductStatus } from '@/lib/types';
+import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types'; // Added SaasEmployee
 import { PackageSearch, PlusCircle, Search, Filter, Briefcase } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
@@ -16,13 +16,21 @@ import { Label } from '@/components/ui/label';
 // Mock data - reuse enterprises from other pages if consistent
 const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-001', name: '示例医院A', contactPerson: '张三', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
-  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
+  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
 ];
 
+// Mock employees - ensure this list covers employees from mockEnterprises
+const mockEmployees: SaasEmployee[] = [
+    { id: 'emp-saas-001', enterpriseId: 'ent-001', name: '王医生 (医院A)', email: 'wang@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
+    { id: 'emp-saas-002', enterpriseId: 'ent-001', name: '李护士 (医院A)', email: 'li@hospitala.com', status: 'active', joinDate: new Date().toISOString() },
+    { id: 'emp-saas-003', enterpriseId: 'ent-002', name: '赵顾问 (中心B)', email: 'zhao@healthb.com', status: 'active', joinDate: new Date().toISOString() },
+];
+
+
 const mockInitialProducts: SaasProduct[] = [
-  { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', description: '包含血糖仪、试纸50条、采血针。', category: '医疗器械', price: 299.00, stock: 150, status: 'active', images: ['https://placehold.co/300x200.png?text=血糖仪'], creationDate: new Date().toISOString(), sku: 'XM-BG-001', tags: ['血糖监测', '家庭用'] },
-  { id: 'prod-002', enterpriseId: 'ent-001', name: '控糖膳食营养包 (7日)', description: '科学配比，助力血糖管理。', category: '膳食包', price: 199.00, stock: 80, status: 'active', images: ['https://placehold.co/300x200.png?text=膳食包'], creationDate: new Date().toISOString(), sku: 'KT-MEAL-007' },
-  { id: 'prod-003', enterpriseId: 'ent-002', name: '养心安神药膳包', description: '精选草本，辅助调理。', category: '药膳包', price: 99.00, stock: 200, status: 'draft', images: ['https://placehold.co/300x200.png?text=药膳包'], creationDate: new Date().toISOString() },
+  { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', description: '包含血糖仪、试纸50条、采血针。', category: '医疗器械', price: 299.00, stock: 150, status: 'active', images: ['https://placehold.co/300x200.png?text=血糖仪'], creationDate: new Date().toISOString(), sku: 'XM-BG-001', tags: ['血糖监测', '家庭用'], assignedEmployeeIds: ['emp-saas-001'] },
+  { id: 'prod-002', enterpriseId: 'ent-001', name: '控糖膳食营养包 (7日)', description: '科学配比，助力血糖管理。', category: '膳食包', price: 199.00, stock: 80, status: 'active', images: ['https://placehold.co/300x200.png?text=膳食包'], creationDate: new Date().toISOString(), sku: 'KT-MEAL-007', assignedEmployeeIds: ['emp-saas-001', 'emp-saas-002'] },
+  { id: 'prod-003', enterpriseId: 'ent-002', name: '养心安神药膳包', description: '精选草本，辅助调理。', category: '药膳包', price: 99.00, stock: 200, status: 'draft', images: ['https://placehold.co/300x200.png?text=药膳包'], creationDate: new Date().toISOString(), assignedEmployeeIds: ['emp-saas-003'] },
   { id: 'prod-004', enterpriseId: 'ent-001', name: '医用N95口罩 (50只装)', description: '防护升级，关爱健康。', category: '防护用品', price: 75.00, stock: 500, status: 'active', images: ['https://placehold.co/300x200.png?text=口罩'], creationDate: new Date().toISOString(), sku: 'MASK-N95-50' },
 ];
 
@@ -72,16 +80,17 @@ export default function ProductManagementPage() {
   };
   
   const handleToggleProductStatus = (productId: string) => {
-    setProducts(prev => prev.map(p => {
+     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
         let newStatus: SaasProductStatus = 'draft';
         if (p.status === 'draft') newStatus = 'active';
-        else if (p.status === 'active') newStatus = 'draft'; // Simple toggle for now
+        else if (p.status === 'active') newStatus = 'archived'; // Cycle: draft -> active -> archived -> draft
+        else if (p.status === 'archived') newStatus = 'draft';
         return { ...p, status: newStatus };
       }
       return p;
     }));
-    toast({ title: '状态已更新', description: `商品上下架状态已切换。` });
+    toast({ title: '状态已更新', description: `商品状态已切换。` });
   };
 
   const handleDialogSubmit = (data: SaasProduct) => {
@@ -89,7 +98,8 @@ export default function ProductManagementPage() {
       setProducts(prev => prev.map(p => (p.id === editingProduct.id ? data : p)));
       toast({ title: '更新成功', description: `商品 "${data.name}" 信息已更新。`});
     } else {
-      setProducts(prev => [data, ...prev]);
+      const newProductWithDate = { ...data, creationDate: new Date().toISOString() };
+      setProducts(prev => [newProductWithDate, ...prev]);
       toast({ title: '创建成功', description: `新商品 "${data.name}" 已添加。`});
     }
     setIsDialogOpen(false);
@@ -125,7 +135,7 @@ export default function ProductManagementPage() {
             商品管理
           </CardTitle>
           <CardDescription>
-            管理在线商城中的商品信息，包括添加、编辑、删除商品，设置价格、库存、上下架等。
+            管理在线商城中的商品信息，包括添加、编辑、删除商品，设置价格、库存、上下架、分配销售人员等。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -180,7 +190,9 @@ export default function ProductManagementPage() {
         onSubmit={handleDialogSubmit}
         product={editingProduct}
         enterprises={mockEnterprises}
+        allEmployees={mockEmployees} 
       />
     </div>
   );
 }
+

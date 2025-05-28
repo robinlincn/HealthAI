@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm, useFieldArray, Controller, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,7 +14,8 @@ import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage, FormDes
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, PlusCircle } from 'lucide-react';
-import type { SaasProduct, SaasEnterprise, SaasProductStatus } from '@/lib/types';
+import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
 
 const productSchema = z.object({
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
@@ -27,6 +28,7 @@ const productSchema = z.object({
   images: z.array(z.object({ url: z.string().url("请输入有效的图片URL").or(z.literal('')) })).optional().default([]),
   sku: z.string().optional(),
   tags: z.string().optional().describe("多个标签用逗号分隔"),
+  assignedEmployeeIds: z.array(z.string()).optional().default([]),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -37,15 +39,17 @@ interface ProductDialogProps {
   onSubmit: (data: SaasProduct) => void;
   product?: SaasProduct | null;
   enterprises: SaasEnterprise[];
+  allEmployees: SaasEmployee[]; // Added allEmployees prop
 }
 
-export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises }: ProductDialogProps) {
+export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises, allEmployees }: ProductDialogProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: product ? {
       ...product,
       images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
       tags: product.tags?.join(', ') || '',
+      assignedEmployeeIds: product.assignedEmployeeIds || [],
     } : {
       enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
       name: '',
@@ -57,6 +61,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
       images: [],
       sku: '',
       tags: '',
+      assignedEmployeeIds: [],
     },
   });
 
@@ -65,16 +70,24 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
     name: "images",
   });
 
+  const selectedEnterpriseId = form.watch('enterpriseId');
+
+  const employeesForSelectedEnterprise = useMemo(() => {
+    if (!selectedEnterpriseId) return [];
+    return allEmployees.filter(emp => emp.enterpriseId === selectedEnterpriseId);
+  }, [selectedEnterpriseId, allEmployees]);
+
   useEffect(() => {
     if (isOpen) {
       form.reset(product ? {
         ...product,
         images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
         tags: product.tags?.join(', ') || '',
+        assignedEmployeeIds: product.assignedEmployeeIds || [],
       } : {
         enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
         name: '', description: '', category: '', price: 0, stock: 0, status: 'draft',
-        images: [], sku: '', tags: '',
+        images: [], sku: '', tags: '', assignedEmployeeIds: [],
       });
     }
   }, [product, isOpen, enterprises, form]);
@@ -88,6 +101,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
       ...data,
       images: data.images?.map(img => img.url).filter(url => url) || [],
       tags: data.tags?.split(',').map(t => t.trim()).filter(t => t) || [],
+      assignedEmployeeIds: data.assignedEmployeeIds || [],
     };
     onSubmit(productToSubmit);
   };
@@ -110,7 +124,13 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
                 <FormField control={form.control} name="enterpriseId" render={({ field }) => (
                   <FormItem>
                     <FormLabel>所属企业</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                        onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue('assignedEmployeeIds', []); // Reset assigned employees when enterprise changes
+                        }} 
+                        value={field.value}
+                    >
                       <FormControl><SelectTrigger><SelectValue placeholder="选择企业" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {enterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
@@ -122,7 +142,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
                   <FormItem><FormLabel>商品名称</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
                 <FormField control={form.control} name="category" render={({field}) => (
-                  <FormItem><FormLabel>商品分类 (可选)</FormLabel><FormControl><Input placeholder="例如: 医疗器械, 营养膳食包" {...field} /></FormControl><FormMessage/></FormItem>
+                  <FormItem><FormLabel>商品分类 (可选)</FormLabel><FormControl><Input placeholder="例如: 医疗器械, 营养膳食包, 康复用具" {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
                 <FormField control={form.control} name="description" render={({field}) => (
                   <FormItem><FormLabel>商品描述 (可选)</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage/></FormItem>
@@ -163,7 +183,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
                         render={({ field: itemField }) => (
                           <FormItem className="flex-grow">
                             <FormControl>
-                              <Input placeholder="https://example.com/image.png" {...itemField} />
+                              <Input placeholder="https://placehold.co/600x400.png" {...itemField} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -185,6 +205,43 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises 
                 <FormField control={form.control} name="tags" render={({field}) => (
                   <FormItem><FormLabel>商品标签 (可选, 逗号分隔)</FormLabel><FormControl><Input placeholder="例如: 热销, 新品, 康复适用" {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
+
+                <FormField
+                  control={form.control}
+                  name="assignedEmployeeIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>分配销售人员 (可选)</FormLabel>
+                      <FormDescription className="text-xs">选择哪些员工/医生可以推广或销售此商品。</FormDescription>
+                      <ScrollArea className="h-40 border rounded-md p-2 mt-1">
+                        {employeesForSelectedEnterprise.length > 0 ? employeesForSelectedEnterprise.map((employee) => (
+                          <div key={employee.id} className="flex items-center space-x-2 py-1">
+                            <Checkbox
+                              id={`employee-${employee.id}`}
+                              checked={field.value?.includes(employee.id)}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...(field.value || []), employee.id])
+                                  : field.onChange(
+                                      (field.value || []).filter((id) => id !== employee.id)
+                                    );
+                              }}
+                            />
+                            <label htmlFor={`employee-${employee.id}`} className="text-sm font-medium leading-none">
+                              {employee.name} <span className="text-xs text-muted-foreground">({employee.email})</span>
+                            </label>
+                          </div>
+                        )) : <p className="text-xs text-muted-foreground text-center py-2">{!selectedEnterpriseId ? "请先选择所属企业" : "该企业暂无员工信息"}</p>}
+                      </ScrollArea>
+                      {field.value && field.value.length > 0 && (
+                        <div className="mt-1">
+                            <Badge variant="secondary">已分配给: {field.value.length} 名员工</Badge>
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </ScrollArea>
             <DialogFooter className="pt-4">
