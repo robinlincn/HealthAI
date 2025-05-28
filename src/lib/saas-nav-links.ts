@@ -21,7 +21,13 @@ import {
   DatabaseBackup, 
   PlugZap,      
   Settings2,
-  BrainCog, // Added icon for LLM Settings
+  BrainCog,
+  Store, // For Online Mall
+  PackageSearch, // For Product Management
+  Receipt, // For Mall Order Management
+  Contact, // For Membership Management
+  Megaphone, // For Marketing Management
+  LineChart, // For Mall Statistics
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -76,9 +82,42 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: Package, 
       },
       {
-        title: '订单管理',
+        title: '订单管理 (服务)', // Clarified title
         href: `${baseSaasPath}/service-center/order-management`,
         icon: ShoppingCart, 
+      },
+    ],
+  },
+  {
+    title: '在线商城',
+    href: `${baseSaasPath}/online-mall`,
+    icon: Store,
+    label: '运营管理',
+    children: [
+      {
+        title: '商品管理',
+        href: `${baseSaasPath}/online-mall/product-management`,
+        icon: PackageSearch,
+      },
+      {
+        title: '订单管理 (商城)',
+        href: `${baseSaasPath}/online-mall/order-management`,
+        icon: Receipt,
+      },
+      {
+        title: '会员管理',
+        href: `${baseSaasPath}/online-mall/membership-management`,
+        icon: Contact,
+      },
+      {
+        title: '营销管理',
+        href: `${baseSaasPath}/online-mall/marketing-management`,
+        icon: Megaphone,
+      },
+      {
+        title: '商城统计分析',
+        href: `${baseSaasPath}/online-mall/statistics-analysis`,
+        icon: LineChart,
       },
     ],
   },
@@ -122,7 +161,7 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: Network, 
       },
       {
-        title: 'AI模型设置', // New LLM Settings link
+        title: 'AI模型设置', 
         href: `${baseSaasPath}/system-management/llm-settings`,
         icon: BrainCog,
       },
@@ -167,4 +206,3 @@ export const saasNavLinks: SaasNavItem[] = [
     ],
   },
 ];
-
