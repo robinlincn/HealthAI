@@ -2,13 +2,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, type PersistOptions } from 'zustand/middleware';
 import type { CartItem, SaasProduct } from './types';
-import { useToast } from '@/hooks/use-toast';
+// Removed: import { useToast } from '@/hooks/use-toast'; // CRITICAL: Cannot call hooks in store
 
 interface CartState {
   items: CartItem[];
   addItem: (product: SaasProduct, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateItemQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string) => { name: string | undefined }; // Return name for toast in component
+  updateItemQuantity: (productId: string, quantity: number) => { name: string | undefined, oldQuantity: number | undefined, newQuantity: number }; // Return info for toast
   clearCart: () => void;
   getTotalItems: () => number;
   getCartTotal: () => number;
@@ -29,8 +29,7 @@ export const useCartStore = create<CartState>(
       isCartInitialized: false,
       setCartInitialized: (isInitialized: boolean) => set({ isCartInitialized: isInitialized }),
       addItem: (product, quantity = 1) => {
-        const { toast } = useToast(); // This might cause issues if useToast relies on React context outside React tree.
-                                    // It's generally safer to call toast from components.
+        // DO NOT call useToast() or toast() here
         set((state) => {
           const existingItem = state.items.find((item) => item.id === product.id);
           let newItems;
@@ -56,41 +55,40 @@ export const useCartStore = create<CartState>(
               },
             ];
           }
-          // Consider moving toast calls to components where addItem is invoked
-          // toast({ title: "已加入购物车", description: `${product.name} 已添加到您的购物车。` });
           return { items: newItems };
         });
       },
       removeItem: (productId) => {
-        // const { toast } = useToast(); // Safer to call toast from components
+        // DO NOT call useToast() or toast() here
         const itemToRemove = get().items.find(item => item.id === productId);
         set((state) => ({
           items: state.items.filter((item) => item.id !== productId),
         }));
-        // if (itemToRemove) {
-        //      toast({ title: "商品已移除", description: `${itemToRemove.name} 已从购物车中移除。`, variant: "destructive" });
-        // }
+        return { name: itemToRemove?.name };
       },
       updateItemQuantity: (productId, quantity) => {
+        // DO NOT call useToast() or toast() here
+        const itemToUpdate = get().items.find(item => item.id === productId);
+        const oldQuantity = itemToUpdate?.quantity;
+        let newQuantity = quantity;
+
         set((state) => {
           if (quantity <= 0) {
-             const itemToRemove = state.items.find(item => item.id === productId);
-            // if (itemToRemove) {
-            //     // toast({ title: "商品已移除", description: `${itemToRemove.name} 已从购物车中移除。`});
-            // }
+            newQuantity = 0; // For return value consistency
             return { items: state.items.filter((item) => item.id !== productId) };
           }
+          newQuantity = quantity;
           return {
             items: state.items.map((item) =>
               item.id === productId ? { ...item, quantity } : item
             ),
           };
         });
+        return { name: itemToUpdate?.name, oldQuantity, newQuantity };
       },
       clearCart: () => {
-        // const { toast } = useToast(); // Safer to call toast from components
+        // DO NOT call useToast() or toast() here
         set({ items: [] });
-        // toast({ title: "购物车已清空" });
       },
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
@@ -114,7 +112,7 @@ export const useCartStore = create<CartState>(
 // Call this in your main App component or a top-level layout component once
 // to ensure the store is hydrated and isCartInitialized is set.
 export const initializeCart = () => {
-  useCartStore.getState().setCartInitialized(true);
+  // This line might be problematic if called outside React component lifecycle
+  // It's better to ensure `setCartInitialized` is called from a component useEffect
+  // useCartStore.getState().setCartInitialized(true); 
 };
-
-    
