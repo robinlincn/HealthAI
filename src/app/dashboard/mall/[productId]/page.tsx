@@ -6,15 +6,15 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ShoppingCart, Star, Tag, ShieldCheck, Flame, Truck } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Star, Tag, ShieldCheck, Flame, Truck, Heart, CreditCard } from "lucide-react"; // Added Heart, CreditCard
 import type { SaasProduct } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { useCartStore } from '@/lib/cartStore'; // Import cart store
+import { useCartStore } from '@/lib/cartStore';
+import { cn } from "@/lib/utils"; // Ensure cn is imported
 
 // Re-using mock product data from mall/page.tsx for simplicity.
-// In a real app, this would be fetched via API based on productId.
 const mockMallProducts: SaasProduct[] = [
   { id: 'mall-prod-001', enterpriseId: 'ent-001', name: '家用智能血糖仪套装 (含50试纸)', description: '这款高精度家用智能血糖仪套装包含血糖仪主机一台，50条配套试纸，以及50支一次性采血针。支持蓝牙连接专属健康App，自动记录和分析血糖数据，帮助您更好地管理血糖。操作简便，读数清晰，是糖尿病患者日常监测的理想选择。', category: '医疗器械', price: 299.00, stock: 120, status: 'active', images: ['https://placehold.co/600x400/E0F2F1/00796B.png?text=血糖仪+大图', 'https://placehold.co/300x200/E0F2F1/00796B.png?text=细节1', 'https://placehold.co/300x200/E0F2F1/00796B.png?text=细节2'], creationDate: new Date().toISOString(), isHotSale: true, isDoctorRecommended: true, dataAiHint: "blood glucose meter" },
   { id: 'mall-prod-002', enterpriseId: 'ent-001', name: '高蛋白营养奶粉 (糖尿病适用)', description: '专为糖尿病患者设计的高蛋白营养奶粉，采用缓释碳水化合物配方，富含多种维生素和矿物质，有助于补充营养，增强体力，同时辅助稳定血糖。口感醇厚，易于冲调。适合作为日常营养补充或特定时期的营养支持。', category: '营养保健', price: 188.00, stock: 200, status: 'active', images: ['https://placehold.co/600x400/FFF9C4/FBC02D.png?text=营养奶粉+大图'], creationDate: new Date().toISOString(), isOnSale: true, discountPrice: 168.00, dataAiHint: "protein powder" },
@@ -33,6 +33,7 @@ export default function ProductDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const addItemToCart = useCartStore((state) => state.addItem);
+  const [isFavorited, setIsFavorited] = useState(false); // State for favorite button
 
   useEffect(() => {
     setIsClient(true);
@@ -40,14 +41,39 @@ export default function ProductDetailPage() {
       const foundProduct = mockMallProducts.find(p => p.id === params.productId);
       setProduct(foundProduct || null);
       setSelectedImageIndex(0);
+      // In a real app, you might fetch favorite status from backend or localStorage
+      // For now, it resets on each product load
+      setIsFavorited(false); 
     }
   }, [params.productId]);
 
   const handleAddToCart = () => {
     if (product) {
       addItemToCart(product);
-      // Toast message is handled by the store now
+      toast({
+        title: "已加入购物车",
+        description: `${product.name} 已添加到您的购物车。`,
+      });
     }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      addItemToCart(product); // Add to cart first
+      toast({
+        title: "直接购买 (模拟)",
+        description: `商品 "${product.name}" 已加入购物车，即将跳转到结算页面。`,
+      });
+      router.push('/dashboard/mall/checkout');
+    }
+  };
+
+  const handleToggleFavorite = () => {
+    setIsFavorited(!isFavorited);
+    toast({
+      title: !isFavorited ? "已收藏" : "已取消收藏",
+      description: product ? `商品 "${product.name}" ${!isFavorited ? '已添加到收藏夹' : '已从收藏夹移除'}。` : "操作成功。",
+    });
   };
   
   if (!isClient) {
@@ -84,7 +110,6 @@ export default function ProductDetailPage() {
 
   return (
     <div className="pb-4">
-      {/* Back button is handled by MobileHeader now */}
       <Card className="overflow-hidden shadow-none border-0 md:border md:shadow-sm">
         {product.images && product.images.length > 0 && (
           <div className="relative aspect-square w-full bg-muted">
@@ -156,9 +181,33 @@ export default function ProductDetailPage() {
           )}
         </CardContent>
         <CardContent className="border-t pt-4">
-          <Button size="lg" className="w-full h-11 text-base" onClick={handleAddToCart}>
-            <ShoppingCart className="mr-2 h-5 w-5" /> 加入购物车
-          </Button>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="w-full h-11 text-base flex-1" 
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" /> 加入购物车
+              </Button>
+              <Button 
+                size="lg" 
+                className="w-full h-11 text-base flex-1 bg-primary hover:bg-primary/90" 
+                onClick={handleBuyNow}
+              >
+                <CreditCard className="mr-2 h-5 w-5" /> 直接购买
+              </Button>
+            </div>
+            <Button 
+              variant="ghost" 
+              className="w-full h-11 text-base text-muted-foreground hover:text-primary"
+              onClick={handleToggleFavorite}
+            >
+              <Heart className={cn("mr-2 h-5 w-5", isFavorited && "fill-destructive text-destructive")} /> 
+              {isFavorited ? '已收藏' : '收藏商品'}
+            </Button>
+          </div>
           <p className="text-xs text-muted-foreground text-center mt-3">
             <ShieldCheck className="inline h-3 w-3 mr-1 text-green-600"/> 正品保障 ·
             <Truck className="inline h-3 w-3 ml-1.5 mr-1 text-blue-600"/> 快速发货
@@ -168,5 +217,6 @@ export default function ProductDetailPage() {
     </div>
   );
 }
+    
 
     
