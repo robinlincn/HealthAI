@@ -1,23 +1,23 @@
+
 import type { NavItem } from '@/lib/types';
 import {
   LayoutDashboard,
   Users,
   CalendarDays,
   UserCircle,
-  // Settings, // Removed as main settings group is gone
   BarChart3,
   ClipboardList,
   MessagesSquare,
-  Send, 
-  TrendingUp, 
-  ShieldCheck, 
-  FilePieChart, 
-  // UserCog, // Moved to SAAS
-  // DatabaseBackup, // Moved to SAAS
-  // Settings2, // Moved to SAAS
-  // PlugZap, // Moved to SAAS
-  TableProperties,
+  Send,
   PhoneOutgoing,
+  FilePieChart,
+  TrendingUp,
+  ShieldCheck,
+  UserCog, // Changed from UsersCog as per previous fix
+  TableProperties,
+  ShoppingBag, // New icon for Product Sales parent
+  PackageSearch, // New icon for Product Sales child
+  DollarSign,  // New icon for Sales Settlement child
 } from 'lucide-react';
 
 export const doctorNavLinks: NavItem[] = [
@@ -38,13 +38,13 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '病情分析',
-    href: '/doctor/analytics', 
+    href: '/doctor/analytics',
     icon: BarChart3,
   },
   {
     title: '治疗方案与建议',
-    href: '/doctor/treatment-plans', 
-    icon: ClipboardList, 
+    href: '/doctor/treatment-plans',
+    icon: ClipboardList,
   },
   {
     title: '病人咨询',
@@ -53,44 +53,59 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '消息推送',
-    href: '/doctor/messages', 
+    href: '/doctor/messages',
     icon: Send,
   },
   {
-    title: '外呼计划', 
+    title: '外呼计划',
     href: '/doctor/outbound-plans',
-    icon: PhoneOutgoing, 
+    icon: PhoneOutgoing,
+  },
+  {
+    title: '商品销售',
+    href: '/doctor/product-sales', // Parent link, can point to the first child
+    icon: ShoppingBag,
+    label: '商城业务', // New label group
+    children: [
+      {
+        title: '商品列表与销售',
+        href: '/doctor/product-sales', // This will be the page in the product-sales folder
+        icon: PackageSearch,
+      },
+      {
+        title: '销售结算',
+        href: '/doctor/product-sales/settlement',
+        icon: DollarSign,
+      },
+    ],
   },
   {
     title: '统计报告',
-    href: '/doctor/statistics', 
+    href: '/doctor/statistics',
     icon: FilePieChart,
-    label: '数据中心', 
-  },
-  {
-    title: '病情趋势分析',
-    href: '/doctor/statistics/trends',
-    icon: TrendingUp,
-    label: '数据中心', 
-  },
-  {
-    title: '治疗效果评估',
-    href: '/doctor/statistics/evaluation',
-    icon: ShieldCheck,
     label: '数据中心',
+    children: [ // Making statistics a parent if it has children
+        {
+            title: '病情趋势分析',
+            href: '/doctor/statistics/trends',
+            icon: TrendingUp,
+        },
+        {
+            title: '治疗效果评估',
+            href: '/doctor/statistics/evaluation',
+            icon: ShieldCheck,
+        },
+        {
+            title: '自定义报表',
+            href: '/doctor/statistics/custom-reports',
+            icon: TableProperties,
+        },
+    ]
   },
-  {
-    title: '自定义报表',
-    href: '/doctor/statistics/custom-reports',
-    icon: TableProperties, 
-    label: '数据中心',
-  },
-  // System Management section and its children are removed from here
   {
     title: '医生资料',
     href: '/doctor/profile',
     icon: UserCircle,
-    label: '个人设置' // Adding a label for clarity
+    label: '个人设置'
   },
 ];
-
