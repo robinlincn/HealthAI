@@ -197,8 +197,10 @@ export default function ProductManagementPage() {
         product={editingProduct}
         enterprises={mockEnterprises}
         allEmployees={mockEmployees} 
-        productCategories={productCategories} // Pass categories to dialog
+        productCategories={productCategories} 
       />
     </div>
   );
 }
+
+    

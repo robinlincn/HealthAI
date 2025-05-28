@@ -45,7 +45,7 @@ export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '�
 export interface UserProfile {
   name: string;
   gender?: Gender;
-  dob?: Date; // Changed to Date for date picker compatibility
+  dob?: Date; 
   age?: number;
   address?: string;
 
@@ -60,10 +60,9 @@ export interface UserProfile {
   occupation?: string;
   educationLevel?: string;
 
-  // Fields usually managed by institution, patient-side read-only
   recordNumber?: string;
-  admissionDate?: Date; // Changed to Date for date picker compatibility
-  recordDate?: Date; // Changed to Date for date picker compatibility
+  admissionDate?: Date; 
+  recordDate?: Date; 
   informant?: string;
   reliability?: ReliabilityOption;
 
@@ -171,21 +170,20 @@ export interface MedicationEntry {
   notes?: string;
 }
 
-// Represents a more comprehensive profile, typically managed by doctors
 export interface DetailedPatientProfile extends UserProfile {
-  chiefComplaint?: string; // 主诉
-  historyOfPresentIllness?: string; // 现病史
-  pastMedicalHistoryDetails?: string; // 既往史文本补充 (if needed beyond pastIllnesses array)
-
-  // Fields for general medical history, distinct from detailed questionnaire
-  pastIllnesses?: string[]; // For general past illnesses list for doctor's view
+  chiefComplaint?: string; 
+  historyOfPresentIllness?: string; 
+  pastMedicalHistoryDetails?: string; 
+  pastIllnesses?: string[]; 
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
   traumaHistory?: string;
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
   personalHistory_drugAbuseHistory?: string;
-  personalHistory_menstrualAndObstetric?: string; // For female patients
+  personalHistory_menstrualAndObstetric?: string; 
+  otherMedicalInfo?: string;
+  healthGoals?: string[];
 }
 
 
@@ -241,8 +239,8 @@ export interface TreatmentPlanMedication {
   dosage: string;
   frequency: string;
   notes?: string;
-  medStartDate?: string; // ISO string date for individual medication start
-  medEndDate?: string;   // ISO string date for individual medication end
+  medStartDate?: string; 
+  medEndDate?: string;   
 }
 
 export interface TreatmentPlan {
@@ -250,15 +248,15 @@ export interface TreatmentPlan {
   patientId: string;
   doctorId: string;
   planName: string;
-  startDate: string; // ISO string date
-  endDate?: string;  // ISO string date
+  startDate: string; 
+  endDate?: string;  
   shortTermGoals?: string;
   longTermGoals?: string;
   lifestyleAdjustments?: string;
   medications: TreatmentPlanMedication[];
   isActive?: boolean;
-  creationDate: string; // ISO string date
-  updatedAt?: string;   // ISO string date
+  creationDate: string; 
+  updatedAt?: string;   
 }
 
 export type TreatmentAdviceStatus = '待执行' | '已执行' | '已取消' | 'pending' | 'acknowledged' | 'implemented' | 'rejected';
@@ -269,7 +267,7 @@ export interface TreatmentAdvice {
   patientId: string;
   doctorId: string;
   advice: string;
-  date: string; // ISO string date for when the advice was given
+  date: string; 
   status: TreatmentAdviceStatus;
   patientFeedback?: string;
 }
@@ -516,7 +514,7 @@ export interface SaasOutboundCallTask {
   targetGroupId?: string;
   targetCustomListDetails?: string;
   targetDescription?: string;
-  targetDetails?: string;
+  targetDetails?: string; 
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
   creationDate: string; // ISO
   scheduledTime?: string; // ISO
@@ -614,9 +612,9 @@ export interface SaasProductCategory {
   id: string;
   name: string;
   description?: string;
-  enterpriseId?: string; // Optional: if categories are enterprise-specific
+  enterpriseId?: string; 
   creationDate: string; // ISO string
-  productCount?: number; // Optional: for display
+  productCount?: number; 
 }
 
 export interface SaasProduct {
@@ -624,16 +622,16 @@ export interface SaasProduct {
   enterpriseId: string;
   name: string;
   description?: string;
-  category?: string; // This will store the category NAME directly for simplicity
+  category?: string; 
   price: number;
   stock: number;
   status: SaasProductStatus;
-  images?: string[]; // URLs
-  creationDate: string; // ISO string
-  updatedAt?: string; // ISO string
+  images?: string[]; 
+  creationDate: string; 
+  updatedAt?: string; 
   sku?: string;
   tags?: string[];
-  assignedEmployeeIds?: string[];
+  assignedEmployeeIds?: string[]; // New field for assigned employees
 }
 
 export interface SaasMallOrderItem {
@@ -688,3 +686,5 @@ export interface SaasMallOrder {
   notes?: string;
   lastUpdatedAt: string; // ISO string
 }
+
+    

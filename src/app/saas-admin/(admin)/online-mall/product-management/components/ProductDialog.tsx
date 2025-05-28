@@ -23,7 +23,7 @@ const productSchema = z.object({
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
   name: z.string().min(2, { message: "商品名称至少需要2个字符。" }),
   description: z.string().optional(),
-  category: z.string().optional(), // Will store category name or NO_CATEGORY_VALUE
+  category: z.string().optional(), 
   price: z.coerce.number().min(0, { message: "价格不能为负。" }),
   stock: z.coerce.number().int().min(0, { message: "库存不能为负。" }),
   status: z.enum(['active', 'draft', 'archived'] as [SaasProductStatus, ...SaasProductStatus[]]),
@@ -42,7 +42,7 @@ interface ProductDialogProps {
   product?: SaasProduct | null;
   enterprises: SaasEnterprise[];
   allEmployees: SaasEmployee[];
-  productCategories: SaasProductCategory[]; // Receive managed categories
+  productCategories: SaasProductCategory[]; 
 }
 
 export function ProductDialog({ 
@@ -163,7 +163,7 @@ export function ProductDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>商品分类</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || NO_CATEGORY_VALUE} defaultValue={NO_CATEGORY_VALUE}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="选择一个商品分类" />
@@ -292,3 +292,5 @@ export function ProductDialog({
     </Dialog>
   );
 }
+
+    
