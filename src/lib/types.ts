@@ -22,7 +22,7 @@ export type DietaryIntakeOption = '不吃' | '<1碗' | '1-2碗' | '2-4碗' | '4-
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时';
+export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时'; // Corrected tilde
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -611,6 +611,27 @@ export interface SaasScheduledTask {
 // Mall specific types
 export type SaasProductStatus = 'active' | 'draft' | 'archived';
 
+export interface SaasFileCategory {
+  id: string;
+  name: string;
+  description?: string;
+  creationDate: string;
+}
+
+export interface SaasManagedFile {
+  id: string;
+  name: string;
+  type: 'image' | 'pdf' | 'doc' | 'audio' | 'video' | 'other';
+  mimeType: string;
+  sizeKB: number;
+  url: string; // Storage URL
+  uploadDate: string; // ISO date string
+  uploaderUserId?: string; // User ID of the uploader
+  enterpriseId?: string; // If file is associated with a specific enterprise
+  category?: string; // User-defined category or SaasFileCategory.id
+  description?: string;
+}
+
 export interface SaasProductCategory {
   id: string;
   name: string;
@@ -726,7 +747,7 @@ export interface SaasPromotionRuleCondition {
 }
 
 export interface SaasPromotionRuleAction {
-  type: 'fixed_amount_off' | 'percentage_off' | 'free_item';
+  type: 'fixed_amount_off' | 'percentage_off' | 'free_item' | 'custom_description'; // Added custom_description
   value: number | string; // e.g., 10 (for amount), 0.2 (for 20% off), 'prod_id_freebie'
 }
 
@@ -813,5 +834,7 @@ export interface SaasAdvertisement {
   impressions?: number;
   clicks?: number;
 }
+
+    
 
     

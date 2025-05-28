@@ -31,9 +31,10 @@ import {
   ListFilter,
   Share2,
   Percent,
-  Ticket, // Added for Coupons
-  Star,   // Added for Points Marketing
-  Presentation // Added for Advertisements
+  Ticket, 
+  Star,   
+  Presentation,
+  FolderKanban, // Added for File Management
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -44,7 +45,7 @@ export interface SaasNavItem {
   children?: SaasNavItem[];
 }
 
-const baseSaasPath = '/saas-admin';
+const baseSaasPath = '/saas-admin'; // Define baseSaasPath if not already defined globally
 
 export const saasNavLinks: SaasNavItem[] = [
   {
@@ -204,6 +205,11 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: BrainCog,
       },
       {
+        title: '文件管理', // New File Management link
+        href: `${baseSaasPath}/system-management/file-management`,
+        icon: FolderKanban, 
+      },
+      {
         title: '数据备份与恢复',
         href: `${baseSaasPath}/system-management/backup`,
         icon: DatabaseBackup,
@@ -244,3 +250,5 @@ export const saasNavLinks: SaasNavItem[] = [
     ],
   },
 ];
+
+    
