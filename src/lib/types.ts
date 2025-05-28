@@ -44,35 +44,35 @@ export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '�
 
 export interface UserProfile {
   name: string;
-  gender?: Gender; 
-  dob?: string; // Store as YYYY-MM-DD string from form
-  age?: number; // Calculated or from AI
+  gender?: Gender;
+  dob?: Date; // Changed to Date for date picker compatibility
+  age?: number;
   address?: string;
-  
+
   hadPreviousCheckup?: boolean;
   agreesToIntervention?: boolean;
-  
-  contactPhone?: string; 
+
+  contactPhone?: string;
   contactEmail?: string;
-  
+
   bloodType?: BloodType;
   maritalStatus?: MaritalStatus;
   occupation?: string;
   educationLevel?: string;
 
-  // Fields usually managed by institution, patient-side read-only or not present
-  recordNumber?: string; 
-  admissionDate?: string; // Store as Date object for form, but ISO string for storage
-  recordDate?: string; // Store as Date object for form, but ISO string for storage
+  // Fields usually managed by institution, patient-side read-only
+  recordNumber?: string;
+  admissionDate?: Date; // Changed to Date for date picker compatibility
+  recordDate?: Date; // Changed to Date for date picker compatibility
   informant?: string;
   reliability?: ReliabilityOption;
 
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
   currentSymptoms?: string[];
   allergies?: string[];
-  otherAllergyText?: string; 
-  operationHistory?: string[]; 
-  bloodTransfusionHistory?: string; 
+  otherAllergyText?: string;
+  operationHistory?: string[];
+  bloodTransfusionHistory?: string;
   medicationCategories?: string[];
   contactHistory?: string[];
 
@@ -81,7 +81,7 @@ export interface UserProfile {
   dietaryHabits_badHabits?: string[];
   dietaryHabits_preferences?: string[];
   dietaryHabits_foodTypePreferences?: string[];
-  
+
   dietaryIntake_staple?: DietaryIntakeOption;
   dietaryIntake_meat?: DietaryIntakeOption;
   dietaryIntake_fish?: DietaryIntakeOption;
@@ -108,7 +108,7 @@ export interface UserProfile {
   drinking_type_other?: string;
   drinking_amountPerDay?: string;
   drinking_years?: string;
-  
+
   mentalHealth_majorEvents?: YesNoOption;
   mentalHealth_impactOnLife?: ImpactLevelOption;
   mentalHealth_stressLevel?: ImpactLevelOption;
@@ -132,7 +132,7 @@ export interface UserProfile {
 
   adherence_selfAssessmentBody?: AdherenceBodyOption;
   adherence_selfAssessmentMind?: AdherenceMindOption;
-  adherence_priorityProblems?: string[]; 
+  adherence_priorityProblems?: string[];
   adherence_doctorAdviceCompliance?: AdherenceComplianceOption;
   adherence_healthPromotionMethods?: string[];
   adherence_otherHealthPromotion?: string;
@@ -140,28 +140,14 @@ export interface UserProfile {
   sleep_adequacy?: SleepAdequacyOption;
 
   otherInfo_medicationsUsed?: string;
-  otherInfo_contactPreference_method?: ContactPreferenceMethod | string; 
+  otherInfo_contactPreference_method?: ContactPreferenceMethod | string;
   otherInfo_contactPreference_method_other?: string;
-  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string; 
+  otherInfo_contactPreference_frequency?: ContactPreferenceFrequency | string;
   otherInfo_contactPreference_frequency_other?: string;
-  otherInfo_contactPreference_time?: ContactPreferenceTime | string; 
+  otherInfo_contactPreference_time?: ContactPreferenceTime | string;
   otherInfo_contactPreference_time_other?: string;
   otherInfo_suggestions?: string;
   otherInfo_serviceSatisfaction?: ServiceSatisfactionOption;
-
-  // Fields for general medical history, distinct from detailed questionnaire
-  pastIllnesses?: string[];
-  infectiousDiseases?: string[];
-  vaccinationHistory?: string;
-  traumaHistory?: string;
-  personalHistory_birthPlaceAndResidence?: string;
-  personalHistory_livingConditions?: string;
-  personalHistory_drugAbuseHistory?: string;
-  personalHistory_menstrualAndObstetric?: string; // For female patients
-
-  medicationHistory?: MedicationEntry[]; // Detailed medication history
-  otherMedicalInfo?: string; 
-  healthGoals?: string[]; 
 }
 
 
@@ -186,10 +172,20 @@ export interface MedicationEntry {
 }
 
 // Represents a more comprehensive profile, typically managed by doctors
-export interface DetailedPatientProfile extends UserProfile { 
+export interface DetailedPatientProfile extends UserProfile {
   chiefComplaint?: string; // 主诉
   historyOfPresentIllness?: string; // 现病史
   pastMedicalHistoryDetails?: string; // 既往史文本补充 (if needed beyond pastIllnesses array)
+
+  // Fields for general medical history, distinct from detailed questionnaire
+  pastIllnesses?: string[]; // For general past illnesses list for doctor's view
+  infectiousDiseases?: string[];
+  vaccinationHistory?: string;
+  traumaHistory?: string;
+  personalHistory_birthPlaceAndResidence?: string;
+  personalHistory_livingConditions?: string;
+  personalHistory_drugAbuseHistory?: string;
+  personalHistory_menstrualAndObstetric?: string; // For female patients
 }
 
 
@@ -218,18 +214,18 @@ export interface Consultation {
   patientName: string;
   doctorName?: string;
   doctorId?: string;
-  date: string; 
-  timestamp: Timestamp | Date; 
+  date: string;
+  timestamp: Timestamp | Date;
   question: string;
   status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
   reply?: string;
-  doctorReplyTimestamp?: Timestamp | Date; 
+  doctorReplyTimestamp?: Timestamp | Date;
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
-  source?: ConsultationSource; // New field for consultation source
+  source?: ConsultationSource;
 }
 
 
-export interface Medication { // This is for PATIENT-side medication plan viewing
+export interface Medication {
   id: string;
   name: string;
   dosage: string;
@@ -239,9 +235,8 @@ export interface Medication { // This is for PATIENT-side medication plan viewin
   endDate?: string; // ISO
 }
 
-// For Doctor-side Treatment Plan Medication details
 export interface TreatmentPlanMedication {
-  id: string; // for useFieldArray key
+  id: string;
   drugName: string;
   dosage: string;
   frequency: string;
@@ -253,7 +248,7 @@ export interface TreatmentPlanMedication {
 export interface TreatmentPlan {
   id: string;
   patientId: string;
-  doctorId: string; 
+  doctorId: string;
   planName: string;
   startDate: string; // ISO string date
   endDate?: string;  // ISO string date
@@ -270,10 +265,10 @@ export type TreatmentAdviceStatus = '待执行' | '已执行' | '已取消' | 'p
 
 export interface TreatmentAdvice {
   id: string;
-  patientName?: string; 
-  patientId: string;   
-  doctorId: string;    
-  advice: string; // Advice content
+  patientName?: string;
+  patientId: string;
+  doctorId: string;
+  advice: string;
   date: string; // ISO string date for when the advice was given
   status: TreatmentAdviceStatus;
   patientFeedback?: string;
@@ -301,8 +296,8 @@ export interface AiAssistantMessage {
   timestamp: Date;
   attachment?: {
     name: string;
-    type: string; 
-    size?: number; 
+    type: string;
+    size?: number;
   };
 }
 
@@ -310,8 +305,8 @@ export interface Appointment {
   id: string;
   patientName: string;
   patientId?: string;
-  date: Date; 
-  time: string; 
+  date: Date;
+  time: string;
   reason?: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
@@ -322,14 +317,14 @@ export interface DoctorPatient {
   age: number;
   gender: Gender;
   diagnosis: string;
-  lastVisit: string; 
+  lastVisit: string;
   avatarUrl?: string;
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
   healthDataSummary?: string;
   reports?: ExaminationReport[];
   detailedProfile?: DetailedPatientProfile;
-  currentTreatmentPlan?: TreatmentPlan; 
+  currentTreatmentPlan?: TreatmentPlan;
 }
 
 
@@ -374,19 +369,19 @@ export interface OutboundCallGroup {
   patientIds: string[];
   memberCount: number;
   creationDate: string; // ISO
-  createdByUserId?: string; // Can be doctor's user_id or saas_admin_id
+  createdByUserId?: string;
 }
 
 export interface GroupOutboundCallTask {
   id: string;
   groupId: string;
-  groupName: string; // For display convenience
+  groupName: string;
   content: string;
   scheduledTime: string; // ISO
   callAttempts: number;
   maxCallAttempts: number;
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; // e.g., group name for notification
+  wechatInfo: string;
   status: CallTaskStatus;
   creationDate: string; // ISO
   lastExecutionTime?: string; // ISO
@@ -424,13 +419,13 @@ export interface SaasDepartment {
 
 export interface SaasEmployee {
   id: string;
-  enterpriseId: string; 
+  enterpriseId: string;
   departmentId?: string | null;
   name: string;
   email: string;
   phone?: string;
   employeeNumber?: string;
-  roleTitle?: string; // Descriptive role within the enterprise
+  roleTitle?: string;
   status: 'active' | 'invited' | 'disabled';
   joinDate: string; // ISO string
   creationDate?: string; // ISO string
@@ -466,8 +461,8 @@ export interface SaasOrder {
   id: string;
   enterpriseId: string;
   servicePackageId: string;
-  enterpriseName?: string; // For display convenience
-  servicePackageName?: string; // For display convenience
+  enterpriseName?: string;
+  servicePackageName?: string;
   orderDate: string; // ISO string
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
@@ -483,7 +478,7 @@ export interface SaasSystemUser {
   id: string;
   name: string;
   email: string;
-  systemRoleId: string; // FK to SaasSystemRole
+  systemRoleId: string;
   status: 'active' | 'disabled';
   lastLogin?: string; // ISO string
 }
@@ -492,7 +487,7 @@ export interface SaasSystemRole {
   id: string;
   name: string;
   description?: string;
-  permissions: string[]; // Array of permission strings
+  permissions: string[];
 }
 
 export interface SaasSopService {
@@ -500,7 +495,7 @@ export interface SaasSopService {
   name: string;
   type: 'Coze' | 'Dify' | 'Other';
   apiEndpoint: string;
-  apiKey?: string; 
+  apiKey?: string;
   description?: string;
   status: 'active' | 'inactive' | 'error';
   creationDate: string; // ISO
@@ -513,29 +508,29 @@ export interface SaasSopService {
 export interface SaasOutboundCallTask {
   id: string;
   name: string;
-  enterpriseId?: string;      
-  creatingDoctorId?: string; 
-  creatingSaasAdminId?: string; 
-  targetType: 'individual_patient' | 'patient_group' | 'custom_list' | 'employee_group'; 
+  enterpriseId?: string;
+  creatingDoctorId?: string;
+  creatingSaasAdminId?: string;
+  targetType: 'individual_patient' | 'patient_group' | 'custom_list' | 'employee_group';
   targetPatientId?: string;
-  targetGroupId?: string;      
-  targetCustomListDetails?: string; 
-  targetDescription?: string; 
-  targetDetails?: string; // Fallback for older data or if targetDescription not specific enough
+  targetGroupId?: string;
+  targetCustomListDetails?: string;
+  targetDescription?: string;
+  targetDetails?: string;
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
   creationDate: string; // ISO
   scheduledTime?: string; // ISO
-  callContentSummary?: string; 
-  sopServiceId?: string;   
-  assignedToEmployeeId?: string; 
-  callCount?: number; // Total calls for this task
-  callCountSuccess?: number; // Successful calls
-  callCountTotal?: number; // Renamed for clarity (or use callCount if it means total attempts)
-  completionStatus?: 'success_all' | 'partial_success' | 'failed_all' | 'not_applicable'; 
+  callContentSummary?: string;
+  sopServiceId?: string;
+  assignedToEmployeeId?: string;
+  callCount?: number;
+  callCountSuccess?: number;
+  callCountTotal?: number;
+  completionStatus?: 'success_all' | 'partial_success' | 'failed_all' | 'not_applicable';
   notes?: string;
 }
 
-export interface SaasLlmSettings { 
+export interface SaasLlmSettings {
   apiKey: string;
   apiEndpoint: string;
   modelName: string;
@@ -546,59 +541,59 @@ export interface SaasAiWorkflowApiConfig {
   name: string;
   type: 'Dify' | 'Coze' | 'Other';
   apiEndpoint: string;
-  apiKey?: string;       
-  parametersJson?: string; 
-  description?: string;  
-  creationDate: string;   // ISO string
-  status?: 'active' | 'inactive'; 
+  apiKey?: string;
+  parametersJson?: string;
+  description?: string;
+  creationDate: string;
+  status?: 'active' | 'inactive';
 }
 
 export interface SaasPlatformConnection {
   id: string;
-  enterpriseId?: string; 
+  enterpriseId?: string;
   platform: 'wechat_personal_bot' | 'wechat_enterprise_app' | 'other';
-  accountName: string; 
+  accountName: string;
   status: 'connected' | 'disconnected' | 'error' | 'requires_reauth' | 'pending_setup';
   lastSync?: string; // ISO string
-  associatedEmployeeId?: string; 
+  associatedEmployeeId?: string;
   notes?: string;
 }
 
 export interface SaasCommunityGroup {
   id: string;
-  name: string; 
-  enterpriseId: string; 
-  managingEmployeeId?: string; 
+  name: string;
+  enterpriseId: string;
+  managingEmployeeId?: string;
   type: 'personal_wechat_group' | 'enterprise_wechat_group' | 'other_platform_group';
-  platformGroupId?: string; 
+  platformGroupId?: string;
   description?: string;
-  memberPatientIds?: string[]; 
-  patientCount?: number; 
-  platformConnectionId?: string; 
+  memberPatientIds?: string[];
+  patientCount?: number;
+  platformConnectionId?: string;
   connectionStatus: 'active_sync' | 'inactive_sync' | 'error_sync' | 'not_monitored';
   lastLogSync?: string; // ISO string
   creationDate: string; // ISO string
-  tags?: string[]; 
+  tags?: string[];
 }
 
-export interface SaasCommunityMessageLog { 
+export interface SaasCommunityMessageLog {
   id: string;
-  communityGroupId: string; 
-  platform: SaasPlatformConnection['platform']; 
-  platformGroupIdExternal?: string; 
-  platformMessageIdExternal?: string; 
-  senderPlatformId?: string; 
-  senderSaasUserId?: string; 
-  senderNameDisplay: string; 
+  communityGroupId: string;
+  platform: SaasPlatformConnection['platform'];
+  platformGroupIdExternal?: string;
+  platformMessageIdExternal?: string;
+  senderPlatformId?: string;
+  senderSaasUserId?: string;
+  senderNameDisplay: string;
   messageContent: string;
   messageType: 'text' | 'image' | 'file' | 'voice' | 'system_notification' | 'video';
   fileUrl?: string;
   timestamp: string; // ISO string
   loggedAt: string; // ISO string
   isBotMessage?: boolean;
-  metadataJson?: string; 
+  metadataJson?: string;
 }
-    
+
 export interface SaasScheduledTask {
   id: string;
   name: string;
@@ -607,7 +602,7 @@ export interface SaasScheduledTask {
   status: 'enabled' | 'disabled' | 'running' | 'error';
   lastRunAt?: string; // ISO string
   nextRunAt?: string; // ISO string
-  lastRunStatus?: string; 
+  lastRunStatus?: string;
   description?: string;
   jobHandlerIdentifier: string;
 }
@@ -615,57 +610,66 @@ export interface SaasScheduledTask {
 // Mall specific types
 export type SaasProductStatus = 'active' | 'draft' | 'archived';
 
-export interface SaasProduct {
+export interface SaasProductCategory {
   id: string;
-  enterpriseId: string; 
   name: string;
   description?: string;
-  category?: string; 
+  enterpriseId?: string; // Optional: if categories are enterprise-specific
+  creationDate: string; // ISO string
+  productCount?: number; // Optional: for display
+}
+
+export interface SaasProduct {
+  id: string;
+  enterpriseId: string;
+  name: string;
+  description?: string;
+  category?: string; // This will store the category NAME directly for simplicity
   price: number;
   stock: number;
-  status: SaasProductStatus; 
+  status: SaasProductStatus;
   images?: string[]; // URLs
   creationDate: string; // ISO string
   updatedAt?: string; // ISO string
-  sku?: string; 
+  sku?: string;
   tags?: string[];
-  assignedEmployeeIds?: string[]; // New field for assigned sales staff
+  assignedEmployeeIds?: string[];
 }
 
 export interface SaasMallOrderItem {
   productId: string;
-  productName: string; // Denormalized for easier display
+  productName: string;
   quantity: number;
-  priceAtOrder: number; // Price per unit at the time of order
+  priceAtOrder: number;
 }
 
-export type SaasMallOrderStatus = 
-  | 'pending_payment'  // 待支付
-  | 'paid'             // 已支付 (待处理)
-  | 'processing'       // 处理中 (例如：备货中)
-  | 'shipped'          // 已发货
-  | 'delivered'        // 已送达
-  | 'completed'        // 已完成 (例如：用户确认收货后)
-  | 'cancelled_user'   // 用户取消
-  | 'cancelled_admin'  // 管理员取消
-  | 'refund_pending'   // 退款中
-  | 'refunded'         // 已退款
-  | 'return_requested' // 请求退货
-  | 'return_approved'  // 退货已批准
-  | 'return_completed'; // 退货完成
+export type SaasMallOrderStatus =
+  | 'pending_payment'
+  | 'paid'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'completed'
+  | 'cancelled_user'
+  | 'cancelled_admin'
+  | 'refund_pending'
+  | 'refunded'
+  | 'return_requested'
+  | 'return_approved'
+  | 'return_completed';
 
 export interface SaasMallOrder {
-  id: string; // Unique order ID, e.g., "MALL-ORD-20240519-00001"
-  orderNumber: string; // User-friendly order number
-  enterpriseId: string; // Which enterprise/hospital is the seller
-  customerId: string; // ID of the customer (could be a patient User ID or a separate mall customer ID)
-  customerName?: string; // Denormalized
-  customerContact?: string; // Phone or email
+  id: string;
+  orderNumber: string;
+  enterpriseId: string;
+  customerId: string;
+  customerName?: string;
+  customerContact?: string;
   products: SaasMallOrderItem[];
-  totalAmount: number; // Total order value
+  totalAmount: number;
   status: SaasMallOrderStatus;
   orderDate: string; // ISO string
-  paymentMethod?: string; // e.g., "WeChat Pay", "Alipay", "Credit Card"
+  paymentMethod?: string;
   paymentTransactionId?: string;
   shippingAddress?: {
     recipientName: string;
@@ -677,11 +681,10 @@ export interface SaasMallOrder {
     postalCode: string;
     country?: string;
   };
-  shippingMethod?: string; // e.g., "Standard Express", "SF Express"
+  shippingMethod?: string;
   shippingFee?: number;
   trackingNumber?: string;
   carrier?: string;
-  notes?: string; // Customer notes or internal notes
+  notes?: string;
   lastUpdatedAt: string; // ISO string
 }
-

@@ -3,14 +3,14 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Briefcase,
   Building2,
-  Users, 
+  Users,
   Package,
-  ShoppingCart, 
+  ShoppingCart,
   MessageSquare,
   Settings,
   Send,
   SlidersHorizontal,
-  Cog, 
+  Cog,
   MonitorPlay,
   UsersRound,
   Clock,
@@ -18,32 +18,33 @@ import {
   LayoutDashboard,
   Shield,
   Network,
-  DatabaseBackup, 
-  PlugZap,      
+  DatabaseBackup,
+  PlugZap,
   Settings2,
   BrainCog,
-  Store, // For Online Mall
-  PackageSearch, // For Product Management
-  Receipt, // For Mall Order Management
-  Contact, // For Membership Management
-  Megaphone, // For Marketing Management
-  LineChart, // For Mall Statistics
+  Store, 
+  PackageSearch, 
+  Receipt, 
+  Contact, 
+  Megaphone, 
+  LineChart,
+  ListFilter, // Added for Category Management
 } from 'lucide-react';
 
 export interface SaasNavItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  label?: string; 
+  label?: string;
   children?: SaasNavItem[];
 }
 
-const baseSaasPath = '/saas-admin'; 
+const baseSaasPath = '/saas-admin';
 
 export const saasNavLinks: SaasNavItem[] = [
   {
     title: '仪表盘',
-    href: `${baseSaasPath}`, 
+    href: `${baseSaasPath}`,
     icon: LayoutDashboard,
   },
   {
@@ -61,30 +62,30 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '员工管理',
     href: `${baseSaasPath}/employee-management`,
-    icon: UsersRound, 
+    icon: UsersRound,
     label: '客户与服务',
   },
   {
-    title: '客户中心', 
+    title: '客户中心',
     href: `${baseSaasPath}/customer-center`,
-    icon: Users, 
+    icon: Users,
     label: '客户与服务',
   },
   {
     title: '服务中心',
-    href: `${baseSaasPath}/service-center`, 
+    href: `${baseSaasPath}/service-center`,
     icon: Package,
     label: '运营管理',
     children: [
       {
         title: '服务包管理',
         href: `${baseSaasPath}/service-center/service-package-management`,
-        icon: Package, 
+        icon: Package,
       },
       {
-        title: '订单管理 (服务)', // Clarified title
+        title: '订单管理 (服务)',
         href: `${baseSaasPath}/service-center/order-management`,
-        icon: ShoppingCart, 
+        icon: ShoppingCart,
       },
     ],
   },
@@ -98,6 +99,11 @@ export const saasNavLinks: SaasNavItem[] = [
         title: '商品管理',
         href: `${baseSaasPath}/online-mall/product-management`,
         icon: PackageSearch,
+      },
+      {
+        title: '分类管理', // New Submenu Item
+        href: `${baseSaasPath}/online-mall/category-management`,
+        icon: ListFilter, 
       },
       {
         title: '订单管理 (商城)',
@@ -124,31 +130,31 @@ export const saasNavLinks: SaasNavItem[] = [
   {
     title: '社群管理',
     href: `${baseSaasPath}/community-management`,
-    icon: MessageSquare, 
+    icon: MessageSquare,
     label: '运营管理',
   },
   {
     title: 'SOP服务管理',
     href: `${baseSaasPath}/sop-service-management`,
-    icon: SlidersHorizontal, 
+    icon: SlidersHorizontal,
     label: '运营管理',
   },
   {
     title: '外呼任务',
     href: `${baseSaasPath}/outbound-call-tasks`,
-    icon: Send, 
+    icon: Send,
     label: '运营管理',
   },
   {
     title: '系统管理',
-    href: `${baseSaasPath}/system-management`, 
-    icon: Settings, // Main group icon
+    href: `${baseSaasPath}/system-management`,
+    icon: Settings,
     label: '系统配置',
     children: [
       {
         title: 'SAAS平台用户',
         href: `${baseSaasPath}/system-management/user-management`,
-        icon: UsersRound, 
+        icon: UsersRound,
       },
       {
         title: '角色与权限',
@@ -158,10 +164,10 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: 'API接口管理',
         href: `${baseSaasPath}/system-management/api-management`,
-        icon: Network, 
+        icon: Network,
       },
       {
-        title: 'AI模型设置', 
+        title: 'AI模型设置',
         href: `${baseSaasPath}/system-management/llm-settings`,
         icon: BrainCog,
       },
@@ -178,25 +184,25 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: '平台参数设置',
         href: `${baseSaasPath}/system-management/system-settings`,
-        icon: Settings2, 
+        icon: Settings2,
       },
     ],
   },
   {
     title: '系统监控',
-    href: `${baseSaasPath}/system-monitoring`, 
-    icon: MonitorPlay, 
-    label: '系统运维', 
+    href: `${baseSaasPath}/system-monitoring`,
+    icon: MonitorPlay,
+    label: '系统运维',
     children: [
        {
         title: '外部系统状态',
         href: `${baseSaasPath}/system-monitoring/external-system-status`,
-        icon: Power, 
+        icon: Power,
       },
       {
         title: '在线用户列表',
         href: `${baseSaasPath}/system-monitoring/online-users`,
-        icon: Users, 
+        icon: Users,
       },
       {
         title: '后台定时任务',

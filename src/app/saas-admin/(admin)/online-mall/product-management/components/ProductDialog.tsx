@@ -14,16 +14,16 @@ import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage, FormDes
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, PlusCircle } from 'lucide-react';
-import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types';
+import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee, SaasProductCategory } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 
-const NO_CATEGORY_VALUE = "__NO_CATEGORY_SELECTED__"; // Special value for "no category"
+const NO_CATEGORY_VALUE = "__NO_CATEGORY_SELECTED__";
 
 const productSchema = z.object({
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
   name: z.string().min(2, { message: "商品名称至少需要2个字符。" }),
   description: z.string().optional(),
-  category: z.string().optional(),
+  category: z.string().optional(), // Will store category name or NO_CATEGORY_VALUE
   price: z.coerce.number().min(0, { message: "价格不能为负。" }),
   stock: z.coerce.number().int().min(0, { message: "库存不能为负。" }),
   status: z.enum(['active', 'draft', 'archived'] as [SaasProductStatus, ...SaasProductStatus[]]),
@@ -42,21 +42,18 @@ interface ProductDialogProps {
   product?: SaasProduct | null;
   enterprises: SaasEnterprise[];
   allEmployees: SaasEmployee[];
+  productCategories: SaasProductCategory[]; // Receive managed categories
 }
 
-const MOCK_PRODUCT_CATEGORIES = [
-  "医疗器械",
-  "膳食包",
-  "药膳包",
-  "康复用具",
-  "保健品",
-  "健康书籍",
-  "在线服务",
-  "智能穿戴",
-  "其他辅具",
-];
-
-export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises, allEmployees }: ProductDialogProps) {
+export function ProductDialog({ 
+    isOpen, 
+    onClose, 
+    onSubmit, 
+    product, 
+    enterprises, 
+    allEmployees, 
+    productCategories 
+}: ProductDialogProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: product ? {
@@ -64,13 +61,13 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       enterpriseId: product.enterpriseId || (enterprises.length > 0 ? enterprises[0].id : ''),
       images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
       tags: product.tags?.join(', ') || '',
-      category: product.category || NO_CATEGORY_VALUE, // Use special value if no category
+      category: product.category || NO_CATEGORY_VALUE,
       assignedEmployeeIds: product.assignedEmployeeIds || [],
     } : {
       enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
       name: '',
       description: '',
-      category: NO_CATEGORY_VALUE, // Default to special value
+      category: NO_CATEGORY_VALUE,
       price: 0,
       stock: 0,
       status: 'draft',
@@ -117,7 +114,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       creationDate: product?.creationDate || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...data,
-      category: data.category === NO_CATEGORY_VALUE ? undefined : data.category, // Convert back to undefined if no category
+      category: data.category === NO_CATEGORY_VALUE ? undefined : data.category,
       images: data.images?.map(img => img.url).filter(url => url) || [],
       tags: data.tags?.split(',').map(t => t.trim()).filter(t => t) || [],
       assignedEmployeeIds: data.assignedEmployeeIds || [],
@@ -174,8 +171,8 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                         </FormControl>
                         <SelectContent>
                           <SelectItem value={NO_CATEGORY_VALUE}>无分类</SelectItem>
-                          {MOCK_PRODUCT_CATEGORIES.map(cat => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          {productCategories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -295,5 +292,3 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
     </Dialog>
   );
 }
-    
-    

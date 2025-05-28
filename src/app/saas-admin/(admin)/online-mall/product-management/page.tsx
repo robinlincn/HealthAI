@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductTable } from "./components/ProductTable";
 import { ProductDialog } from "./components/ProductDialog";
-import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types';
-import { PackageSearch, PlusCircle, Search, Filter, Briefcase } from "lucide-react";
+import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee, SaasProductCategory } from '@/lib/types';
+import { PackageSearch, PlusCircle, Search, Filter, Briefcase, ListFilter } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 
@@ -33,9 +33,19 @@ const mockInitialProducts: SaasProduct[] = [
   { id: 'prod-004', enterpriseId: 'ent-001', name: '医用N95口罩 (50只装)', description: '防护升级，关爱健康。', category: '防护用品', price: 75.00, stock: 500, status: 'active', images: ['https://placehold.co/300x200.png?text=口罩'], creationDate: new Date().toISOString(), sku: 'MASK-N95-50' },
 ];
 
+const mockInitialCategories: SaasProductCategory[] = [
+  { id: 'cat-001', name: '医疗器械', creationDate: new Date().toISOString() },
+  { id: 'cat-002', name: '膳食包', creationDate: new Date().toISOString() },
+  { id: 'cat-003', name: '药膳包', creationDate: new Date().toISOString() },
+  { id: 'cat-004', name: '康复用具', creationDate: new Date().toISOString() },
+  { id: 'cat-005', name: '保健品', creationDate: new Date().toISOString() },
+  { id: 'cat-006', name: '防护用品', creationDate: new Date().toISOString() },
+];
+
 
 export default function ProductManagementPage() {
   const [products, setProducts] = useState<SaasProduct[]>([]);
+  const [productCategories, setProductCategories] = useState<SaasProductCategory[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<SaasProduct | null>(null);
   
@@ -50,12 +60,9 @@ export default function ProductManagementPage() {
   useEffect(() => {
     setIsClient(true);
     setProducts(mockInitialProducts);
+    setProductCategories(mockInitialCategories); // Load mock categories
   }, []);
 
-  const categories = useMemo(() => {
-    const allCategories = new Set(products.map(p => p.category).filter(Boolean) as string[]);
-    return Array.from(allCategories);
-  }, [products]);
 
   const handleAddProduct = () => {
     if (mockEnterprises.length === 0) {
@@ -84,8 +91,8 @@ export default function ProductManagementPage() {
         let newStatus: SaasProductStatus = 'draft';
         if (p.status === 'draft') newStatus = 'active';
         else if (p.status === 'active') newStatus = 'archived'; 
-        else if (p.status === 'archived') newStatus = 'draft';
-        return { ...p, status: newStatus };
+        else if (p.status === 'archived') newStatus = 'draft'; // Cycle back to draft
+        return { ...p, status: newStatus, updatedAt: new Date().toISOString() };
       }
       return p;
     }));
@@ -155,8 +162,8 @@ export default function ProductManagementPage() {
                   <SelectContent><SelectItem value="all">所有企业</SelectItem>{mockEnterprises.map(e => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}</SelectContent>
               </Select>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger><Filter className="mr-2 h-4 w-4"/>分类</SelectTrigger>
-                  <SelectContent><SelectItem value="all">所有分类</SelectItem>{categories.map(cat => (<SelectItem key={cat} value={cat}>{cat}</SelectItem>))}</SelectContent>
+                  <SelectTrigger><ListFilter className="mr-2 h-4 w-4"/>分类</SelectTrigger>
+                  <SelectContent><SelectItem value="all">所有分类</SelectItem>{productCategories.map(cat => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}</SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as SaasProductStatus | "all")}>
                   <SelectTrigger><Filter className="mr-2 h-4 w-4"/>状态</SelectTrigger>
@@ -190,9 +197,8 @@ export default function ProductManagementPage() {
         product={editingProduct}
         enterprises={mockEnterprises}
         allEmployees={mockEmployees} 
+        productCategories={productCategories} // Pass categories to dialog
       />
     </div>
   );
 }
-
-    
