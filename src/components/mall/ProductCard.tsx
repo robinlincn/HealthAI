@@ -2,6 +2,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link'; // Import Link
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from 'lucide-react';
@@ -23,18 +24,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
 
   return (
     <Card className={`w-[160px] sm:w-[180px] flex-shrink-0 overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200 flex flex-col ${className}`}>
-      <div className="aspect-[4/3] bg-muted relative w-full">
-        <Image 
-          src={product.images && product.images.length > 0 ? product.images[0] : "https://placehold.co/200x150.png?text=商品图片"} 
-          alt={product.name} 
-          fill
-          sizes="(max-width: 640px) 160px, 180px"
-          className="object-cover"
-          data-ai-hint={product.dataAiHint || "product image"}
-        />
-      </div>
+      <Link href={`/dashboard/mall/${product.id}`} legacyBehavior>
+        <a className="block aspect-[4/3] bg-muted relative w-full cursor-pointer">
+          <Image 
+            src={product.images && product.images.length > 0 ? product.images[0] : "https://placehold.co/200x150.png?text=商品图片"} 
+            alt={product.name} 
+            fill
+            sizes="(max-width: 640px) 160px, 180px"
+            className="object-cover"
+            data-ai-hint={product.dataAiHint || "product image"}
+          />
+        </a>
+      </Link>
       <CardContent className="p-2.5 space-y-1 flex flex-col flex-grow">
-        <h3 className="text-xs sm:text-sm font-semibold line-clamp-2 h-8 sm:h-10 leading-tight">{product.name}</h3>
+        <Link href={`/dashboard/mall/${product.id}`} legacyBehavior>
+          <a className="cursor-pointer hover:text-primary">
+            <h3 className="text-xs sm:text-sm font-semibold line-clamp-2 h-8 sm:h-10 leading-tight">{product.name}</h3>
+          </a>
+        </Link>
         <div className="flex items-baseline gap-1 mt-auto"> {/* Pushes price and button to bottom */}
           <p className="text-sm sm:text-base font-bold text-primary">¥{displayPrice.toFixed(2)}</p>
           {originalPrice && (
@@ -60,3 +67,4 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
     </Card>
   );
 };
+

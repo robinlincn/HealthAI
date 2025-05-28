@@ -11,7 +11,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Flame, Tag, Award, ShoppingCart, Search, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { SaasProduct } from '@/lib/types'; 
-import { ProductCard } from '@/components/mall/ProductCard'; // Import ProductCard
+import { ProductCard } from '@/components/mall/ProductCard';
 
 
 interface MallAdBanner {
@@ -27,14 +27,13 @@ const mockAdBanners: MallAdBanner[] = [
   { id: 'banner2', imageUrl: 'https://placehold.co/600x200/87CEEB/000000.png?text=新品上市+立即抢购', altText: '新品上市', linkUrl: '#new-arrivals', dataAiHint: "new product" },
 ];
 
-// Mock Product Data (adapt SaasProduct or create a new type if structure differs significantly for patient view)
 const mockMallProducts: SaasProduct[] = [
-  { id: 'mall-prod-001', enterpriseId: 'ent-001', name: '家用智能血糖仪套装 (含50试纸)', category: '医疗器械', price: 299.00, stock: 120, status: 'active', images: ['https://placehold.co/300x300/E0F2F1/00796B.png?text=血糖仪'], creationDate: new Date().toISOString(), isHotSale: true, isDoctorRecommended: true, dataAiHint: "blood glucose meter" },
-  { id: 'mall-prod-002', enterpriseId: 'ent-001', name: '高蛋白营养奶粉 (糖尿病适用)', category: '营养保健', price: 188.00, stock: 200, status: 'active', images: ['https://placehold.co/300x300/FFF9C4/FBC02D.png?text=营养奶粉'], creationDate: new Date().toISOString(), isOnSale: true, discountPrice: 168.00, dataAiHint: "protein powder" },
-  { id: 'mall-prod-003', enterpriseId: 'ent-001', name: '便携式电子血压计 (臂式)', category: '医疗器械', price: 239.00, stock: 150, status: 'active', images: ['https://placehold.co/300x300/C5CAE9/3F51B5.png?text=血压计'], creationDate: new Date().toISOString(), isDoctorRecommended: true, dataAiHint: "blood pressure monitor" },
-  { id: 'mall-prod-004', enterpriseId: 'ent-001', name: '无糖膳食纤维饼干 (2盒装)', category: '健康食品', price: 79.00, stock: 300, status: 'active', images: ['https://placehold.co/300x300/FFE0B2/FB8C00.png?text=无糖饼干'], creationDate: new Date().toISOString(), isHotSale: true, isOnSale: true, discountPrice: 69.00, dataAiHint: "sugar-free biscuits" },
-  { id: 'mall-prod-005', enterpriseId: 'ent-001', name: '医用级一次性外科口罩 (50只)', category: '防护用品', price: 45.00, stock: 500, status: 'active', images: ['https://placehold.co/300x300/B2EBF2/00ACC1.png?text=外科口罩'], creationDate: new Date().toISOString(), tags:['日常防护'], dataAiHint: "surgical masks" },
-  { id: 'mall-prod-006', enterpriseId: 'ent-001', name: '关节舒适按摩膏 (草本配方)', category: '康复理疗', price: 128.00, stock: 90, status: 'active', images: ['https://placehold.co/300x300/D1C4E9/5E35B1.png?text=按摩膏'], creationDate: new Date().toISOString(), isDoctorRecommended: true, dataAiHint: "massage cream" },
+  { id: 'mall-prod-001', enterpriseId: 'ent-001', name: '家用智能血糖仪套装 (含50试纸)', description: '这款高精度家用智能血糖仪套装包含血糖仪主机一台，50条配套试纸，以及50支一次性采血针。支持蓝牙连接专属健康App，自动记录和分析血糖数据，帮助您更好地管理血糖。操作简便，读数清晰，是糖尿病患者日常监测的理想选择。', category: '医疗器械', price: 299.00, stock: 120, status: 'active', images: ['https://placehold.co/300x300/E0F2F1/00796B.png?text=血糖仪'], creationDate: new Date().toISOString(), isHotSale: true, isDoctorRecommended: true, dataAiHint: "blood glucose meter" },
+  { id: 'mall-prod-002', enterpriseId: 'ent-001', name: '高蛋白营养奶粉 (糖尿病适用)', description: '专为糖尿病患者设计的高蛋白营养奶粉，采用缓释碳水化合物配方，富含多种维生素和矿物质，有助于补充营养，增强体力，同时辅助稳定血糖。口感醇厚，易于冲调。', category: '营养保健', price: 188.00, stock: 200, status: 'active', images: ['https://placehold.co/300x300/FFF9C4/FBC02D.png?text=营养奶粉'], creationDate: new Date().toISOString(), isOnSale: true, discountPrice: 168.00, dataAiHint: "protein powder" },
+  { id: 'mall-prod-003', enterpriseId: 'ent-001', name: '便携式电子血压计 (臂式)', description: '臂式全自动电子血压计，采用智能加压技术，测量准确舒适。大屏幕LCD显示，读数清晰，操作简单，适合中老年人使用。支持心率不齐检测和多人数据存储。', category: '医疗器械', price: 239.00, stock: 150, status: 'active', images: ['https://placehold.co/300x300/C5CAE9/3F51B5.png?text=血压计'], creationDate: new Date().toISOString(), isDoctorRecommended: true, dataAiHint: "blood pressure monitor" },
+  { id: 'mall-prod-004', enterpriseId: 'ent-001', name: '无糖膳食纤维饼干 (2盒装)', description: '精选天然谷物，富含膳食纤维，无添加蔗糖。口感酥脆，健康美味，适合作为糖尿病患者或关注健康人士的代餐或零食。独立小包装，方便携带。', category: '健康食品', price: 79.00, stock: 300, status: 'active', images: ['https://placehold.co/300x300/FFE0B2/FB8C00.png?text=无糖饼干'], creationDate: new Date().toISOString(), isHotSale: true, isOnSale: true, discountPrice: 69.00, dataAiHint: "sugar-free biscuits" },
+  { id: 'mall-prod-005', enterpriseId: 'ent-001', name: '医用级一次性外科口罩 (50只)', description: '三层防护，有效过滤细菌和颗粒物，符合医用外科口罩标准。独立包装，安全卫生，佩戴舒适透气。', category: '防护用品', price: 45.00, stock: 500, status: 'active', images: ['https://placehold.co/300x300/B2EBF2/00ACC1.png?text=外科口罩'], creationDate: new Date().toISOString(), tags:['日常防护'], dataAiHint: "surgical masks" },
+  { id: 'mall-prod-006', enterpriseId: 'ent-001', name: '关节舒适按摩膏 (草本配方)', description: '采用多种天然草本精华，温和渗透，有助于缓解关节不适，舒缓肌肉疲劳。适合中老年人及运动爱好者日常护理使用。', category: '康复理疗', price: 128.00, stock: 90, status: 'active', images: ['https://placehold.co/300x300/D1C4E9/5E35B1.png?text=按摩膏'], creationDate: new Date().toISOString(), isDoctorRecommended: true, dataAiHint: "massage cream" },
 ];
 
 
