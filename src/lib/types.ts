@@ -617,17 +617,70 @@ export type SaasProductStatus = 'active' | 'draft' | 'archived';
 
 export interface SaasProduct {
   id: string;
-  enterpriseId: string; // Which enterprise/hospital this product belongs to
+  enterpriseId: string; 
   name: string;
   description?: string;
-  category?: string; // e.g., "医疗器械", "膳食包", "健康服务"
+  category?: string; 
   price: number;
   stock: number;
-  status: SaasProductStatus; // 'active' (上架), 'draft' (草稿/下架)
-  images?: string[]; // URLs of product images
+  status: SaasProductStatus; 
+  images?: string[]; // URLs
   creationDate: string; // ISO string
   updatedAt?: string; // ISO string
-  sku?: string; // Stock Keeping Unit
+  sku?: string; 
   tags?: string[];
 }
-    
+
+export interface SaasMallOrderItem {
+  productId: string;
+  productName: string; // Denormalized for easier display
+  quantity: number;
+  priceAtOrder: number; // Price per unit at the time of order
+}
+
+export type SaasMallOrderStatus = 
+  | 'pending_payment'  // 待支付
+  | 'paid'             // 已支付 (待处理)
+  | 'processing'       // 处理中 (例如：备货中)
+  | 'shipped'          // 已发货
+  | 'delivered'        // 已送达
+  | 'completed'        // 已完成 (例如：用户确认收货后)
+  | 'cancelled_user'   // 用户取消
+  | 'cancelled_admin'  // 管理员取消
+  | 'refund_pending'   // 退款中
+  | 'refunded'         // 已退款
+  | 'return_requested' // 请求退货
+  | 'return_approved'  // 退货已批准
+  | 'return_completed'; // 退货完成
+
+export interface SaasMallOrder {
+  id: string; // Unique order ID, e.g., "MALL-ORD-20240519-00001"
+  orderNumber: string; // User-friendly order number
+  enterpriseId: string; // Which enterprise/hospital is the seller
+  customerId: string; // ID of the customer (could be a patient User ID or a separate mall customer ID)
+  customerName?: string; // Denormalized
+  customerContact?: string; // Phone or email
+  products: SaasMallOrderItem[];
+  totalAmount: number; // Total order value
+  status: SaasMallOrderStatus;
+  orderDate: string; // ISO string
+  paymentMethod?: string; // e.g., "WeChat Pay", "Alipay", "Credit Card"
+  paymentTransactionId?: string;
+  shippingAddress?: {
+    recipientName: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country?: string;
+  };
+  shippingMethod?: string; // e.g., "Standard Express", "SF Express"
+  shippingFee?: number;
+  trackingNumber?: string;
+  carrier?: string;
+  notes?: string; // Customer notes or internal notes
+  lastUpdatedAt: string; // ISO string
+}
+
