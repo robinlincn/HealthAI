@@ -5,7 +5,7 @@ import type { SaasProduct, SaasEnterprise } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Edit, Trash2, EyeOff, Eye, PackageSearch, Briefcase } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, EyeOff, Eye, PackageSearch, Briefcase, Flame, Star, Tag as TagIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { format, parseISO } from 'date-fns';
@@ -48,6 +48,7 @@ export function ProductTable({ products, enterprises, onEdit, onDelete, onToggle
             <TableHead>分类</TableHead>
             <TableHead>价格 (元)</TableHead>
             <TableHead>库存</TableHead>
+            <TableHead>特性</TableHead>
             <TableHead>状态</TableHead>
             <TableHead className="text-right">操作</TableHead>
           </TableRow>
@@ -79,8 +80,24 @@ export function ProductTable({ products, enterprises, onEdit, onDelete, onToggle
                 </span>
               </TableCell>
               <TableCell className="text-xs">{product.category || '-'}</TableCell>
-              <TableCell>¥{product.price.toFixed(2)}</TableCell>
+              <TableCell>
+                {product.isOnSale && typeof product.discountPrice === 'number' ? (
+                  <div className="flex flex-col">
+                    <span className="text-destructive font-semibold">¥{product.discountPrice.toFixed(2)}</span>
+                    <span className="text-xs text-muted-foreground line-through">¥{product.price.toFixed(2)}</span>
+                  </div>
+                ) : (
+                  `¥${product.price.toFixed(2)}`
+                )}
+              </TableCell>
               <TableCell>{product.stock}</TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {product.isHotSale && <Badge variant="outline" className="text-xs border-orange-500 text-orange-600"><Flame className="h-3 w-3 mr-0.5"/>热销</Badge>}
+                  {product.isOnSale && <Badge variant="outline" className="text-xs border-red-500 text-red-600"><TagIcon className="h-3 w-3 mr-0.5"/>活动</Badge>}
+                  {product.isDoctorRecommended && <Badge variant="outline" className="text-xs border-blue-500 text-blue-600"><Star className="h-3 w-3 mr-0.5"/>推荐</Badge>}
+                </div>
+              </TableCell>
               <TableCell>{getProductStatusBadge(product.status)}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -114,3 +131,4 @@ export function ProductTable({ products, enterprises, onEdit, onDelete, onToggle
     </div>
   );
 }
+

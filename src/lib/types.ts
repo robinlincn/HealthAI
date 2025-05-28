@@ -655,7 +655,11 @@ export interface SaasProduct {
   updatedAt?: string; 
   sku?: string; 
   tags?: string[];
-  assignedEmployeeIds?: string[]; 
+  assignedEmployeeIds?: string[];
+  isHotSale?: boolean;
+  isOnSale?: boolean; 
+  isDoctorRecommended?: boolean;
+  discountPrice?: number;
 }
 
 export interface SaasMallOrderItem {

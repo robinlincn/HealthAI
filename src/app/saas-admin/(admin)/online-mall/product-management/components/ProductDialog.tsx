@@ -31,6 +31,21 @@ const productSchema = z.object({
   sku: z.string().optional(),
   tags: z.string().optional().describe("多个标签用逗号分隔"),
   assignedEmployeeIds: z.array(z.string()).optional().default([]),
+  isHotSale: z.boolean().optional().default(false),
+  isOnSale: z.boolean().optional().default(false),
+  isDoctorRecommended: z.boolean().optional().default(false),
+  discountPrice: z.coerce.number().min(0, "折扣价不能为负。").optional(),
+}).refine(data => {
+  if (data.isOnSale && (data.discountPrice === undefined || data.discountPrice === null)) {
+    return false; // If on sale, discount price must be set
+  }
+  if (data.discountPrice !== undefined && data.discountPrice >= data.price) {
+    return false; // Discount price should be less than original price
+  }
+  return true;
+}, {
+  message: "促销商品必须设置有效的折扣价 (需低于原价)。",
+  path: ["discountPrice"], // Point error to discountPrice field
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -63,6 +78,10 @@ export function ProductDialog({
       tags: product.tags?.join(', ') || '',
       category: product.category || NO_CATEGORY_VALUE,
       assignedEmployeeIds: product.assignedEmployeeIds || [],
+      isHotSale: product.isHotSale || false,
+      isOnSale: product.isOnSale || false,
+      isDoctorRecommended: product.isDoctorRecommended || false,
+      discountPrice: product.discountPrice ?? undefined,
     } : {
       enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
       name: '',
@@ -75,6 +94,10 @@ export function ProductDialog({
       sku: '',
       tags: '',
       assignedEmployeeIds: [],
+      isHotSale: false,
+      isOnSale: false,
+      isDoctorRecommended: false,
+      discountPrice: undefined,
     },
   });
 
@@ -84,6 +107,7 @@ export function ProductDialog({
   });
 
   const selectedEnterpriseId = form.watch('enterpriseId');
+  const isOnSale = form.watch('isOnSale');
 
   const employeesForSelectedEnterprise = useMemo(() => {
     if (!selectedEnterpriseId) return [];
@@ -99,10 +123,15 @@ export function ProductDialog({
         tags: product.tags?.join(', ') || '',
         category: product.category || NO_CATEGORY_VALUE,
         assignedEmployeeIds: product.assignedEmployeeIds || [],
+        isHotSale: product.isHotSale || false,
+        isOnSale: product.isOnSale || false,
+        isDoctorRecommended: product.isDoctorRecommended || false,
+        discountPrice: product.discountPrice ?? undefined,
       } : {
         enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
         name: '', description: '', category: NO_CATEGORY_VALUE, price: 0, stock: 0, status: 'draft',
         images: [{ url: 'https://placehold.co/600x400.png' }], sku: '', tags: '', assignedEmployeeIds: [],
+        isHotSale: false, isOnSale: false, isDoctorRecommended: false, discountPrice: undefined,
       });
     }
   }, [product, isOpen, enterprises, form]);
@@ -118,6 +147,7 @@ export function ProductDialog({
       images: data.images?.map(img => img.url).filter(url => url) || [],
       tags: data.tags?.split(',').map(t => t.trim()).filter(t => t) || [],
       assignedEmployeeIds: data.assignedEmployeeIds || [],
+      discountPrice: data.isOnSale ? data.discountPrice : undefined, // Only set discountPrice if isOnSale
     };
     onSubmit(productToSubmit);
   };
@@ -191,6 +221,19 @@ export function ProductDialog({
                     <FormItem><FormLabel>库存数量</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage/></FormItem>
                   )}/>
                 </div>
+
+                {/* Discount Price - Conditional */}
+                {isOnSale && (
+                  <FormField control={form.control} name="discountPrice" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>促销价格 (元)</FormLabel>
+                      <FormControl><Input type="number" step="0.01" placeholder="输入折扣后价格" {...field} value={field.value ?? ''} /></FormControl>
+                      <FormDescription className="text-xs">此价格将在商品标记为“活动商品”时生效。</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}/>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField control={form.control} name="sku" render={({field}) => (
                     <FormItem><FormLabel>SKU (可选)</FormLabel><FormControl><Input placeholder="商品唯一编码" {...field} /></FormControl><FormMessage/></FormItem>
@@ -209,6 +252,16 @@ export function ProductDialog({
                     </FormItem>
                   )}/>
                 </div>
+                
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">商品特性标记</FormLabel>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+                    <FormField control={form.control} name="isHotSale" render={({ field }) => (<FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="text-xs font-normal">热销商品</FormLabel></FormItem>)}/>
+                    <FormField control={form.control} name="isOnSale" render={({ field }) => (<FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="text-xs font-normal">活动商品</FormLabel></FormItem>)}/>
+                    <FormField control={form.control} name="isDoctorRecommended" render={({ field }) => (<FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="text-xs font-normal">医生推荐</FormLabel></FormItem>)}/>
+                  </div>
+                </FormItem>
+
                 <FormItem>
                   <FormLabel>商品图片 (最多5张URL)</FormLabel>
                   {imageFields.map((field, index) => (
@@ -264,7 +317,7 @@ export function ProductDialog({
                                     );
                               }}
                             />
-                            <label htmlFor={`employee-${employee.id}-${product?.id || 'new'}`} className="text-sm font-medium leading-none">
+                            <label htmlFor={`employee-${employee.id}-${product?.id || 'new'}`} className="text-sm font-normal leading-none">
                               {employee.name} <span className="text-xs text-muted-foreground">({employee.email})</span>
                             </label>
                           </div>

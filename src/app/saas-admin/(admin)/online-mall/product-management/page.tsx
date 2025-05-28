@@ -27,10 +27,10 @@ const mockEmployees: SaasEmployee[] = [
 
 
 const mockInitialProducts: SaasProduct[] = [
-  { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', description: '包含血糖仪、试纸50条、采血针。', category: '医疗器械', price: 299.00, stock: 150, status: 'active', images: ['https://placehold.co/300x200.png?text=血糖仪'], creationDate: new Date().toISOString(), sku: 'XM-BG-001', tags: ['血糖监测', '家庭用'], assignedEmployeeIds: ['emp-saas-001'] },
-  { id: 'prod-002', enterpriseId: 'ent-001', name: '控糖膳食营养包 (7日)', description: '科学配比，助力血糖管理。', category: '膳食包', price: 199.00, stock: 80, status: 'active', images: ['https://placehold.co/300x200.png?text=膳食包'], creationDate: new Date().toISOString(), sku: 'KT-MEAL-007', assignedEmployeeIds: ['emp-saas-001', 'emp-saas-002'] },
+  { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', description: '包含血糖仪、试纸50条、采血针。', category: '医疗器械', price: 299.00, stock: 150, status: 'active', images: ['https://placehold.co/300x200.png?text=血糖仪'], creationDate: new Date().toISOString(), sku: 'XM-BG-001', tags: ['血糖监测', '家庭用'], assignedEmployeeIds: ['emp-saas-001'], isHotSale: true, isOnSale: false, isDoctorRecommended: true },
+  { id: 'prod-002', enterpriseId: 'ent-001', name: '控糖膳食营养包 (7日)', description: '科学配比，助力血糖管理。', category: '膳食包', price: 199.00, stock: 80, status: 'active', images: ['https://placehold.co/300x200.png?text=膳食包'], creationDate: new Date().toISOString(), sku: 'KT-MEAL-007', assignedEmployeeIds: ['emp-saas-001', 'emp-saas-002'], isOnSale: true, discountPrice: 179.00 },
   { id: 'prod-003', enterpriseId: 'ent-002', name: '养心安神药膳包', description: '精选草本，辅助调理。', category: '药膳包', price: 99.00, stock: 200, status: 'draft', images: ['https://placehold.co/300x200.png?text=药膳包'], creationDate: new Date().toISOString(), assignedEmployeeIds: ['emp-saas-003'] },
-  { id: 'prod-004', enterpriseId: 'ent-001', name: '医用N95口罩 (50只装)', description: '防护升级，关爱健康。', category: '防护用品', price: 75.00, stock: 500, status: 'active', images: ['https://placehold.co/300x200.png?text=口罩'], creationDate: new Date().toISOString(), sku: 'MASK-N95-50' },
+  { id: 'prod-004', enterpriseId: 'ent-001', name: '医用N95口罩 (50只装)', description: '防护升级，关爱健康。', category: '防护用品', price: 75.00, stock: 500, status: 'active', images: ['https://placehold.co/300x200.png?text=口罩'], creationDate: new Date().toISOString(), sku: 'MASK-N95-50', isDoctorRecommended: true },
 ];
 
 const mockInitialCategories: SaasProductCategory[] = [
