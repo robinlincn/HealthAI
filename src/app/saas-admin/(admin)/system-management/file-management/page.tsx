@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { FolderKanban, PlusCircle, Search, Filter, Edit, Trash2, Image as ImageIcon, FileText, Music, Video, MoreHorizontal, Eye, Download } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -231,7 +237,7 @@ export default function FileManagementPage() {
         </CardHeader>
         <CardContent>
             <div className="mt-2 p-6 border border-dashed border-border rounded-md text-center bg-muted/30 min-h-[150px] flex flex-col justify-center items-center">
-                <ListFilter className="h-12 w-12 mx-auto text-primary/20 mb-3" />
+                <Filter className="h-12 w-12 mx-auto text-primary/20 mb-3" /> {/* Changed ListFilter to Filter to match import */}
                 <p className="text-md font-semibold text-muted-foreground">分类管理功能正在建设中</p>
                 <p className="text-sm text-muted-foreground mt-1 max-w-md">
                 将支持添加、编辑、删除文件分类标签。
@@ -242,5 +248,6 @@ export default function FileManagementPage() {
     </div>
   );
 }
+
 
     
