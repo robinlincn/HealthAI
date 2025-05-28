@@ -20,7 +20,7 @@ import { addDays, format, subDays, parseISO } from 'date-fns';
 // Mock data for enterprises and service packages (reuse or adapt from other pages)
 const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-001', name: '示例医院A', contactPerson: '张三', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
-  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
+  { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
 ];
 const mockProducts: SaasProduct[] = [
   { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', category: '医疗器械', price: 299.00, stock: 150, status: 'active', creationDate: new Date().toISOString()},
@@ -71,6 +71,44 @@ const mockInitialMallOrders: SaasMallOrder[] = [
     salespersonEmployeeId: 'emp-saas-002',
     salespersonName: '李护士 (医院A)',
   },
+  { 
+    id: 'mord-004', orderNumber: 'SN202405170002', enterpriseId: 'ent-001', 
+    customerId: 'patientUser007', customerName: '孙悟空',
+    products: [ { productId: 'prod-001', productName: '智能血糖仪套装', quantity: 1, priceAtOrder: 299.00 } ],
+    totalAmount: 299.00,
+    status: 'delivered',
+    orderDate: subDays(new Date(), 4).toISOString(),
+    trackingNumber: 'YD987654321', carrier: '韵达快递',
+    lastUpdatedAt: subDays(new Date(), 1).toISOString(),
+    salespersonEmployeeId: 'emp-saas-001',
+    salespersonName: '王医生 (医院A)',
+  },
+  { 
+    id: 'mord-005', orderNumber: 'SN202405160011', enterpriseId: 'ent-002', 
+    customerId: 'patientUser008', customerName: '猪八戒',
+    products: [ { productId: 'prod-003', productName: '养心安神药膳包', quantity: 3, priceAtOrder: 99.00 } ],
+    totalAmount: 297.00,
+    status: 'completed',
+    orderDate: subDays(new Date(), 5).toISOString(),
+    lastUpdatedAt: subDays(new Date(), 3).toISOString(),
+  },
+];
+
+const orderStatusOptions: { value: SaasMallOrderStatus | "all"; label: string }[] = [
+  { value: "all", label: "所有状态" },
+  { value: "pending_payment", label: "待支付" },
+  { value: "paid", label: "已支付" },
+  { value: "processing", label: "处理中" },
+  { value: "shipped", label: "已发货" },
+  { value: "delivered", label: "已送达" },
+  { value: "completed", label: "已完成" },
+  { value: "cancelled_user", label: "用户取消" },
+  { value: "cancelled_admin", label: "管理员取消" },
+  { value: "refund_pending", label: "退款中" },
+  { value: "refunded", label: "已退款" },
+  { value: "return_requested", label: "退货申请中" },
+  { value: "return_approved", label: "退货已批准" },
+  { value: "return_completed", label: "退货已完成" },
 ];
 
 export default function MallOrderManagementPage() {
@@ -100,7 +138,7 @@ export default function MallOrderManagementPage() {
     setMallOrders(prevOrders => prevOrders.map(o => 
       o.id === orderId ? { ...o, status: newStatus, trackingNumber: trackingNumber || o.trackingNumber, lastUpdatedAt: new Date().toISOString() } : o
     ));
-    toast({ title: "订单状态已更新", description: `订单 ${orderId} 状态已更新为 ${newStatus}。`});
+    toast({ title: "订单状态已更新", description: `订单 ${orderId} 状态已更新为 ${orderStatusOptions.find(opt=>opt.value===newStatus)?.label || newStatus}。`});
     if (selectedOrder?.id === orderId) {
       setSelectedOrder(prev => prev ? {...prev, status: newStatus, trackingNumber: trackingNumber || prev.trackingNumber, lastUpdatedAt: new Date().toISOString()} : null);
     }
@@ -147,7 +185,7 @@ export default function MallOrderManagementPage() {
             商城订单管理
           </CardTitle>
           <CardDescription>
-            查看和处理在线商城的商品订单，管理订单状态、发货等。
+            查看和处理在线商城的商品订单，管理订单状态、发货、物流和售后。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -168,17 +206,9 @@ export default function MallOrderManagementPage() {
               <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as SaasMallOrderStatus | "all")}>
                   <SelectTrigger><Filter className="mr-2 h-4 w-4"/>订单状态</SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="all">所有状态</SelectItem>
-                      <SelectItem value="pending_payment">待支付</SelectItem>
-                      <SelectItem value="paid">已支付</SelectItem>
-                      <SelectItem value="processing">处理中</SelectItem>
-                      <SelectItem value="shipped">已发货</SelectItem>
-                      <SelectItem value="delivered">已送达</SelectItem>
-                      <SelectItem value="completed">已完成</SelectItem>
-                      <SelectItem value="cancelled_user">用户取消</SelectItem>
-                      <SelectItem value="cancelled_admin">管理员取消</SelectItem>
-                      <SelectItem value="refund_pending">退款中</SelectItem>
-                      <SelectItem value="refunded">已退款</SelectItem>
+                      {orderStatusOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
                   </SelectContent>
               </Select>
             </div>
@@ -203,17 +233,6 @@ export default function MallOrderManagementPage() {
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-            <CardHeader><CardTitle className="text-lg">物流管理 (占位)</CardTitle></CardHeader>
-            <CardContent><p className="text-muted-foreground">设置物流模板、对接物流公司、打印发货单等功能开发中。</p></CardContent>
-        </Card>
-        <Card>
-            <CardHeader><CardTitle className="text-lg">售后处理 (占位)</CardTitle></CardHeader>
-            <CardContent><p className="text-muted-foreground">退款申请、退换货处理、纠纷仲裁等功能开发中。</p></CardContent>
-        </Card>
-      </div>
-
       <MallOrderDetailDialog
         isOpen={isDetailDialogOpen}
         onClose={() => setIsDetailDialogOpen(false)}
@@ -222,7 +241,3 @@ export default function MallOrderManagementPage() {
         productsData={mockProducts}
         employeesData={mockEmployees}
         onUpdateStatus={handleUpdateStatus}
-      />
-    </div>
-  );
-}

@@ -12,8 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Card } from "@/components/ui/card";
-import { Truck, Edit, Users, Package, FileText, UserCircle } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Truck, Edit, Users, Package, FileText, UserCircle, RotateRight, CornerDownLeft, ShieldAlert, Gift } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
 
 interface MallOrderDetailDialogProps {
   isOpen: boolean;
@@ -53,7 +55,7 @@ export function MallOrderDetailDialog({
         case 'shipped': return <Badge className="bg-indigo-100 text-indigo-700">已发货</Badge>;
         case 'delivered': return <Badge className="bg-teal-100 text-teal-700">已送达</Badge>;
         case 'completed': return <Badge className="bg-green-100 text-green-700">已完成</Badge>;
-        case 'cancelled_user': case 'cancelled_admin': return <Badge variant="outline" className="text-gray-600">已取消</Badge>;
+        case 'cancelled_user': case 'cancelled_admin': return <Badge variant="outline" className="text-gray-600 border-gray-400">已取消</Badge>;
         case 'refund_pending': return <Badge variant="secondary" className="bg-orange-100 text-orange-700">退款中</Badge>;
         case 'refunded': return <Badge className="bg-pink-100 text-pink-700">已退款</Badge>;
         case 'return_requested': return <Badge variant="secondary" className="bg-purple-100 text-purple-700">退货申请中</Badge>;
@@ -77,7 +79,16 @@ export function MallOrderDetailDialog({
   const getSalespersonName = (employeeId?: string) => {
     if (!employeeId || !employeesData) return 'N/A';
     return employeesData.find(e => e.id === employeeId)?.name || '未知员工';
-  }
+  };
+
+  const canProcessOrder = order.status === 'paid' || order.status === 'pending_payment';
+  const canShipOrder = order.status === 'processing' || order.status === 'paid';
+  const canRequestRefund = ['paid', 'processing', 'shipped', 'delivered', 'completed'].includes(order.status);
+  const canApproveRefund = order.status === 'refund_pending';
+  const canRequestReturn = ['delivered', 'completed'].includes(order.status);
+  const canApproveReturn = order.status === 'return_requested';
+  const canCompleteReturn = order.status === 'return_approved';
+  const isTerminalStatus = ['completed', 'cancelled_user', 'cancelled_admin', 'refunded', 'return_completed'].includes(order.status);
 
 
   return (
@@ -133,55 +144,101 @@ export function MallOrderDetailDialog({
                 </Table>
                 <p className="text-right font-semibold mt-2">订单总金额: ¥{order.totalAmount.toFixed(2)}</p>
 
-                <h4 className="font-semibold mt-4 mb-2 text-base">配送与支付:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><p><strong>支付方式:</strong> {order.paymentMethod || 'N/A'}</p></div>
-                    {order.paymentTransactionId && <div><p><strong>支付交易号:</strong> {order.paymentTransactionId}</p></div>}
-                    <div className="md:col-span-2">
-                        <p><strong>配送地址:</strong></p>
-                        {order.shippingAddress ? (
-                            <div className="pl-2 text-xs bg-muted/30 p-2 rounded-md mt-1">
-                                <p className="flex items-center"><UserCircle className="h-3 w-3 mr-1"/>{order.shippingAddress.recipientName}, {order.shippingAddress.phone}</p>
-                                <p>{order.shippingAddress.province} {order.shippingAddress.city} {order.shippingAddress.addressLine1}</p>
-                                {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
-                                <p>邮编: {order.shippingAddress.postalCode}</p>
-                            </div>
-                        ) : <p className="pl-2 text-xs">未提供</p>}
-                    </div>
-                    <div><p><strong>配送方式:</strong> {order.shippingMethod || 'N/A'}</p></div>
-                    {order.shippingFee !== undefined && <div><p><strong>运费:</strong> ¥{order.shippingFee.toFixed(2)}</p></div>}
-                    <div><p><strong>运单号:</strong> {order.trackingNumber || (order.status === 'shipped' || order.status === 'delivered' || order.status === 'completed' ? '处理中' : '未发货')}</p></div>
-                    {order.carrier && <div><p><strong>承运商:</strong> {order.carrier}</p></div>}
-                </div>
+                <Separator className="my-4"/>
 
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-base flex items-center"><Truck className="mr-2 h-5 w-5 text-muted-foreground"/>配送与支付</CardTitle></CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                            <p><strong>支付方式:</strong> {order.paymentMethod || 'N/A'}</p>
+                            {order.paymentTransactionId && <p><strong>支付交易号:</strong> {order.paymentTransactionId}</p>}
+                            <p><strong>配送方式:</strong> {order.shippingMethod || 'N/A'}</p>
+                            {order.shippingFee !== undefined && <p><strong>运费:</strong> ¥{order.shippingFee.toFixed(2)}</p>}
+                            <p><strong>承运商:</strong> {order.carrier || 'N/A'}</p>
+                            <p><strong>运单号:</strong> {order.trackingNumber || (['shipped', 'delivered', 'completed'].includes(order.status) ? '处理中' : '未发货')}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                            <p><strong>配送地址:</strong></p>
+                            {order.shippingAddress ? (
+                                <div className="pl-2 text-xs bg-muted/30 p-2 rounded-md mt-1">
+                                    <p className="flex items-center"><UserCircle className="h-3 w-3 mr-1"/>{order.shippingAddress.recipientName}, {order.shippingAddress.phone}</p>
+                                    <p>{order.shippingAddress.province} {order.shippingAddress.city} {order.shippingAddress.addressLine1}</p>
+                                    {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
+                                    <p>邮编: {order.shippingAddress.postalCode}</p>
+                                </div>
+                            ) : <p className="pl-2 text-xs">未提供</p>}
+                        </div>
+                       
+                        {canShipOrder && (
+                            <div className="pt-2">
+                                <Label htmlFor="trackingNumberInput" className="text-sm font-medium block mb-1">输入运单号并标记发货:</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="trackingNumberInput" value={trackingNumberInput} onChange={(e) => setTrackingNumberInput(e.target.value)} placeholder="输入运单号" className="h-9 text-sm"/>
+                                    <Button size="sm" onClick={handleMarkAsShipped} variant="default" className="bg-blue-500 hover:bg-blue-600">
+                                        <Truck className="mr-1 h-4 w-4"/>标记为已发货
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+                
                 {order.notes && <div className="mt-3"><p><strong>订单备注:</strong> <span className="whitespace-pre-wrap p-2 bg-muted/30 rounded-md block mt-1 text-xs">{order.notes}</span></p></div>}
                 
-                <div className="mt-6 pt-4 border-t">
-                    <h4 className="font-semibold mb-2 text-base">订单操作:</h4>
-                     {(order.status === 'processing' || order.status === 'paid') && (
-                        <Card className="p-3 mb-3 border-blue-200 bg-blue-50">
-                            <Label htmlFor="trackingNumberInput" className="text-sm font-medium block mb-1">输入运单号并标记发货:</Label>
-                            <div className="flex items-center gap-2">
-                                <Input id="trackingNumberInput" value={trackingNumberInput} onChange={(e) => setTrackingNumberInput(e.target.value)} placeholder="输入运单号" className="h-9 text-sm"/>
-                                <Button size="sm" onClick={handleMarkAsShipped} variant="default" className="bg-blue-500 hover:bg-blue-600">
-                                    <Truck className="mr-1 h-4 w-4"/>标记为已发货
-                                </Button>
+                {!isTerminalStatus && (
+                    <Card className="mt-4">
+                        <CardHeader className="pb-2"><CardTitle className="text-base flex items-center"><Edit className="mr-2 h-5 w-5 text-muted-foreground"/>订单操作</CardTitle></CardHeader>
+                        <CardContent className="text-sm space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                                {canProcessOrder && (
+                                    <Button size="sm" variant="outline" onClick={() => onUpdateStatus(order.id, 'processing')}>确认订单 (转处理中)</Button>
+                                )}
+                                {order.status === 'processing' && (
+                                    <Button size="sm" variant="outline" onClick={() => onUpdateStatus(order.id, 'delivered')}>标记为已送达 (跳过发货)</Button>
+                                )}
+                                {order.status === 'delivered' && (
+                                    <Button size="sm" variant="outline" onClick={() => onUpdateStatus(order.id, 'completed')}>标记为已完成</Button>
+                                )}
+                                {(order.status !== 'cancelled_user' && order.status !== 'cancelled_admin' && order.status !== 'completed' && order.status !== 'refunded' && order.status !== 'return_completed') && (
+                                    <Button size="sm" variant="destructive" onClick={() => onUpdateStatus(order.id, 'cancelled_admin')}>取消订单</Button>
+                                )}
                             </div>
-                        </Card>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                        {(order.status === 'paid' && order.status !== 'processing') && (
-                            <Button size="sm" onClick={() => onUpdateStatus(order.id, 'processing')}>确认订单 (转处理中)</Button>
-                        )}
-                        {(order.status !== 'cancelled_user' && order.status !== 'cancelled_admin' && order.status !== 'completed' && order.status !== 'refunded' && order.status !== 'shipped' && order.status !== 'delivered') && (
-                            <Button size="sm" variant="destructive" onClick={() => onUpdateStatus(order.id, 'cancelled_admin')}>取消订单</Button>
-                        )}
-                         <Button size="sm" variant="outline" onClick={() => toast({ title: "提示", description: "处理售后功能开发中。" })}>处理售后</Button>
-                         <Button size="sm" variant="outline" onClick={() => toast({ title: "提示", description: "打印发货单功能开发中。" })}>
-                            <FileText className="mr-1 h-4 w-4"/>打印发货单
-                         </Button>
-                    </div>
-                </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <Card className="mt-4">
+                    <CardHeader className="pb-2"><CardTitle className="text-base flex items-center"><ShieldAlert className="mr-2 h-5 w-5 text-muted-foreground"/>售后处理 (模拟)</CardTitle></CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                             {canRequestRefund && (
+                                <Button size="sm" variant="outline" className="border-orange-400 text-orange-600 hover:bg-orange-50" onClick={() => onUpdateStatus(order.id, 'refund_pending')}>
+                                    <RotateRight className="mr-1 h-4 w-4"/> 申请退款
+                                </Button>
+                            )}
+                            {canApproveRefund && (
+                                <Button size="sm" variant="default" className="bg-orange-500 hover:bg-orange-600" onClick={() => onUpdateStatus(order.id, 'refunded')}>
+                                   <CheckCircle className="mr-1 h-4 w-4"/> 批准退款
+                                </Button>
+                            )}
+                             {canRequestReturn && (
+                                <Button size="sm" variant="outline" className="border-purple-400 text-purple-600 hover:bg-purple-50" onClick={() => onUpdateStatus(order.id, 'return_requested')}>
+                                   <CornerDownLeft className="mr-1 h-4 w-4"/> 申请退货
+                                </Button>
+                            )}
+                            {canApproveReturn && (
+                                <Button size="sm" variant="default" className="bg-purple-500 hover:bg-purple-600" onClick={() => onUpdateStatus(order.id, 'return_approved')}>
+                                    <CheckCircle className="mr-1 h-4 w-4"/> 批准退货
+                                </Button>
+                            )}
+                            {canCompleteReturn && (
+                                <Button size="sm" variant="default" className="bg-purple-500 hover:bg-purple-600" onClick={() => onUpdateStatus(order.id, 'return_completed')}>
+                                    <Gift className="mr-1 h-4 w-4"/> 完成退货入库
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </ScrollArea>
         <DialogFooter className="mt-2">
