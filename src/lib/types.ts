@@ -45,7 +45,7 @@ export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '�
 export interface UserProfile {
   name: string;
   gender?: Gender;
-  dob?: Date; 
+  dob?: Date | string; // Allow string for form input, Date for internal use
   age?: number;
   address?: string;
 
@@ -61,8 +61,8 @@ export interface UserProfile {
   educationLevel?: string;
 
   recordNumber?: string;
-  admissionDate?: Date; 
-  recordDate?: Date; 
+  admissionDate?: Date | string; 
+  recordDate?: Date | string; 
   informant?: string;
   reliability?: ReliabilityOption;
 
@@ -182,6 +182,7 @@ export interface DetailedPatientProfile extends UserProfile {
   personalHistory_livingConditions?: string;
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string; 
+  medicationHistory?: MedicationEntry[];
   otherMedicalInfo?: string;
   healthGoals?: string[];
 }
@@ -315,7 +316,7 @@ export interface DoctorPatient {
   age: number;
   gender: Gender;
   diagnosis: string;
-  lastVisit: string;
+  lastVisit?: string;
   avatarUrl?: string;
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
@@ -361,13 +362,13 @@ export interface SingleOutboundCallTask {
 
 export interface OutboundCallGroup {
   id: string;
-  enterpriseId: string;
+  enterpriseId: string; // SAAS enterprise ID
   name: string;
   description?: string;
-  patientIds: string[];
+  patientIds: string[]; // Array of patient IDs
   memberCount: number;
   creationDate: string; // ISO
-  createdByUserId?: string;
+  createdByUserId?: string; // User ID of the doctor/admin who created it
 }
 
 export interface GroupOutboundCallTask {
@@ -379,7 +380,7 @@ export interface GroupOutboundCallTask {
   callAttempts: number;
   maxCallAttempts: number;
   recurrence: CallTaskRecurrence;
-  wechatInfo: string;
+  wechatInfo: string; // Could be a group name or a bot contact
   status: CallTaskStatus;
   creationDate: string; // ISO
   lastExecutionTime?: string; // ISO
@@ -631,7 +632,7 @@ export interface SaasProduct {
   updatedAt?: string; 
   sku?: string;
   tags?: string[];
-  assignedEmployeeIds?: string[]; // New field for assigned employees
+  assignedEmployeeIds?: string[];
 }
 
 export interface SaasMallOrderItem {
@@ -687,4 +688,15 @@ export interface SaasMallOrder {
   lastUpdatedAt: string; // ISO string
 }
 
-    
+export interface SaasProductDistributionAssignment {
+  id: string;
+  enterpriseId: string;
+  productId: string;
+  productName?: string; // For display
+  employeeId: string;
+  employeeName?: string; // For display
+  commissionRate: number; // e.g., 0.10 for 10%
+  status: 'active' | 'paused' | 'terminated';
+  assignmentDate: string; // ISO string
+  notes?: string;
+}

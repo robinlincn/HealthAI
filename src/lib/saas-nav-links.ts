@@ -28,7 +28,8 @@ import {
   Contact, 
   Megaphone, 
   LineChart,
-  ListFilter, // Added for Category Management
+  ListFilter,
+  Share2, // Icon for Distribution/Sales Management
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -73,14 +74,14 @@ export const saasNavLinks: SaasNavItem[] = [
   },
   {
     title: '服务中心',
-    href: `${baseSaasPath}/service-center`,
+    href: `${baseSaasPath}/service-center`, 
     icon: Package,
     label: '运营管理',
     children: [
       {
         title: '服务包管理',
         href: `${baseSaasPath}/service-center/service-package-management`,
-        icon: Package,
+        icon: Package, 
       },
       {
         title: '订单管理 (服务)',
@@ -101,9 +102,14 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: PackageSearch,
       },
       {
-        title: '分类管理', // New Submenu Item
+        title: '分类管理',
         href: `${baseSaasPath}/online-mall/category-management`,
         icon: ListFilter, 
+      },
+      {
+        title: '销售管理', // New Submenu Item
+        href: `${baseSaasPath}/online-mall/distribution-management`,
+        icon: Share2, 
       },
       {
         title: '订单管理 (商城)',
@@ -147,14 +153,14 @@ export const saasNavLinks: SaasNavItem[] = [
   },
   {
     title: '系统管理',
-    href: `${baseSaasPath}/system-management`,
+    href: `${baseSaasPath}/system-management`, 
     icon: Settings,
     label: '系统配置',
     children: [
       {
         title: 'SAAS平台用户',
         href: `${baseSaasPath}/system-management/user-management`,
-        icon: UsersRound,
+        icon: UsersRound, 
       },
       {
         title: '角色与权限',
@@ -164,7 +170,7 @@ export const saasNavLinks: SaasNavItem[] = [
       {
         title: 'API接口管理',
         href: `${baseSaasPath}/system-management/api-management`,
-        icon: Network,
+        icon: Network, 
       },
       {
         title: 'AI模型设置',
@@ -190,19 +196,19 @@ export const saasNavLinks: SaasNavItem[] = [
   },
   {
     title: '系统监控',
-    href: `${baseSaasPath}/system-monitoring`,
+    href: `${baseSaasPath}/system-monitoring`, 
     icon: MonitorPlay,
     label: '系统运维',
     children: [
        {
         title: '外部系统状态',
         href: `${baseSaasPath}/system-monitoring/external-system-status`,
-        icon: Power,
+        icon: Power, 
       },
       {
         title: '在线用户列表',
         href: `${baseSaasPath}/system-monitoring/online-users`,
-        icon: Users,
+        icon: Users, 
       },
       {
         title: '后台定时任务',
