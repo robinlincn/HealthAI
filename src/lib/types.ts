@@ -62,8 +62,8 @@ export interface UserProfile {
 
   // Fields usually managed by institution, patient-side read-only or not present
   recordNumber?: string; 
-  admissionDate?: string; // Store as YYYY-MM-DD string from form
-  recordDate?: string; // Store as YYYY-MM-DD string from form
+  admissionDate?: string; // Store as YYYY-MM-DD string from form or Date
+  recordDate?: string; // Store as YYYY-MM-DD string from form or Date
   informant?: string;
   reliability?: ReliabilityOption;
 
@@ -156,8 +156,6 @@ export interface UserProfile {
   traumaHistory?: string;
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
-  // personalHistory_smokingHistory?: string; // Superseded by structured smoking_status etc.
-  // personalHistory_drinkingHistory?: string; // Superseded by structured drinking_status etc.
   personalHistory_drugAbuseHistory?: string;
   personalHistory_menstrualAndObstetric?: string; // For female patients
 
@@ -376,7 +374,7 @@ export interface OutboundCallGroup {
   patientIds: string[];
   memberCount: number;
   creationDate: string; // ISO
-  createdByUserId?: string;
+  createdByUserId?: string; // Can be doctor's user_id or saas_admin_id
 }
 
 export interface GroupOutboundCallTask {
@@ -530,8 +528,9 @@ export interface SaasOutboundCallTask {
   callContentSummary?: string; 
   sopServiceId?: string;   
   assignedToEmployeeId?: string; 
-  callCount?: number; 
-  callCountSuccess?: number; 
+  callCount?: number; // Total calls for this task
+  callCountSuccess?: number; // Successful calls
+  callCountTotal?: number; // Renamed for clarity (or use callCount if it means total attempts)
   completionStatus?: 'success_all' | 'partial_success' | 'failed_all' | 'not_applicable'; 
   notes?: string;
 }
@@ -592,7 +591,7 @@ export interface SaasCommunityMessageLog {
   senderSaasUserId?: string; 
   senderNameDisplay: string; 
   messageContent: string;
-  messageType: 'text' | 'image' | 'file' | 'voice' | 'system_notification';
+  messageType: 'text' | 'image' | 'file' | 'voice' | 'system_notification' | 'video';
   fileUrl?: string;
   timestamp: string; // ISO string
   loggedAt: string; // ISO string
@@ -611,5 +610,24 @@ export interface SaasScheduledTask {
   lastRunStatus?: string; 
   description?: string;
   jobHandlerIdentifier: string;
+}
+
+// Mall specific types
+export type SaasProductStatus = 'active' | 'draft' | 'archived';
+
+export interface SaasProduct {
+  id: string;
+  enterpriseId: string; // Which enterprise/hospital this product belongs to
+  name: string;
+  description?: string;
+  category?: string; // e.g., "医疗器械", "膳食包", "健康服务"
+  price: number;
+  stock: number;
+  status: SaasProductStatus; // 'active' (上架), 'draft' (草稿/下架)
+  images?: string[]; // URLs of product images
+  creationDate: string; // ISO string
+  updatedAt?: string; // ISO string
+  sku?: string; // Stock Keeping Unit
+  tags?: string[];
 }
     
