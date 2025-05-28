@@ -13,11 +13,11 @@ import {
   FilePieChart,
   TrendingUp,
   ShieldCheck,
-  UserCog, // Changed from UsersCog as per previous fix
+  UserCog, 
   TableProperties,
-  ShoppingBag, // New icon for Product Sales parent
-  PackageSearch, // New icon for Product Sales child
-  DollarSign,  // New icon for Sales Settlement child
+  ShoppingBag, 
+  PackageSearch, 
+  DollarSign,  
 } from 'lucide-react';
 
 export const doctorNavLinks: NavItem[] = [
@@ -38,8 +38,17 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '病情分析',
-    href: '/doctor/analytics',
+    href: '/doctor/analytics', // Parent route for analytics
     icon: BarChart3,
+    label: '分析与报告',
+    children: [
+      {
+        title: '病人数据分析', // Specific page for selecting patient for analysis
+        href: '/doctor/analytics', // Points to the main selection page
+        icon: BarChart3, // Can reuse parent icon or use a more specific one like Users
+      },
+      // AI Report and other sub-items could be added here or accessed via patient detail
+    ],
   },
   {
     title: '治疗方案与建议',
@@ -63,9 +72,9 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '商品销售',
-    href: '/doctor/product-sales', // Parent link, can point to the first child
+    href: '/doctor/product-sales', // Parent link points to the first child or a dedicated overview
     icon: ShoppingBag,
-    label: '商城业务', // New label group
+    label: '商城业务', 
     children: [
       {
         title: '商品列表与销售',
@@ -81,10 +90,10 @@ export const doctorNavLinks: NavItem[] = [
   },
   {
     title: '统计报告',
-    href: '/doctor/statistics',
+    href: '/doctor/statistics', // Parent route for statistics
     icon: FilePieChart,
-    label: '数据中心',
-    children: [ // Making statistics a parent if it has children
+    label: '数据中心', // Re-using '分析与报告' or new label if distinct
+    children: [
         {
             title: '病情趋势分析',
             href: '/doctor/statistics/trends',
