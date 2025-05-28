@@ -8,14 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MallOrderTable } from "./components/MallOrderTable";
 import { MallOrderDetailDialog } from "./components/MallOrderDetailDialog"; 
-import type { SaasMallOrder, SaasEnterprise, SaasProduct, SaasMallOrderStatus } from '@/lib/types';
-import { ShoppingCart, Search, Filter, Briefcase, Download, Package } from "lucide-react";
+import type { SaasMallOrder, SaasEnterprise, SaasProduct, SaasMallOrderStatus, SaasEmployee } from '@/lib/types';
+import { ShoppingCart, Search, Filter, CalendarDays, Briefcase, Download, Package } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import type { DateRange } from 'react-day-picker';
 import { addDays, format, subDays, parseISO } from 'date-fns';
 
+
+// Mock data for enterprises and service packages (reuse or adapt from other pages)
 const mockEnterprises: SaasEnterprise[] = [
   { id: 'ent-001', name: '示例医院A', contactPerson: '张三', creationDate: new Date().toISOString(), contactEmail:'a@a.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
   { id: 'ent-002', name: '健康管理中心B', contactPerson: '李四', creationDate: new Date().toISOString(), contactEmail:'b@b.com', contactPhone:'1',status:'active', assignedResources:{maxUsers:1,maxPatients:1,maxStorageGB:1}},
@@ -24,6 +26,11 @@ const mockProducts: SaasProduct[] = [
   { id: 'prod-001', enterpriseId: 'ent-001', name: '智能血糖仪套装', category: '医疗器械', price: 299.00, stock: 150, status: 'active', creationDate: new Date().toISOString()},
   { id: 'prod-002', enterpriseId: 'ent-001', name: '控糖膳食营养包 (7日)', category: '膳食包', price: 199.00, stock: 80, status: 'active', creationDate: new Date().toISOString()},
 ];
+const mockEmployees: SaasEmployee[] = [
+    { id: 'emp-saas-001', enterpriseId: 'ent-001', name: '王医生 (医院A)', email: 'wang@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+    { id: 'emp-saas-002', enterpriseId: 'ent-001', name: '李护士 (医院A)', email: 'li@hospitala.com', status: 'active', joinDate: new Date().toISOString(), creationDate: new Date().toISOString() },
+];
+
 
 const mockInitialMallOrders: SaasMallOrder[] = [
   { 
@@ -40,6 +47,8 @@ const mockInitialMallOrders: SaasMallOrder[] = [
     shippingAddress: { recipientName: '王小明', phone: '13800138000', addressLine1: '示例市健康路101号', city: '示例市', province: '示例省', postalCode: '100000'},
     shippingMethod: '顺丰快递',
     lastUpdatedAt: subDays(new Date(), 1).toISOString(),
+    salespersonEmployeeId: 'emp-saas-001',
+    salespersonName: '王医生 (医院A)',
   },
   { 
     id: 'mord-002', orderNumber: 'SN202405180007', enterpriseId: 'ent-002', 
@@ -59,6 +68,8 @@ const mockInitialMallOrders: SaasMallOrder[] = [
     status: 'pending_payment',
     orderDate: new Date().toISOString(),
     lastUpdatedAt: new Date().toISOString(),
+    salespersonEmployeeId: 'emp-saas-002',
+    salespersonName: '李护士 (医院A)',
   },
 ];
 
@@ -90,6 +101,9 @@ export default function MallOrderManagementPage() {
       o.id === orderId ? { ...o, status: newStatus, trackingNumber: trackingNumber || o.trackingNumber, lastUpdatedAt: new Date().toISOString() } : o
     ));
     toast({ title: "订单状态已更新", description: `订单 ${orderId} 状态已更新为 ${newStatus}。`});
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder(prev => prev ? {...prev, status: newStatus, trackingNumber: trackingNumber || prev.trackingNumber, lastUpdatedAt: new Date().toISOString()} : null);
+    }
   };
 
   const filteredOrders = useMemo(() => {
@@ -182,6 +196,7 @@ export default function MallOrderManagementPage() {
           <MallOrderTable 
             orders={filteredOrders} 
             enterprises={mockEnterprises}
+            employees={mockEmployees}
             onViewDetails={handleViewDetails}
             onUpdateStatus={handleUpdateStatus}
           />
@@ -205,6 +220,7 @@ export default function MallOrderManagementPage() {
         order={selectedOrder}
         enterprise={selectedOrder ? mockEnterprises.find(e => e.id === selectedOrder.enterpriseId) : null}
         productsData={mockProducts}
+        employeesData={mockEmployees}
         onUpdateStatus={handleUpdateStatus}
       />
     </div>

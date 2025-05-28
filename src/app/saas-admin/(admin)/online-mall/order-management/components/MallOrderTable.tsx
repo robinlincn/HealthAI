@@ -1,25 +1,31 @@
 
 'use client';
 
-import type { SaasMallOrder, SaasEnterprise } from '@/lib/types';
+import type { SaasMallOrder, SaasEnterprise, SaasEmployee } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Eye, Edit, Truck, Package, Briefcase, UserCircle } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Truck, Package, Briefcase, UserCircle, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
 interface MallOrderTableProps {
   orders: SaasMallOrder[];
   enterprises: SaasEnterprise[];
+  employees: SaasEmployee[]; // Added employees prop
   onViewDetails: (order: SaasMallOrder) => void;
   onUpdateStatus: (orderId: string, newStatus: SaasMallOrder['status']) => void; 
 }
 
-export function MallOrderTable({ orders, enterprises, onViewDetails, onUpdateStatus }: MallOrderTableProps) {
+export function MallOrderTable({ orders, enterprises, employees, onViewDetails, onUpdateStatus }: MallOrderTableProps) {
 
   const getEnterpriseName = (enterpriseId: string) => {
     return enterprises.find(e => e.id === enterpriseId)?.name || 'N/A';
+  };
+
+  const getSalespersonName = (employeeId?: string) => {
+    if (!employeeId) return 'N/A';
+    return employees.find(e => e.id === employeeId)?.name || '未知员工';
   };
   
   const getOrderStatusBadge = (status: SaasMallOrder['status']) => {
@@ -34,6 +40,9 @@ export function MallOrderTable({ orders, enterprises, onViewDetails, onUpdateSta
       case 'cancelled_admin': return <Badge variant="outline" className="text-gray-600">已取消</Badge>;
       case 'refund_pending': return <Badge variant="secondary" className="bg-orange-100 text-orange-700">退款中</Badge>;
       case 'refunded': return <Badge className="bg-pink-100 text-pink-700">已退款</Badge>;
+      case 'return_requested': return <Badge variant="secondary" className="bg-purple-100 text-purple-700">退货申请中</Badge>;
+      case 'return_approved': return <Badge className="bg-purple-100 text-purple-700">退货已批准</Badge>;
+      case 'return_completed': return <Badge className="bg-purple-100 text-purple-700">退货已完成</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -50,6 +59,7 @@ export function MallOrderTable({ orders, enterprises, onViewDetails, onUpdateSta
             <TableHead>订单号</TableHead>
             <TableHead>客户名称</TableHead>
             <TableHead>所属企业</TableHead>
+            <TableHead>销售人员</TableHead> {/* New Column */}
             <TableHead>总金额</TableHead>
             <TableHead>订单状态</TableHead>
             <TableHead>下单时间</TableHead>
@@ -71,6 +81,16 @@ export function MallOrderTable({ orders, enterprises, onViewDetails, onUpdateSta
                   <Briefcase className="h-3.5 w-3.5 mr-1 text-muted-foreground"/>
                   {getEnterpriseName(order.enterpriseId)}
                 </span>
+              </TableCell>
+              <TableCell className="text-xs">
+                {order.salespersonEmployeeId ? (
+                  <span className="inline-flex items-center">
+                    <Users className="h-3.5 w-3.5 mr-1 text-muted-foreground"/>
+                    {order.salespersonName || getSalespersonName(order.salespersonEmployeeId)}
+                  </span>
+                ) : (
+                  '-'
+                )}
               </TableCell>
               <TableCell>¥{order.totalAmount.toFixed(2)}</TableCell>
               <TableCell>{getOrderStatusBadge(order.status)}</TableCell>

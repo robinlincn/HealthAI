@@ -686,6 +686,8 @@ export interface SaasMallOrder {
   carrier?: string;
   notes?: string;
   lastUpdatedAt: string; // ISO string
+  salespersonEmployeeId?: string;
+  salespersonName?: string; // Denormalized for display
 }
 
 export interface SaasProductDistributionAssignment {
