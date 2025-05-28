@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react'; // Added useMemo
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PackageSearch, Link as LinkIcon, UserCheck, Search, Filter } from "lucide-react";
+import { PackageSearch, Link as LinkIcon, UserCheck, Search, Filter, DollarSign, ShoppingCart, BarChart3 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
-import type { SaasProduct } from '@/lib/types'; // Assuming SaasProduct is relevant
+import type { SaasProduct } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -22,12 +22,20 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import { format, subDays } from 'date-fns';
 
-// Mock products available to this doctor's enterprise
 const mockDoctorAvailableProducts: SaasProduct[] = [
   {
     id: 'prod-doc-001',
-    enterpriseId: 'ent-001', // Assume doctor belongs to ent-001
+    enterpriseId: 'ent-001',
     name: '家用智能血糖仪套装',
     description: '高精度测量，附带50条试纸和采血针，蓝牙连接App。',
     category: '医疗器械',
@@ -79,13 +87,26 @@ const mockDoctorAvailableProducts: SaasProduct[] = [
   },
 ];
 
-// Mock patient list for recommendation dialog
 const mockDoctorPatients = [
   { id: "pat001", name: "张三" },
   { id: "pat002", name: "李四" },
   { id: "pat003", name: "王五" },
 ];
 
+// Mock data for sales trend chart
+const mockSalesTrendData = [
+  { date: format(subDays(new Date(), 6), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 100 },
+  { date: format(subDays(new Date(), 5), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 150 },
+  { date: format(subDays(new Date(), 4), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 200 },
+  { date: format(subDays(new Date(), 3), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 120 },
+  { date: format(subDays(new Date(), 2), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 250 },
+  { date: format(subDays(new Date(), 1), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 300 },
+  { date: format(new Date(), 'MM-dd'), sales: Math.floor(Math.random() * 500) + 220 },
+];
+
+const chartConfigSales = {
+  sales: { label: "销售额 (元)", color: "hsl(var(--primary))" },
+};
 
 export default function DoctorProductSalesPage() {
   const { toast } = useToast();
@@ -106,7 +127,7 @@ export default function DoctorProductSalesPage() {
       (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))) &&
       (filterCategory === 'all' || product.category === filterCategory) &&
-      product.status === 'active' // Only show active products for sale
+      product.status === 'active'
     );
   }, [products, searchTerm, filterCategory]);
 
@@ -187,8 +208,8 @@ export default function DoctorProductSalesPage() {
           </div>
 
           {filteredProducts.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-22rem)]"> {/* Adjusted height */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4"> {/* Changed to 3 columns for better fit */}
+            <ScrollArea className="h-[calc(100vh-30rem)] md:h-[calc(100vh-25rem)]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                 {filteredProducts.map((product) => (
                   <Card key={product.id} className="flex flex-col overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
                     {product.images && product.images.length > 0 ? (
@@ -233,6 +254,55 @@ export default function DoctorProductSalesPage() {
             </div>
           )}
         </CardContent>
+      </Card>
+
+      <Card className="shadow-md mt-6">
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center">
+            <BarChart3 className="mr-3 h-6 w-6 text-primary" />
+            销售统计 (模拟)
+          </CardTitle>
+          <CardDescription>
+            查看您推荐的商品销售情况和业绩。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <Card className="p-4 bg-muted/30">
+              <DollarSign className="h-8 w-8 text-green-500 mx-auto mb-2" />
+              <p className="text-2xl font-semibold">¥1,280.50</p>
+              <p className="text-xs text-muted-foreground">本月总销售额 (预估)</p>
+            </Card>
+            <Card className="p-4 bg-muted/30">
+              <ShoppingCart className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+              <p className="text-2xl font-semibold">15</p>
+              <p className="text-xs text-muted-foreground">本月订单数</p>
+            </Card>
+            <Card className="p-4 bg-muted/30">
+              <PackageSearch className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <p className="text-lg font-semibold">智能血糖仪</p>
+              <p className="text-xs text-muted-foreground">热销商品</p>
+            </Card>
+          </div>
+          <div>
+            <h4 className="text-md font-semibold mb-2">销售额趋势 (最近7天)</h4>
+            <ChartContainer config={chartConfigSales} className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart data={mockSalesTrendData} accessibilityLayer>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="date" tickLine={false} tickMargin={8} axisLine={false} />
+                  <YAxis tickFormatter={(value) => `¥${value}`} />
+                  <RechartsTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar dataKey="sales" fill="var(--color-sales)" radius={4} name="销售额" />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </CardContent>
+        <CardFooter>
+            <p className="text-xs text-muted-foreground">以上数据为模拟展示，实际数据将根据您的销售情况生成。</p>
+        </CardFooter>
       </Card>
 
       <Dialog open={isRecommendDialogOpen} onOpenChange={setIsRecommendDialogOpen}>
