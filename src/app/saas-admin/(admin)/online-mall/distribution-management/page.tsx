@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { SaasProductDistributionAssignment, SaasEnterprise, SaasProduct, SaasEmployee } from '@/lib/types';
 import { Share2, Briefcase, PackageSearch, Users, Percent, PlusCircle, Trash2, SearchIcon } from "lucide-react";
 import { format, parseISO, subDays } from 'date-fns';
+import { Badge } from "@/components/ui/badge"; // Added Badge import
 
 // Mock data (reuse or adapt from other parts of the SAAS admin)
 const mockEnterprises: SaasEnterprise[] = [
@@ -54,8 +55,12 @@ export default function DistributionManagementPage() {
 
   useEffect(() => {
     setIsClient(true);
+    // Simulate fetching or setting initial data
+    if (mockEnterprises.length > 0 && !selectedEnterpriseId) {
+      // setSelectedEnterpriseId(mockEnterprises[0].id); // Optionally pre-select an enterprise
+    }
     setDistributionAssignments(mockInitialAssignments);
-  }, []);
+  }, [selectedEnterpriseId]);
 
   const availableProducts = useMemo(() => {
     if (!selectedEnterpriseId) return [];
@@ -122,7 +127,7 @@ export default function DistributionManagementPage() {
     });
 
     if (newAssignments.length > 0) {
-        setDistributionAssignments(prev => [...prev, ...newAssignments]);
+        setDistributionAssignments(prev => [...prev, ...newAssignments].sort((a,b) => parseISO(b.assignmentDate).getTime() - parseISO(a.assignmentDate).getTime() ));
         toast({ title: "成功", description: `已成功创建 ${newAssignments.length} 条分销分配规则。` });
     }
     
@@ -301,7 +306,7 @@ export default function DistributionManagementPage() {
                                     <TableCell className="text-xs">{getEnterpriseName(assign.enterpriseId)}</TableCell>
                                     <TableCell>{(assign.commissionRate * 100).toFixed(2)}%</TableCell>
                                     <TableCell>
-                                        <Badge variant={assign.status === 'active' ? 'default' : 'outline'} className={assign.status === 'active' ? 'bg-green-500' : ''}>
+                                        <Badge variant={assign.status === 'active' ? 'default' : 'outline'} className={assign.status === 'active' ? 'bg-green-500 hover:bg-green-600' : ''}>
                                             {assign.status === 'active' ? '生效中' : '已暂停'}
                                         </Badge>
                                     </TableCell>
@@ -327,3 +332,5 @@ export default function DistributionManagementPage() {
     </div>
   );
 }
+
+    
