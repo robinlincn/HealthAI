@@ -5,12 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, ShoppingCart, Star, Tag, ShieldCheck, Flame, Truck } from "lucide-react";
 import type { SaasProduct } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Corrected import
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { useCartStore } from '@/lib/cartStore'; // Import cart store
 
 // Re-using mock product data from mall/page.tsx for simplicity.
 // In a real app, this would be fetched via API based on productId.
@@ -31,19 +32,21 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<SaasProduct | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const addItemToCart = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     setIsClient(true);
     if (params.productId) {
       const foundProduct = mockMallProducts.find(p => p.id === params.productId);
       setProduct(foundProduct || null);
-      setSelectedImageIndex(0); // Reset image on product change
+      setSelectedImageIndex(0);
     }
   }, [params.productId]);
 
   const handleAddToCart = () => {
     if (product) {
-      toast({ title: `模拟加入购物车`, description: `商品 "${product.name}" 已添加 (功能建设中)。` });
+      addItemToCart(product);
+      // Toast message is handled by the store now
     }
   };
   
@@ -81,12 +84,8 @@ export default function ProductDetailPage() {
 
   return (
     <div className="pb-4">
-      <Button variant="ghost" onClick={() => router.back()} className="mb-2 sticky top-0 bg-background/80 backdrop-blur-sm z-10 -ml-2">
-        <ArrowLeft className="mr-1 h-5 w-5" /> 返回
-      </Button>
-
+      {/* Back button is handled by MobileHeader now */}
       <Card className="overflow-hidden shadow-none border-0 md:border md:shadow-sm">
-        {/* Image Gallery */}
         {product.images && product.images.length > 0 && (
           <div className="relative aspect-square w-full bg-muted">
             <Image
@@ -158,7 +157,7 @@ export default function ProductDetailPage() {
         </CardContent>
         <CardContent className="border-t pt-4">
           <Button size="lg" className="w-full h-11 text-base" onClick={handleAddToCart}>
-            <ShoppingCart className="mr-2 h-5 w-5" /> 加入购物车 (模拟)
+            <ShoppingCart className="mr-2 h-5 w-5" /> 加入购物车
           </Button>
           <p className="text-xs text-muted-foreground text-center mt-3">
             <ShieldCheck className="inline h-3 w-3 mr-1 text-green-600"/> 正品保障 ·
@@ -170,3 +169,4 @@ export default function ProductDetailPage() {
   );
 }
 
+    

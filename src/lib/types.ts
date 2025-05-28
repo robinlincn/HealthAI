@@ -22,7 +22,7 @@ export type DietaryIntakeOption = '不吃' | '<1碗' | '1-2碗' | '2-4碗' | '4-
 
 export type ExerciseWorkHoursOption = '没有' | '1-2小时' | '2-5小时' | '5-8小时' | '≥8小时';
 export type ExerciseWeeklyFrequencyOption = '从不' | '偶尔（1-2次/周）' | '经常（3-5次/周）' | '总是（>5次/周）';
-export type ExerciseDurationOption = '<10分钟' | '10~30分钟' | '30~60分钟' | '1~2小时'; // Corrected tilde
+export type ExerciseDurationOption = '<10分钟' | '10-30分钟' | '30-60分钟' | '1-2小时'; // Corrected tilde
 export type ExerciseIntensityOption = '不锻炼' | '极轻度运动' | '轻度运动' | '中度运动' | '重度运动';
 
 export type SmokingStatusOption = '从不' | '偶尔' | '戒烟' | '吸烟';
@@ -45,7 +45,7 @@ export type ImpactLevelOption = '几乎没有' | '有一点' | '较明显' | '�
 export interface UserProfile {
   name: string;
   gender?: Gender;
-  dob?: Date | string; 
+  dob?: Date | string;
   age?: number;
   address?: string;
 
@@ -60,10 +60,10 @@ export interface UserProfile {
   occupation?: string;
   educationLevel?: string;
 
-  recordNumber?: string; 
-  admissionDate?: Date | string; 
-  recordDate?: Date | string; 
-  informant?: string; 
+  recordNumber?: string;
+  admissionDate?: Date | string;
+  recordDate?: Date | string;
+  informant?: string;
   reliability?: ReliabilityOption;
 
   familyMedicalHistory?: FamilyMedicalHistoryEntry[];
@@ -171,19 +171,19 @@ export interface MedicationEntry {
 }
 
 export interface DetailedPatientProfile extends UserProfile {
-  chiefComplaint?: string; 
-  historyOfPresentIllness?: string; 
-  pastMedicalHistoryDetails?: string; 
-  pastIllnesses?: string[]; 
+  chiefComplaint?: string;
+  historyOfPresentIllness?: string;
+  pastMedicalHistoryDetails?: string;
+  pastIllnesses?: string[];
   infectiousDiseases?: string[];
   vaccinationHistory?: string;
   traumaHistory?: string;
   personalHistory_birthPlaceAndResidence?: string;
   personalHistory_livingConditions?: string;
   personalHistory_drugAbuseHistory?: string;
-  personalHistory_menstrualAndObstetric?: string; 
-  medicationHistory?: MedicationEntry[]; 
-  otherMedicalInfo?: string; 
+  personalHistory_menstrualAndObstetric?: string;
+  medicationHistory?: MedicationEntry[];
+  otherMedicalInfo?: string;
   healthGoals?: string[];
 }
 
@@ -213,35 +213,35 @@ export interface Consultation {
   patientName: string;
   doctorName?: string;
   doctorId?: string;
-  date: string; 
-  timestamp: Timestamp | Date; 
+  date: string;
+  timestamp: Timestamp | Date;
   question: string;
   status: 'pending_reply' | 'replied' | 'closed' | 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
   reply?: string;
-  doctorReplyTimestamp?: Timestamp | Date; 
+  doctorReplyTimestamp?: Timestamp | Date;
   attachments?: { name:string; type: 'image' | 'video' | 'document'; url?: string }[];
   source?: ConsultationSource;
 }
 
 
-export interface Medication { 
+export interface Medication {
   id: string;
   name: string;
   dosage: string;
   frequency: string;
   notes?: string;
-  startDate?: string; 
-  endDate?: string; 
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface TreatmentPlanMedication {
-  id: string; 
+  id: string;
   drugName: string;
   dosage: string;
   frequency: string;
   notes?: string;
-  medStartDate?: string; 
-  medEndDate?: string;   
+  medStartDate?: string;
+  medEndDate?: string;
 }
 
 export interface TreatmentPlan {
@@ -249,26 +249,26 @@ export interface TreatmentPlan {
   patientId: string;
   doctorId: string;
   planName: string;
-  startDate: string; 
-  endDate?: string;  
+  startDate: string;
+  endDate?: string;
   shortTermGoals?: string;
   longTermGoals?: string;
   lifestyleAdjustments?: string;
   medications: TreatmentPlanMedication[];
   isActive?: boolean;
-  creationDate: string; 
-  updatedAt?: string;   
+  creationDate: string;
+  updatedAt?: string;
 }
 
 export type TreatmentAdviceStatus = '待执行' | '已执行' | '已取消' | 'pending' | 'acknowledged' | 'implemented' | 'rejected';
 
 export interface TreatmentAdvice {
   id: string;
-  patientName?: string; 
+  patientName?: string;
   patientId: string;
   doctorId: string;
   advice: string;
-  date: string; 
+  date: string;
   status: TreatmentAdviceStatus;
   patientFeedback?: string;
 }
@@ -295,17 +295,17 @@ export interface AiAssistantMessage {
   timestamp: Date;
   attachment?: {
     name: string;
-    type: string; 
-    size?: number; 
+    type: string;
+    size?: number;
   };
 }
 
 export interface Appointment {
   id: string;
   patientName: string;
-  patientId?: string; 
-  date: Date; 
-  time: string; 
+  patientId?: string;
+  date: Date;
+  time: string;
   reason?: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'pending_confirmation';
 }
@@ -316,7 +316,7 @@ export interface DoctorPatient {
   age: number;
   gender: Gender;
   diagnosis: string;
-  lastVisit?: string; 
+  lastVisit?: string;
   avatarUrl?: string;
   contact?: string;
   emergencyContact?: { name: string; phone: string; relationship?: string };
@@ -347,43 +347,43 @@ export type CallTaskRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 export interface SingleOutboundCallTask {
   id: string;
   patientId: string;
-  patientName: string; 
+  patientName: string;
   content: string;
-  scheduledTime: string; 
+  scheduledTime: string;
   callAttempts: number;
   maxCallAttempts: number;
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; 
+  wechatInfo: string;
   status: CallTaskStatus;
-  creationDate: string; 
-  lastAttemptTime?: string; 
+  creationDate: string;
+  lastAttemptTime?: string;
   notes?: string;
 }
 
 export interface OutboundCallGroup {
   id: string;
-  enterpriseId: string; 
+  enterpriseId: string;
   name: string;
   description?: string;
-  patientIds: string[]; 
+  patientIds: string[];
   memberCount: number;
-  creationDate: string; 
-  createdByUserId?: string; 
+  creationDate: string;
+  createdByUserId?: string;
 }
 
 export interface GroupOutboundCallTask {
   id: string;
   groupId: string;
-  groupName: string; 
+  groupName: string;
   content: string;
-  scheduledTime: string; 
+  scheduledTime: string;
   callAttempts: number;
   maxCallAttempts: number;
   recurrence: CallTaskRecurrence;
-  wechatInfo: string; 
+  wechatInfo: string;
   status: CallTaskStatus;
-  creationDate: string; 
-  lastExecutionTime?: string; 
+  creationDate: string;
+  lastExecutionTime?: string;
   notes?: string;
 }
 
@@ -396,7 +396,7 @@ export interface SaasEnterprise {
   contactPhone: string;
   address?: string;
   status: 'active' | 'inactive' | 'pending_approval' | 'suspended';
-  creationDate: string; 
+  creationDate: string;
   assignedResources: {
     maxUsers: number;
     maxStorageGB: number;
@@ -413,7 +413,7 @@ export interface SaasDepartment {
   parentDepartmentId?: string | null;
   headEmployeeId?: string | null;
   description?: string;
-  creationDate: string; 
+  creationDate: string;
 }
 
 export interface SaasEmployee {
@@ -426,20 +426,20 @@ export interface SaasEmployee {
   employeeNumber?: string;
   roleTitle?: string;
   status: 'active' | 'invited' | 'disabled';
-  joinDate: string; 
-  creationDate?: string; 
+  joinDate: string;
+  creationDate?: string;
 }
 
-export interface SaasPatient { 
-  id: string; 
+export interface SaasPatient {
+  id: string;
   enterpriseId: string;
   name: string;
   gender: Gender;
-  dob?: string; 
+  dob?: string;
   contactPhone?: string;
-  primaryDisease?: string; 
-  lastInteractionDate?: string; 
-  membershipLevelId?: string; 
+  primaryDisease?: string;
+  lastInteractionDate?: string;
+  membershipLevelId?: string;
   points?: number;
 }
 
@@ -455,7 +455,7 @@ export interface SaasServicePackage {
   maxStorageGB: number;
   maxPatients: number;
   isEnabled: boolean;
-  creationDate?: string; 
+  creationDate?: string;
 }
 
 export interface SaasOrder {
@@ -464,13 +464,13 @@ export interface SaasOrder {
   servicePackageId: string;
   enterpriseName?: string;
   servicePackageName?: string;
-  orderDate: string; 
+  orderDate: string;
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'processing';
   amount: number;
   currency: string;
   transactionId?: string;
   billingCycle: 'monthly' | 'annually' | 'one-time';
-  renewalDate?: string; 
+  renewalDate?: string;
   invoiceNumber?: string;
   notes?: string;
 }
@@ -481,7 +481,7 @@ export interface SaasSystemUser {
   email: string;
   systemRoleId: string;
   status: 'active' | 'disabled';
-  lastLogin?: string; 
+  lastLogin?: string;
 }
 
 export interface SaasSystemRole {
@@ -499,34 +499,34 @@ export interface SaasSopService {
   apiKey?: string;
   description?: string;
   status: 'active' | 'inactive' | 'error';
-  creationDate: string; 
-  lastCallTimestamp?: string; 
+  creationDate: string;
+  lastCallTimestamp?: string;
   callCount?: number;
   errorCount?: number;
-  parameters?: string; 
+  parameters?: string;
 }
 
 export interface SaasOutboundCallTask {
   id: string;
   name: string;
   enterpriseId?: string;
-  creatingDoctorId?: string; 
-  creatingSaasAdminId?: string; 
+  creatingDoctorId?: string;
+  creatingSaasAdminId?: string;
   targetType: 'individual_patient' | 'patient_group' | 'custom_list' | 'employee_group';
-  targetPatientId?: string; 
-  targetGroupId?: string;   
-  targetCustomListDetails?: string; 
-  targetDescription?: string; 
-  targetDetails?: string; 
+  targetPatientId?: string;
+  targetGroupId?: string;
+  targetCustomListDetails?: string;
+  targetDescription?: string;
+  targetDetails?: string;
   status: 'pending_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-  creationDate: string; 
-  scheduledTime?: string; 
+  creationDate: string;
+  scheduledTime?: string;
   callContentSummary?: string;
-  sopServiceId?: string; 
-  assignedToEmployeeId?: string; 
-  callCount?: number; 
-  callCountTotal?: number; 
-  callCountSuccess?: number; 
+  sopServiceId?: string;
+  assignedToEmployeeId?: string;
+  callCount?: number;
+  callCountTotal?: number;
+  callCountSuccess?: number;
   completionStatus?: 'success_all' | 'partial_success' | 'failed_all' | 'not_applicable';
   notes?: string;
 }
@@ -542,57 +542,57 @@ export interface SaasAiWorkflowApiConfig {
   name: string;
   type: 'Dify' | 'Coze' | 'Other';
   apiEndpoint: string;
-  apiKey?: string; 
-  parametersJson?: string; 
+  apiKey?: string;
+  parametersJson?: string;
   description?: string;
-  creationDate: string; 
+  creationDate: string;
   status?: 'active' | 'inactive';
 }
 
 export interface SaasPlatformConnection {
   id: string;
-  enterpriseId?: string; 
+  enterpriseId?: string;
   platform: 'wechat_personal_bot' | 'wechat_enterprise_app' | 'other';
-  accountName: string; 
+  accountName: string;
   status: 'connected' | 'disconnected' | 'error' | 'requires_reauth' | 'pending_setup';
-  lastSync?: string; 
-  associatedEmployeeId?: string; 
+  lastSync?: string;
+  associatedEmployeeId?: string;
   notes?: string;
 }
 
 export interface SaasCommunityGroup {
   id: string;
   name: string;
-  enterpriseId: string; 
-  managingEmployeeId?: string; 
+  enterpriseId: string;
+  managingEmployeeId?: string;
   type: 'personal_wechat_group' | 'enterprise_wechat_group' | 'other_platform_group';
-  platformGroupId?: string; 
+  platformGroupId?: string;
   description?: string;
-  memberPatientIds?: string[]; 
-  patientCount?: number; 
-  platformConnectionId?: string; 
+  memberPatientIds?: string[];
+  patientCount?: number;
+  platformConnectionId?: string;
   connectionStatus: 'active_sync' | 'inactive_sync' | 'error_sync' | 'not_monitored';
-  lastLogSync?: string; 
-  creationDate: string; 
+  lastLogSync?: string;
+  creationDate: string;
   tags?: string[];
 }
 
 export interface SaasCommunityMessageLog {
   id: string;
-  communityGroupId: string; 
-  platform: SaasPlatformConnection['platform']; 
-  platformGroupIdExternal?: string; 
-  platformMessageIdExternal?: string; 
-  senderPlatformId?: string; 
-  senderSaasUserId?: string; 
-  senderNameDisplay: string; 
-  messageContent: string; 
+  communityGroupId: string;
+  platform: SaasPlatformConnection['platform'];
+  platformGroupIdExternal?: string;
+  platformMessageIdExternal?: string;
+  senderPlatformId?: string;
+  senderSaasUserId?: string;
+  senderNameDisplay: string;
+  messageContent: string;
   messageType: 'text' | 'image' | 'file' | 'voice' | 'system_notification' | 'video';
-  fileUrl?: string; 
-  timestamp: string; 
-  loggedAt: string; 
-  isBotMessage?: boolean; 
-  metadataJson?: string; 
+  fileUrl?: string;
+  timestamp: string;
+  loggedAt: string;
+  isBotMessage?: boolean;
+  metadataJson?: string;
 }
 
 export interface SaasScheduledTask {
@@ -601,11 +601,11 @@ export interface SaasScheduledTask {
   type: 'data_backup' | 'report_generation' | 'notification_push' | 'system_cleanup' | 'external_sync';
   cronExpression: string;
   status: 'enabled' | 'disabled' | 'running' | 'error';
-  lastRunAt?: string; 
-  nextRunAt?: string; 
+  lastRunAt?: string;
+  nextRunAt?: string;
   lastRunStatus?: string;
   description?: string;
-  jobHandlerIdentifier: string; 
+  jobHandlerIdentifier: string;
 }
 
 // Mall specific types
@@ -636,66 +636,66 @@ export interface SaasProductCategory {
   id: string;
   name: string;
   description?: string;
-  enterpriseId?: string; 
-  creationDate: string; 
-  productCount?: number; 
+  enterpriseId?: string;
+  creationDate: string;
+  productCount?: number;
 }
 
 export interface SaasProduct {
   id: string;
-  enterpriseId: string; 
+  enterpriseId: string;
   name: string;
   description?: string;
-  category?: string; 
+  category?: string;
   price: number;
   stock: number;
   status: SaasProductStatus;
-  images?: string[]; 
-  creationDate: string; 
-  updatedAt?: string; 
-  sku?: string; 
+  images?: string[];
+  creationDate: string;
+  updatedAt?: string;
+  sku?: string;
   tags?: string[];
   assignedEmployeeIds?: string[];
   isHotSale?: boolean;
-  isOnSale?: boolean; 
+  isOnSale?: boolean;
   isDoctorRecommended?: boolean;
   discountPrice?: number;
-  dataAiHint?: string; // Added for mall product cards
+  dataAiHint?: string;
 }
 
 export interface SaasMallOrderItem {
   productId: string;
-  productName: string; 
+  productName: string;
   quantity: number;
-  priceAtOrder: number; 
+  priceAtOrder: number;
 }
 
 export type SaasMallOrderStatus =
-  | 'pending_payment' 
-  | 'paid'            
-  | 'processing'      
-  | 'shipped'         
-  | 'delivered'       
-  | 'completed'       
-  | 'cancelled_user'  
-  | 'cancelled_admin' 
-  | 'refund_pending'  
-  | 'refunded'        
+  | 'pending_payment'
+  | 'paid'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'completed'
+  | 'cancelled_user'
+  | 'cancelled_admin'
+  | 'refund_pending'
+  | 'refunded'
   | 'return_requested'
-  | 'return_approved' 
+  | 'return_approved'
   | 'return_completed';
 
 export interface SaasMallOrder {
   id: string;
-  orderNumber: string; 
-  enterpriseId: string; 
-  customerId: string; 
-  customerName?: string; 
-  customerContact?: string; 
+  orderNumber: string;
+  enterpriseId: string;
+  customerId: string;
+  customerName?: string;
+  customerContact?: string;
   products: SaasMallOrderItem[];
   totalAmount: number;
   status: SaasMallOrderStatus;
-  orderDate: string; 
+  orderDate: string;
   paymentMethod?: string;
   paymentTransactionId?: string;
   shippingAddress?: {
@@ -712,34 +712,34 @@ export interface SaasMallOrder {
   shippingFee?: number;
   trackingNumber?: string;
   carrier?: string;
-  notes?: string; 
-  lastUpdatedAt: string; 
-  salespersonEmployeeId?: string; 
-  salespersonName?: string; 
+  notes?: string;
+  lastUpdatedAt: string;
+  salespersonEmployeeId?: string;
+  salespersonName?: string;
 }
 
 export interface SaasProductDistributionAssignment {
   id: string;
   enterpriseId: string;
   productId: string;
-  productName?: string; 
+  productName?: string;
   employeeId: string;
-  employeeName?: string; 
-  commissionRate: number; 
+  employeeName?: string;
+  commissionRate: number;
   status: 'active' | 'inactive' | 'paused' | 'terminated';
-  assignmentDate: string; 
+  assignmentDate: string;
   notes?: string;
 }
 
 export interface SaasMembershipLevel {
   id: string;
-  enterpriseId: string; 
+  enterpriseId: string;
   name: string;
-  minPoints?: number; 
-  discountPercentage?: number; 
+  minPoints?: number;
+  discountPercentage?: number;
   description?: string;
-  permissions?: string[]; 
-  creationDate: string; 
+  permissions?: string[];
+  creationDate: string;
 }
 
 // Marketing specific types
@@ -840,7 +840,14 @@ export interface SaasAdvertisement {
   clicks?: number;
 }
 
+export interface CartItem {
+  id: string; // Product ID
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string; // Optional image URL for display in cart
+  dataAiHint?: string;
+}
     
 
     
-
