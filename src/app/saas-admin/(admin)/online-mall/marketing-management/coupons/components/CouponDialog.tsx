@@ -17,6 +17,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Added this import
 
 const couponSchema = z.object({
   name: z.string().min(2, { message: "优惠券名称至少需要2个字符。" }),
@@ -216,5 +217,3 @@ export function CouponDialog({ isOpen, onClose, onSubmit, coupon, enterprises }:
     </Dialog>
   );
 }
-
-    
