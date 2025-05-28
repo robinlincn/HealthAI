@@ -29,7 +29,8 @@ import {
   Megaphone, 
   LineChart,
   ListFilter,
-  Share2, // Icon for Distribution/Sales Management
+  Share2,
+  Percent // Icon for Promotions
 } from 'lucide-react';
 
 export interface SaasNavItem {
@@ -107,7 +108,7 @@ export const saasNavLinks: SaasNavItem[] = [
         icon: ListFilter, 
       },
       {
-        title: '销售管理', // New Submenu Item
+        title: '销售管理', 
         href: `${baseSaasPath}/online-mall/distribution-management`,
         icon: Share2, 
       },
@@ -123,8 +124,19 @@ export const saasNavLinks: SaasNavItem[] = [
       },
       {
         title: '营销管理',
-        href: `${baseSaasPath}/online-mall/marketing-management`,
+        href: `${baseSaasPath}/online-mall/marketing-management`, // This will now be a parent
         icon: Megaphone,
+        children: [
+           {
+            title: '促销活动',
+            href: `${baseSaasPath}/online-mall/marketing-management/promotions`,
+            icon: Percent, // Or Tag, or another relevant icon
+          },
+          // Placeholder for other marketing sub-menus if needed later
+          // { title: '优惠券管理', href: `${baseSaasPath}/online-mall/marketing-management/coupons`, icon: Tag },
+          // { title: '积分规则', href: `${baseSaasPath}/online-mall/marketing-management/points`, icon: Star },
+          // { title: '广告位', href: `${baseSaasPath}/online-mall/marketing-management/ads`, icon: Annoyed },
+        ]
       },
       {
         title: '商城统计分析',
