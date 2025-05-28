@@ -1,7 +1,7 @@
 
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react'; // Added useMemo
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,55 +25,55 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 // Mock products available to this doctor's enterprise
 const mockDoctorAvailableProducts: SaasProduct[] = [
-  { 
-    id: 'prod-doc-001', 
+  {
+    id: 'prod-doc-001',
     enterpriseId: 'ent-001', // Assume doctor belongs to ent-001
-    name: '家用智能血糖仪套装', 
-    description: '高精度测量，附带50条试纸和采血针，蓝牙连接App。', 
-    category: '医疗器械', 
-    price: 299.00, 
-    stock: 120, 
-    status: 'active', 
-    images: ['https://placehold.co/300x200.png?text=血糖仪'], 
+    name: '家用智能血糖仪套装',
+    description: '高精度测量，附带50条试纸和采血针，蓝牙连接App。',
+    category: '医疗器械',
+    price: 299.00,
+    stock: 120,
+    status: 'active',
+    images: ['https://placehold.co/300x200.png?text=血糖仪'],
     creationDate: new Date().toISOString(),
     tags: ['家庭必备', '智能检测']
   },
-  { 
-    id: 'prod-doc-002', 
-    enterpriseId: 'ent-001', 
-    name: '糖尿病营养膳食包 (一周量)', 
-    description: '科学配比，低GI食材，助力稳定血糖。包含7日早中晚餐。', 
-    category: '膳食包', 
-    price: 399.00, 
-    stock: 50, 
-    status: 'active', 
-    images: ['https://placehold.co/300x200.png?text=膳食包'], 
+  {
+    id: 'prod-doc-002',
+    enterpriseId: 'ent-001',
+    name: '糖尿病营养膳食包 (一周量)',
+    description: '科学配比，低GI食材，助力稳定血糖。包含7日早中晚餐。',
+    category: '膳食包',
+    price: 399.00,
+    stock: 50,
+    status: 'active',
+    images: ['https://placehold.co/300x200.png?text=膳食包'],
     creationDate: new Date().toISOString(),
     tags: ['糖尿病适用', '营养均衡']
   },
-  { 
-    id: 'prod-doc-003', 
-    enterpriseId: 'ent-001', 
-    name: '医用级N95防护口罩 (20只)', 
-    description: '独立包装，有效防护病毒和颗粒物。', 
-    category: '防护用品', 
-    price: 88.00, 
-    stock: 300, 
-    status: 'active', 
-    images: ['https://placehold.co/300x200.png?text=N95口罩'], 
+  {
+    id: 'prod-doc-003',
+    enterpriseId: 'ent-001',
+    name: '医用级N95防护口罩 (20只)',
+    description: '独立包装，有效防护病毒和颗粒物。',
+    category: '防护用品',
+    price: 88.00,
+    stock: 300,
+    status: 'active',
+    images: ['https://placehold.co/300x200.png?text=N95口罩'],
     creationDate: new Date().toISOString(),
     tags: ['医用级', '防护']
   },
-  { 
-    id: 'prod-doc-004', 
-    enterpriseId: 'ent-001', 
-    name: '便携式电子血压计', 
-    description: '臂式测量，大屏显示，智能加压，操作简便。', 
-    category: '医疗器械', 
-    price: 189.00, 
-    stock: 75, 
-    status: 'active', 
-    images: ['https://placehold.co/300x200.png?text=血压计'], 
+  {
+    id: 'prod-doc-004',
+    enterpriseId: 'ent-001',
+    name: '便携式电子血压计',
+    description: '臂式测量，大屏显示，智能加压，操作简便。',
+    category: '医疗器械',
+    price: 189.00,
+    stock: 75,
+    status: 'active',
+    images: ['https://placehold.co/300x200.png?text=血压计'],
     creationDate: new Date().toISOString(),
     tags: ['血压监测', '便携']
   },
@@ -111,7 +111,6 @@ export default function DoctorProductSalesPage() {
   }, [products, searchTerm, filterCategory]);
 
   const handleGenerateLink = (productName: string) => {
-    // Simulate link generation and copy to clipboard
     const mockLink = `https://example.com/store/product/${productName.replace(/\s+/g, '-').toLowerCase()}`;
     navigator.clipboard.writeText(mockLink).then(() => {
       toast({
@@ -130,7 +129,7 @@ export default function DoctorProductSalesPage() {
 
   const openRecommendDialog = (product: SaasProduct) => {
     setSelectedProductForRecommendation(product);
-    setSelectedPatientForRecommendation(null); // Reset patient selection
+    setSelectedPatientForRecommendation(null);
     setIsRecommendDialogOpen(true);
   };
 
@@ -148,7 +147,7 @@ export default function DoctorProductSalesPage() {
     setSelectedProductForRecommendation(null);
     setSelectedPatientForRecommendation(null);
   };
-  
+
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -188,8 +187,8 @@ export default function DoctorProductSalesPage() {
           </div>
 
           {filteredProducts.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-20rem)]"> {/* Adjust height as needed */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <ScrollArea className="h-[calc(100vh-22rem)]"> {/* Adjusted height */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4"> {/* Changed to 3 columns for better fit */}
                 {filteredProducts.map((product) => (
                   <Card key={product.id} className="flex flex-col overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
                     {product.images && product.images.length > 0 ? (
@@ -199,7 +198,7 @@ export default function DoctorProductSalesPage() {
                           alt={product.name}
                           layout="fill"
                           objectFit="cover"
-                          data-ai-hint="product image"
+                          data-ai-hint="product health"
                         />
                       </div>
                     ) : (
@@ -258,7 +257,6 @@ export default function DoctorProductSalesPage() {
                 </SelectContent>
               </Select>
             </div>
-            {/* Future: Add a field for personalized recommendation message */}
           </div>
           <DialogFooter>
             <DialogClose asChild>
