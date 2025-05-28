@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card"; // Added Card import
 import { Truck, Edit, Users, Package, FileText, UserCircle } from "lucide-react";
 
 interface MallOrderDetailDialogProps {
@@ -20,7 +21,7 @@ interface MallOrderDetailDialogProps {
   order: SaasMallOrder | null;
   enterprise?: SaasEnterprise | null;
   productsData?: SaasProduct[]; 
-  employeesData?: SaasEmployee[]; // Added employeesData prop
+  employeesData?: SaasEmployee[];
   onUpdateStatus: (orderId: string, newStatus: SaasMallOrder['status'], trackingNumber?: string) => void;
 }
 
@@ -69,7 +70,7 @@ export function MallOrderDetailDialog({
             return;
         }
         onUpdateStatus(order.id, 'shipped', trackingNumberInput);
-        toast({ title: "订单已标记为发货", description: `订单 ${order.orderNumber} 已更新为“已发货”，运单号: ${trackingNumberInput}`});
+        toast({ title: "订单已标记发货", description: `订单 ${order.orderNumber} 已更新为“已发货”，运单号: ${trackingNumberInput}`});
     }
   };
 
@@ -97,12 +98,12 @@ export function MallOrderDetailDialog({
                     <div><p><strong>客户联系:</strong> {order.customerContact || 'N/A'}</p></div>
                     <div><p><strong>下单时间:</strong> {format(parseISO(order.orderDate), 'yyyy-MM-dd HH:mm:ss')}</p></div>
                     <div><p><strong>订单状态:</strong> {getOrderStatusBadge(order.status)}</p></div>
-                     {order.salespersonEmployeeId && (
+                     {order.salespersonName && (
                         <div>
                             <p className="flex items-center">
                                 <Users className="h-4 w-4 mr-1 text-muted-foreground"/>
                                 <strong>销售人员:</strong>
-                                <span className="ml-1">{order.salespersonName || getSalespersonName(order.salespersonEmployeeId)}</span>
+                                <span className="ml-1">{order.salespersonName}</span>
                             </p>
                         </div>
                      )}
@@ -188,3 +189,5 @@ export function MallOrderDetailDialog({
     </Dialog>
   );
 }
+
+    
