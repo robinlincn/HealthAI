@@ -17,6 +17,8 @@ import { Trash2, PlusCircle } from 'lucide-react';
 import type { SaasProduct, SaasEnterprise, SaasProductStatus, SaasEmployee } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 
+const NO_CATEGORY_VALUE = "__NO_CATEGORY_SELECTED__"; // Special value for "no category"
+
 const productSchema = z.object({
   enterpriseId: z.string().min(1, "必须选择所属企业。"),
   name: z.string().min(2, { message: "商品名称至少需要2个字符。" }),
@@ -42,7 +44,6 @@ interface ProductDialogProps {
   allEmployees: SaasEmployee[];
 }
 
-// Mock categories - in a real app, this would come from a data source or category management module
 const MOCK_PRODUCT_CATEGORIES = [
   "医疗器械",
   "膳食包",
@@ -63,17 +64,17 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       enterpriseId: product.enterpriseId || (enterprises.length > 0 ? enterprises[0].id : ''),
       images: product.images?.map(imgUrl => ({ url: imgUrl })) || [],
       tags: product.tags?.join(', ') || '',
-      category: product.category || '',
+      category: product.category || NO_CATEGORY_VALUE, // Use special value if no category
       assignedEmployeeIds: product.assignedEmployeeIds || [],
     } : {
       enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
       name: '',
       description: '',
-      category: '',
+      category: NO_CATEGORY_VALUE, // Default to special value
       price: 0,
       stock: 0,
       status: 'draft',
-      images: [{ url: 'https://placehold.co/600x400.png' }], // Default with one placeholder image
+      images: [{ url: 'https://placehold.co/600x400.png' }],
       sku: '',
       tags: '',
       assignedEmployeeIds: [],
@@ -99,11 +100,11 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
         enterpriseId: product.enterpriseId || (enterprises.length > 0 ? enterprises[0].id : ''),
         images: product.images?.map(imgUrl => ({ url: imgUrl })) || [{ url: 'https://placehold.co/600x400.png' }],
         tags: product.tags?.join(', ') || '',
-        category: product.category || '',
+        category: product.category || NO_CATEGORY_VALUE,
         assignedEmployeeIds: product.assignedEmployeeIds || [],
       } : {
         enterpriseId: enterprises.length > 0 ? enterprises[0].id : '',
-        name: '', description: '', category: '', price: 0, stock: 0, status: 'draft',
+        name: '', description: '', category: NO_CATEGORY_VALUE, price: 0, stock: 0, status: 'draft',
         images: [{ url: 'https://placehold.co/600x400.png' }], sku: '', tags: '', assignedEmployeeIds: [],
       });
     }
@@ -116,6 +117,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
       creationDate: product?.creationDate || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...data,
+      category: data.category === NO_CATEGORY_VALUE ? undefined : data.category, // Convert back to undefined if no category
       images: data.images?.map(img => img.url).filter(url => url) || [],
       tags: data.tags?.split(',').map(t => t.trim()).filter(t => t) || [],
       assignedEmployeeIds: data.assignedEmployeeIds || [],
@@ -158,25 +160,29 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                 <FormField control={form.control} name="name" render={({field}) => (
                   <FormItem><FormLabel>商品名称</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
-                <FormField control={form.control} name="category" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>商品分类</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="选择一个商品分类" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="">无分类</SelectItem>
-                        {MOCK_PRODUCT_CATEGORIES.map(cat => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}/>
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>商品分类</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="选择一个商品分类" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={NO_CATEGORY_VALUE}>无分类</SelectItem>
+                          {MOCK_PRODUCT_CATEGORIES.map(cat => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField control={form.control} name="description" render={({field}) => (
                   <FormItem><FormLabel>商品描述 (可选)</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage/></FormItem>
                 )}/>
@@ -250,7 +256,7 @@ export function ProductDialog({ isOpen, onClose, onSubmit, product, enterprises,
                         {employeesForSelectedEnterprise.length > 0 ? employeesForSelectedEnterprise.map((employee) => (
                           <div key={employee.id} className="flex items-center space-x-2 py-1">
                             <Checkbox
-                              id={`employee-${employee.id}-${product?.id || 'new'}`} // Ensure unique ID
+                              id={`employee-${employee.id}-${product?.id || 'new'}`}
                               checked={field.value?.includes(employee.id)}
                               onCheckedChange={(checked) => {
                                 const currentValues = field.value || [];
