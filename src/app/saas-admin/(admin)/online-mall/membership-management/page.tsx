@@ -14,7 +14,7 @@ import type { SaasMembershipLevel, SaasEnterprise, SaasPatient } from '@/lib/typ
 import { Contact, PlusCircle, Search, Briefcase, Filter, Award, Users } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label'; // Added Label import
+import { Label } from '@/components/ui/label';
 
 // Mock data
 const mockEnterprises: SaasEnterprise[] = [
@@ -55,15 +55,13 @@ export default function MembershipManagementPage() {
 
   useEffect(() => {
     setIsClient(true);
-    // Simulate fetching data if needed, or use mocks directly
     if (mockEnterprises.length > 0 && !selectedEnterpriseId) {
       // setSelectedEnterpriseId(mockEnterprises[0].id); // Optionally pre-select first enterprise
     }
     setLevels(mockInitialLevels);
     setMembers(mockInitialPatients);
-  }, [selectedEnterpriseId]); // Removed selectedEnterpriseId from dependency array to avoid re-fetching on every change
+  }, []); // Removed selectedEnterpriseId from dependency array to avoid re-fetching on every change
 
-  // Filter levels and members based on selectedEnterpriseId
   const filteredLevels = useMemo(() => {
     if (!selectedEnterpriseId) return [];
     return levels.filter(level => 
@@ -80,7 +78,6 @@ export default function MembershipManagementPage() {
     );
   }, [members, selectedEnterpriseId, memberSearchTerm]);
 
-  // Membership Level CRUD
   const handleAddLevel = () => {
     if (!selectedEnterpriseId) {
         toast({ title: "请先选择企业", description: "无法为未选定的企业添加会员等级。", variant: "destructive"});
@@ -93,13 +90,12 @@ export default function MembershipManagementPage() {
   const handleDeleteLevel = (levelId: string) => {
     if (window.confirm("确定删除此会员等级吗？")) {
       setLevels(prev => prev.filter(l => l.id !== levelId));
-      // Also update members who had this level (set to undefined or a default)
       setMembers(prevMembers => prevMembers.map(m => m.membershipLevelId === levelId ? {...m, membershipLevelId: undefined} : m));
       toast({ title: "删除成功", description: "会员等级已删除。" });
     }
   };
-  const handleLevelDialogSubmit = (data: any) => { // data type is Pick<SaasMembershipLevel, ...> & { id?: string, enterpriseId: string }
-    const enterpriseIdForLevel = selectedEnterpriseId; // This should be set when opening dialog for new
+  const handleLevelDialogSubmit = (data: any) => { 
+    const enterpriseIdForLevel = selectedEnterpriseId; 
     if (editingLevel) {
       setLevels(prev => prev.map(l => (l.id === editingLevel.id ? { ...editingLevel, ...data, enterpriseId: l.enterpriseId } : l)));
       toast({ title: '更新成功', description: `会员等级 "${data.name}" 已更新。`});
@@ -115,7 +111,6 @@ export default function MembershipManagementPage() {
     setIsLevelDialogOpen(false);
   };
 
-  // Member Edit (Level & Points)
   const handleEditMember = (member: SaasPatient) => { setEditingMember(member); setIsMemberDialogOpen(true); };
   const handleMemberDialogSubmit = (memberId: string, data: Partial<Pick<SaasPatient, 'membershipLevelId' | 'points'>>) => {
     setMembers(prev => prev.map(m => (m.id === memberId ? { ...m, ...data } : m)));
@@ -148,7 +143,7 @@ export default function MembershipManagementPage() {
                 <SelectValue placeholder="选择一个企业/医院" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">-- 请选择 --</SelectItem>
+                {/* Removed SelectItem with empty value */}
                 {mockEnterprises.map(ent => (
                   <SelectItem key={ent.id} value={ent.id}>{ent.name}</SelectItem>
                 ))}
@@ -217,7 +212,7 @@ export default function MembershipManagementPage() {
           onClose={() => setIsMemberDialogOpen(false)}
           onSubmit={handleMemberDialogSubmit}
           member={editingMember}
-          membershipLevels={filteredLevels} // Pass levels of the selected enterprise
+          membershipLevels={filteredLevels}
         />
       )}
     </div>
