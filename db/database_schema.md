@@ -135,6 +135,9 @@
 | `other_info_suggestions`  | TEXT            | NULLABLE                                | 其他-对中心建议              |
 | `other_info_service_satisfaction` | VARCHAR(50) | NULLABLE                           | 其他-服务满意度              |
 | `managing_doctor_id`      | VARCHAR(255)    | FK to `Users(id)` ON DELETE SET NULL, NULLABLE | (外键)主管医生ID             |
+| `membership_level_id`     | VARCHAR(255)    | FK to `SaasMembershipLevels(id)` ON DELETE SET NULL, NULLABLE | (外键) 会员等级ID |
+| `points`                  | INT             | DEFAULT 0, NULLABLE                     | 会员积分                 |
+
 
 ### 3. `PatientFamilyMedicalHistory` (病人家族病史表)
 存储病人的结构化家族病史。
@@ -497,7 +500,7 @@
 | `is_enabled`           | BOOLEAN         | DEFAULT TRUE                                | 是否启用销售         |
 | `created_at`           | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建时间             |
 
-### 29. `SaasOrders` (SAAS订单表)
+### 29. `SaasOrders` (SAAS服务订单表)
 
 | 字段名                    | 数据类型        | 约束/注释                                   | 中文注释             |
 | ------------------------- | --------------- | ------------------------------------------- | -------------------- |
@@ -711,6 +714,185 @@
 | `context_json`| JSONB           | NULLABLE (额外上下文信息)                   | 上下文信息   |
 | `ip_address`  | VARCHAR(45)     | NULLABLE                                    | IP地址       |
 
+## 在线商城 (SAAS 功能模块)
+
+### 43. `SaasProductCategories` (商品分类表)
+管理在线商城的商品分类。
+
+| 字段名           | 数据类型     | 约束/注释                                   | 中文注释       |
+| ---------------- | ------------ | ------------------------------------------- | -------------- |
+| `id`             | VARCHAR(255) | PK (主键)                                   | 分类ID         |
+| `name`           | VARCHAR(100) | NOT NULL, UNIQUE                            | 分类名称       |
+| `description`    | TEXT         | NULLABLE                                    | 分类描述       |
+| `enterprise_id`  | VARCHAR(255) | FK to `SaasEnterprises(id)`, NULLABLE       | 所属企业 (null为平台通用) |
+| `parent_id`      | VARCHAR(255) | FK to `SaasProductCategories(id)`, NULLABLE | 父分类ID (支持层级) |
+| `creation_date`  | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建日期       |
+| `product_count`  | INT          | DEFAULT 0                                   | 分类下商品数量 (冗余) |
+
+### 44. `SaasProducts` (商品表)
+管理在线商城中的商品信息。
+
+| 字段名                 | 数据类型        | 约束/注释                                   | 中文注释                 |
+| ---------------------- | --------------- | ------------------------------------------- | ------------------------ |
+| `id`                   | VARCHAR(255)    | PK (主键)                                   | 商品ID                   |
+| `enterprise_id`        | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NOT NULL       | 所属企业ID               |
+| `name`                 | VARCHAR(255)    | NOT NULL                                    | 商品名称                 |
+| `description`          | TEXT            | NULLABLE                                    | 商品描述                 |
+| `category_id`          | VARCHAR(255)    | FK to `SaasProductCategories(id)`, NULLABLE | (外键) 商品分类ID         |
+| `price`                | DECIMAL(10,2)   | NOT NULL, CHECK (`price` >= 0)              | 价格                     |
+| `stock`                | INT             | NOT NULL, CHECK (`stock` >= 0)              | 库存数量                 |
+| `status`               | VARCHAR(20)     | NOT NULL, CHECK (`status` IN ('active', 'draft', 'archived')) | 商品状态 (上架, 草稿, 归档) |
+| `images_json`          | JSONB           | NULLABLE (存储图片URL数组)                  | 商品图片URL列表 (JSON)    |
+| `sku`                  | VARCHAR(100)    | NULLABLE, UNIQUE                            | SKU (商品唯一编码)       |
+| `tags_json`            | JSONB           | NULLABLE (存储标签字符串数组)               | 商品标签 (JSON)          |
+| `assigned_employee_ids_json`| JSONB      | NULLABLE (存储员工ID字符串数组)             | 关联销售员工ID列表 (JSON) |
+| `is_hot_sale`          | BOOLEAN         | DEFAULT FALSE                               | 是否热销商品             |
+| `is_on_sale`           | BOOLEAN         | DEFAULT FALSE                               | 是否活动/促销商品        |
+| `is_doctor_recommended`| BOOLEAN         | DEFAULT FALSE                               | 是否医生推荐             |
+| `discount_price`       | DECIMAL(10,2)   | NULLABLE, CHECK (`discount_price` >= 0)     | 折扣价 (若is_on_sale)    |
+| `creation_date`        | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期                 |
+| `updated_at`           | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 更新日期                 |
+
+### 45. `SaasMallOrders` (商城订单表)
+记录在线商城的商品订单。
+
+| 字段名                  | 数据类型        | 约束/注释                                   | 中文注释                 |
+| ----------------------- | --------------- | ------------------------------------------- | ------------------------ |
+| `id`                    | VARCHAR(255)    | PK (主键)                                   | 订单ID                   |
+| `order_number`          | VARCHAR(100)    | NOT NULL, UNIQUE                            | 订单号 (用户友好)        |
+| `enterprise_id`         | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NOT NULL       | 卖家企业ID               |
+| `customer_user_id`      | VARCHAR(255)    | FK to `Users(id)`, NOT NULL                 | (外键) 购买客户用户ID     |
+| `customer_name`         | VARCHAR(100)    | NOT NULL                                    | 客户姓名 (冗余)          |
+| `customer_contact`      | VARCHAR(100)    | NULLABLE                                    | 客户联系方式 (冗余)      |
+| `total_amount`          | DECIMAL(10,2)   | NOT NULL                                    | 订单总金额               |
+| `status`                | VARCHAR(50)     | NOT NULL, CHECK (`status` IN ('pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'completed', 'cancelled_user', 'cancelled_admin', 'refund_pending', 'refunded', 'return_requested', 'return_approved', 'return_completed')) | 订单状态                 |
+| `order_date`            | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 下单时间                 |
+| `payment_method`        | VARCHAR(50)     | NULLABLE                                    | 支付方式                 |
+| `payment_transaction_id`| VARCHAR(255)    | NULLABLE                                    | 支付交易ID               |
+| `shipping_address_json` | JSONB           | NULLABLE (存储收货地址对象)                 | 收货地址 (JSON)          |
+| `shipping_method`       | VARCHAR(100)    | NULLABLE                                    | 配送方式                 |
+| `shipping_fee`          | DECIMAL(10,2)   | DEFAULT 0.00                                | 运费                     |
+| `tracking_number`       | VARCHAR(100)    | NULLABLE                                    | 物流单号                 |
+| `carrier`               | VARCHAR(100)    | NULLABLE                                    | 承运商                   |
+| `notes`                 | TEXT            | NULLABLE                                    | 订单备注                 |
+| `last_updated_at`       | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 最后更新时间             |
+| `salesperson_employee_id`| VARCHAR(255)   | FK to `Users(id)`, NULLABLE                 | (外键) 销售员工ID         |
+| `salesperson_name`      | VARCHAR(100)    | NULLABLE                                    | 销售员姓名 (冗余)        |
+
+
+### 46. `SaasMallOrderItems` (商城订单商品条目表)
+记录订单中包含的具体商品。
+
+| 字段名           | 数据类型     | 约束/注释                                   | 中文注释       |
+| ---------------- | ------------ | ------------------------------------------- | -------------- |
+| `id`             | VARCHAR(255) | PK (主键)                                   | 条目ID         |
+| `order_id`       | VARCHAR(255) | FK to `SaasMallOrders(id)`, NOT NULL        | (外键) 订单ID   |
+| `product_id`     | VARCHAR(255) | FK to `SaasProducts(id)`, NOT NULL          | (外键) 商品ID   |
+| `product_name`   | VARCHAR(255) | NOT NULL                                    | 商品名称 (冗余) |
+| `quantity`       | INT          | NOT NULL, CHECK (`quantity` > 0)            | 数量           |
+| `price_at_order` | DECIMAL(10,2)| NOT NULL                                    | 下单时单价     |
+
+### 47. `SaasMembershipLevels` (会员等级表)
+定义企业的会员等级体系。
+
+| 字段名                 | 数据类型        | 约束/注释                                   | 中文注释               |
+| ---------------------- | --------------- | ------------------------------------------- | ---------------------- |
+| `id`                   | VARCHAR(255)    | PK (主键)                                   | 等级ID                 |
+| `enterprise_id`        | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NOT NULL       | 所属企业ID             |
+| `name`                 | VARCHAR(100)    | NOT NULL                                    | 等级名称               |
+| `min_points`           | INT             | DEFAULT 0                                   | 达到所需最小积分       |
+| `discount_percentage`  | DECIMAL(5,4)    | NULLABLE, CHECK (`discount_percentage` BETWEEN 0 AND 1) | 折扣百分比 (0.05=5%)  |
+| `description`          | TEXT            | NULLABLE                                    | 等级描述               |
+| `permissions_json`     | JSONB           | NULLABLE (存储权限字符串数组)               | 等级特权 (JSON)        |
+| `creation_date`        | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP    | 创建日期               |
+
+### 48. `SaasPromotions` (促销活动表)
+管理商城的促销活动。
+
+| 字段名                 | 数据类型        | 约束/注释                                   | 中文注释                     |
+| ---------------------- | --------------- | ------------------------------------------- | ---------------------------- |
+| `id`                   | VARCHAR(255)    | PK (主键)                                   | 促销ID                       |
+| `enterprise_id`        | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NULLABLE       | 所属企业 (null为平台通用)     |
+| `name`                 | VARCHAR(255)    | NOT NULL                                    | 活动名称                     |
+| `description`          | TEXT            | NULLABLE                                    | 活动描述                     |
+| `type`                 | VARCHAR(50)     | NOT NULL, CHECK (`type` IN ('full_reduction', 'discount', 'buy_x_get_y', 'limited_time_offer')) | 活动类型                     |
+| `start_date`           | TIMESTAMP WITH TIME ZONE | NOT NULL                               | 开始时间                     |
+| `end_date`             | TIMESTAMP WITH TIME ZONE | NULLABLE                               | 结束时间 (null为长期有效)    |
+| `status`               | VARCHAR(20)     | NOT NULL, CHECK (`status` IN ('active', 'inactive', 'scheduled', 'expired')) | 活动状态                     |
+| `actions_json`         | JSONB           | NULLABLE (促销动作定义, e.g., {"type": "fixed_amount_off", "value": 10}) | 促销动作 (JSON)            |
+| `conditions_json`      | JSONB           | NULLABLE (促销条件定义, e.g., {"type": "min_purchase_amount", "value": 100}) | 促销条件 (JSON)            |
+| `applicable_products_json`| JSONB        | NULLABLE (适用商品ID数组, null为全场)       | 适用商品ID列表 (JSON)      |
+| `usage_limit`          | INT             | NULLABLE (总可用次数)                       | 总使用次数限制               |
+| `total_used`           | INT             | DEFAULT 0                                   | 已使用次数                   |
+
+### 49. `SaasCoupons` (优惠券表)
+管理优惠券信息。
+
+| 字段名                  | 数据类型        | 约束/注释                                   | 中文注释                     |
+| ----------------------- | --------------- | ------------------------------------------- | ---------------------------- |
+| `id`                    | VARCHAR(255)    | PK (主键)                                   | 优惠券ID                     |
+| `enterprise_id`         | VARCHAR(255)    | FK to `SaasEnterprises(id)`, NULLABLE       | 所属企业 (null为平台通用)     |
+| `code`                  | VARCHAR(50)     | NOT NULL, UNIQUE                            | 优惠券码                     |
+| `name`                  | VARCHAR(255)    | NOT NULL                                    | 优惠券名称                   |
+| `description`           | TEXT            | NULLABLE                                    | 描述                         |
+| `type`                  | VARCHAR(20)     | NOT NULL, CHECK (`type` IN ('fixed_amount', 'percentage')) | 类型 (固定金额, 百分比折扣) |
+| `value`                 | DECIMAL(10,2)   | NOT NULL                                    | 面值(金额)或折扣率(0.1=10%) |
+| `min_purchase_amount`   | DECIMAL(10,2)   | NULLABLE                                    | 最低消费金额                 |
+| `valid_from`            | TIMESTAMP WITH TIME ZONE | NOT NULL                               | 生效日期                     |
+| `valid_to`              | TIMESTAMP WITH TIME ZONE | NOT NULL                               | 失效日期                     |
+| `max_uses`              | INT             | NULLABLE (总可用次数)                       | 总可用次数                   |
+| `uses_per_user`         | INT             | NULLABLE (每用户可用次数)                   | 每用户可用次数               |
+| `total_used`            | INT             | DEFAULT 0                                   | 已使用总数                   |
+| `status`                | VARCHAR(20)     | NOT NULL, CHECK (`status` IN ('active', 'inactive', 'expired', 'used_up')) | 状态                         |
+| `applicable_products_json` | JSONB        | NULLABLE (适用商品ID数组)                   | 适用商品ID列表 (JSON)      |
+| `applicable_categories_json`| JSONB      | NULLABLE (适用分类ID数组)                   | 适用分类ID列表 (JSON)      |
+
+### 50. `SaasAdvertisements` (广告表)
+管理商城广告内容。
+
+| 字段名        | 数据类型        | 约束/注释                                   | 中文注释             |
+| ------------- | --------------- | ------------------------------------------- | -------------------- |
+| `id`          | VARCHAR(255)    | PK (主键)                                   | 广告ID               |
+| `enterprise_id` | VARCHAR(255)  | FK to `SaasEnterprises(id)`, NULLABLE       | 所属企业 (null为平台通用) |
+| `name`        | VARCHAR(255)    | NOT NULL                                    | 广告名称             |
+| `ad_slot_id`  | VARCHAR(100)    | NOT NULL                                    | 广告位ID (预定义或可管理) |
+| `type`        | VARCHAR(20)     | NOT NULL, CHECK (`type` IN ('image', 'video', 'html')) | 素材类型             |
+| `asset_url`   | VARCHAR(255)    | NOT NULL                                    | 素材URL/HTML内容     |
+| `link_url`    | VARCHAR(255)    | NOT NULL                                    | 跳转链接URL          |
+| `start_date`  | TIMESTAMP WITH TIME ZONE | NOT NULL                               | 开始时间             |
+| `end_date`    | TIMESTAMP WITH TIME ZONE | NULLABLE                               | 结束时间             |
+| `status`      | VARCHAR(20)     | NOT NULL, CHECK (`status` IN ('active', 'inactive', 'scheduled', 'expired')) | 状态                 |
+| `impressions` | INT             | DEFAULT 0                                   | 展示次数 (预留)      |
+| `clicks`      | INT             | DEFAULT 0                                   | 点击次数 (预留)      |
+
+
+### 51. `SaasManagedFiles` (文件管理表)
+管理SAAS平台上传的各类文件资源。
+
+| 字段名            | 数据类型     | 约束/注释                                   | 中文注释             |
+| ----------------- | ------------ | ------------------------------------------- | -------------------- |
+| `id`              | VARCHAR(255) | PK (主键)                                   | 文件ID               |
+| `name`            | VARCHAR(255) | NOT NULL                                    | 文件名               |
+| `type`            | VARCHAR(20)  | NOT NULL, CHECK (`type` IN ('image', 'pdf', 'doc', 'audio', 'video', 'other')) | 文件主类型           |
+| `mime_type`       | VARCHAR(100) | NOT NULL                                    | MIME类型             |
+| `size_kb`         | INT          | NOT NULL                                    | 文件大小 (KB)        |
+| `url`             | VARCHAR(255) | NOT NULL                                    | 存储URL              |
+| `upload_date`     | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 上传日期             |
+| `uploader_user_id`| VARCHAR(255) | FK to `Users(id)`, NULLABLE                 | (外键) 上传用户ID     |
+| `enterprise_id`   | VARCHAR(255) | FK to `SaasEnterprises(id)`, NULLABLE       | (外键) 所属企业ID     |
+| `category_id`     | VARCHAR(255) | FK to `SaasFileCategories(id)`, NULLABLE    | (外键) 文件分类ID     |
+| `description`     | TEXT         | NULLABLE                                    | 文件描述             |
+
+### 52. `SaasFileCategories` (文件分类表)
+管理文件的分类标签。
+
+| 字段名          | 数据类型     | 约束/注释                                   | 中文注释       |
+| --------------- | ------------ | ------------------------------------------- | -------------- |
+| `id`            | VARCHAR(255) | PK (主键)                                   | 分类ID         |
+| `name`          | VARCHAR(100) | NOT NULL, UNIQUE                            | 分类名称       |
+| `description`   | TEXT         | NULLABLE                                    | 分类描述       |
+| `creation_date` | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建日期       |
+
 ---
 **注意:**
 *   JSONB 类型特定于 PostgreSQL。对于 MySQL，可以使用 JSON 类型。如果数据库不支持 JSON，则可以考虑使用 TEXT 并存储序列化的 JSON 字符串。
@@ -723,5 +905,7 @@
 *   新增了 `SaasAiWorkflowApiConfigs` 用于存储Dify/Coze等工作流API配置。
 *   新增了 `SaasLlmSettings` 用于存储核心大语言模型配置。
 *   `OutboundCallGroupMembers` 表的 `target_id` 和 `target_type` 组成了复合主键，并用于区分成员是病人还是员工。
+*   新增了在线商城相关的表：`SaasProductCategories`, `SaasProducts`, `SaasMallOrders`, `SaasMallOrderItems`, `SaasMembershipLevels`, `SaasPromotions`, `SaasCoupons`, `SaasAdvertisements`。
+*   新增了文件管理相关的表：`SaasManagedFiles`, `SaasFileCategories`。
+*   在 `PatientProfiles` 表中添加了 `membership_level_id` 和 `points` 字段，用于关联会员信息。
 
-```
